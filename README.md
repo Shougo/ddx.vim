@@ -83,4 +83,12 @@ See `:help ddx-options` for a complete list of options.
 
 ## Plans
 
-- [ ] XXX
+- [ ] View binary file
+- [ ] Edit binary file(especially, insert bytes and delete bytes)
+- [ ] Japanese encodings support
+- [ ] GB data support
+- [ ] Undo support
+- [ ] ddx-commands
+- [ ] ddx-ui-hex
+- [ ] UI support
+- [ ] Bitmap analysis
