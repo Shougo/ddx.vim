@@ -20,7 +20,7 @@ export async function main(denops: Denops) {
 
       const ddx = getDdx("");
 
-      await ddx.start(denops);
+      await ddx.start(denops, userOptions.path);
     },
   };
 
