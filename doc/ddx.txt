@@ -61,6 +61,12 @@ plugins.  You can donate money to help me!
 
    https://github.com/sponsors/Shougo
 
+Q: I want to use ":Ddx" command like ":Vinarise" in vinarise.nvim
+
+A: You can use ddx-commands.vim.
+https://github.com/Shougo/ddx-commands.vim
+It is not all users needed plugin and users can define the original commands.
+
 
 ==============================================================================
 COMPATIBILITY						*ddx-compatibility*
