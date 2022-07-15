@@ -1,5 +1,5 @@
 import { assertEquals, Denops, fn } from "./deps.ts";
-import { Context, DdxOptions } from "./types.ts";
+import { Context, DdxOptions, UiOptions } from "./types.ts";
 
 // where
 // T: Object
@@ -16,6 +16,11 @@ function partialOverwrite<T>(a: Partial<T>, b: Partial<T>): Partial<T> {
 function overwrite<T>(a: T, b: Partial<T>): T {
   return { ...a, ...b };
 }
+
+export const mergeUiOptions: Merge<UiOptions> = overwrite;
+
+export const mergeUiParams: Merge<Record<string, unknown>> = overwrite;
+
 export function foldMerge<T>(
   merge: Merge<T>,
   def: Default<T>,
@@ -34,6 +39,9 @@ export function defaultDdxOptions(): DdxOptions {
   return {
     name: "default",
     path: "",
+    ui: "",
+    uiOptions: {},
+    uiParams: {},
   };
 }
 
@@ -66,8 +74,21 @@ export function mergeDdxOptions(
   b: Partial<DdxOptions>,
 ): DdxOptions {
   const overwritten: DdxOptions = overwrite(a, b);
+  const partialMergeUiOptions = partialOverwrite;
+  const partialMergeUiParams = partialOverwrite;
 
-  return Object.assign(overwritten, {});
+  return Object.assign(overwritten, {
+    uiOptions: migrateEachKeys(
+      partialMergeUiOptions,
+      a.uiOptions,
+      b.uiOptions,
+    ) || {},
+    uiParams: migrateEachKeys(
+      partialMergeUiParams,
+      a.uiParams,
+      b.uiParams,
+    ) || {},
+  });
 }
 
 function patchDdxOptions(
@@ -75,6 +96,16 @@ function patchDdxOptions(
   b: Partial<DdxOptions>,
 ): Partial<DdxOptions> {
   const overwritten: Partial<DdxOptions> = { ...a, ...b };
+
+  const uo = migrateEachKeys(
+    partialOverwrite,
+    a.uiOptions,
+    b.uiOptions,
+  );
+  if (uo) overwritten.uiOptions = uo;
+
+  const up = migrateEachKeys(partialOverwrite, a.uiParams, b.uiParams);
+  if (up) overwritten.uiParams = up;
 
   return overwritten;
 }
@@ -189,6 +220,9 @@ Deno.test("mergeDdxOptions", () => {
     {
       name: "foo",
       path: "bar",
+      ui: "",
+      uiOptions: {},
+      uiParams: {},
     },
   );
 });
