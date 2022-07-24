@@ -1,7 +1,19 @@
 import { Denops, fn, op, parse, toFileUrl } from "./deps.ts";
-import { BaseUi, DdxExtType, DdxOptions } from "./types.ts";
-import { defaultDdxOptions } from "./context.ts";
-import { readRange } from "https://deno.land/std@0.147.0/io/files.ts";
+import {
+  BaseUi,
+  DdxBuffer,
+  DdxExtType,
+  DdxOptions,
+  UiOptions,
+} from "./types.ts";
+import { defaultUiOptions, defaultUiParams } from "./base/ui.ts";
+import {
+  defaultContext,
+  defaultDdxOptions,
+  foldMerge,
+  mergeUiOptions,
+  mergeUiParams,
+} from "./context.ts";
 
 export class Ddx {
   private uis: Record<string, BaseUi<Record<string, unknown>>> = {};
@@ -12,22 +24,47 @@ export class Ddx {
   private checkPaths: Record<string, boolean> = {};
   private options: DdxOptions = defaultDdxOptions();
   private userOptions: Record<string, unknown> = {};
+  private buffer: DdxBuffer = new DdxBuffer();
 
   async start(
-    _denops: Denops,
+    denops: Denops,
     path: string,
   ): Promise<void> {
-    const file = await Deno.open(path, { read: true });
-    const bytes = await readRange(file, { start: 0, end: 15 });
-
-    function arrayBufferToHex(buffer: Uint8Array) {
-      return Array.prototype.map.call(
-        new Uint8Array(buffer),
-        (x) => ("00" + x.toString(16)).slice(-2),
-      ).join("");
+    if (!path) {
+      await denops.call(
+        "ddx#util#print_error",
+        `You must specify path option`,
+      );
+      return;
     }
 
-    console.log(arrayBufferToHex(bytes));
+    try {
+      await this.buffer.open(path);
+    } catch (e: unknown) {
+      await errorException(
+        denops,
+        e,
+        `open: ${path} is failed`,
+      );
+      return;
+    }
+
+    const uiName = "hex";
+    await this.autoload(denops, "ui", [uiName]);
+
+    const [ui, uiOptions, uiParams] = await this.getUi(denops, uiName);
+    if (!ui) {
+      return;
+    }
+
+    await ui.redraw({
+      denops,
+      context: defaultContext(),
+      options: defaultDdxOptions(),
+      buffer: this.buffer,
+      uiOptions,
+      uiParams,
+    });
   }
 
   async register(type: DdxExtType, path: string, name: string) {
@@ -111,5 +148,104 @@ export class Ddx {
 
   getUserOptions() {
     return this.userOptions;
+  }
+
+  private async getUi(
+    denops: Denops,
+    name: string,
+  ): Promise<
+    [
+      BaseUi<Record<string, unknown>> | undefined,
+      UiOptions,
+      Record<string, unknown>,
+    ]
+  > {
+    await this.autoload(denops, "ui", [name]);
+    const ui = this.uis[name];
+    if (!ui) {
+      const message = `Invalid ui: "${this.options.ui}"`;
+      await denops.call(
+        "ddx#util#print_error",
+        message,
+      );
+      return [
+        undefined,
+        defaultUiOptions(),
+        defaultUiParams(),
+      ];
+    }
+
+    const [uiOptions, uiParams] = uiArgs(this.options, ui);
+    await checkUiOnInit(ui, denops, uiOptions, uiParams);
+
+    return [ui, uiOptions, uiParams];
+  }
+}
+
+function uiArgs<
+  Params extends Record<string, unknown>,
+>(
+  options: DdxOptions,
+  ui: BaseUi<Params>,
+): [UiOptions, Record<string, unknown>] {
+  const o = foldMerge(
+    mergeUiOptions,
+    defaultUiOptions,
+    [
+      options.uiOptions["_"],
+      options.uiOptions[ui.name],
+    ],
+  );
+  const p = foldMerge(mergeUiParams, defaultUiParams, [
+    ui.params(),
+    options.uiParams["_"],
+    options.uiParams[ui.name],
+  ]);
+  return [o, p];
+}
+
+async function checkUiOnInit(
+  ui: BaseUi<Record<string, unknown>>,
+  denops: Denops,
+  uiOptions: UiOptions,
+  uiParams: Record<string, unknown>,
+) {
+  if (ui.isInitialized) {
+    return;
+  }
+
+  try {
+    await ui.onInit({
+      denops,
+      uiOptions,
+      uiParams,
+    });
+
+    ui.isInitialized = true;
+  } catch (e: unknown) {
+    await errorException(
+      denops,
+      e,
+      `[ddx.vim] ui: ${ui.name} "onInit()" is failed`,
+    );
+  }
+}
+
+async function errorException(denops: Denops, e: unknown, message: string) {
+  await denops.call(
+    "ddx#util#print_error",
+    message,
+  );
+  if (e instanceof Error) {
+    await denops.call(
+      "ddx#util#print_error",
+      e.message,
+    );
+    if (e.stack) {
+      await denops.call(
+        "ddx#util#print_error",
+        e.stack,
+      );
+    }
   }
 }

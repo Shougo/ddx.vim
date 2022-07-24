@@ -2,6 +2,7 @@ import {
   ActionArguments,
   ActionFlags,
   Context,
+  DdxBuffer,
   DdxOptions,
   UiOptions,
 } from "../types.ts";
@@ -22,6 +23,7 @@ export type RedrawArguments<Params extends Record<string, unknown>> = {
   denops: Denops;
   context: Context;
   options: DdxOptions;
+  buffer: DdxBuffer;
   uiOptions: UiOptions;
   uiParams: Params;
 };

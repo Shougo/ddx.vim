@@ -1,6 +1,7 @@
 export { BaseUi } from "./base/ui.ts";
 export type { UiActions } from "./base/ui.ts";
 import { Denops } from "./deps.ts";
+export { DdxBuffer } from "./buffer.ts";
 
 export type DdxExtType = "ui";
 
