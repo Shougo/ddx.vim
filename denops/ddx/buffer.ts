@@ -1,23 +1,31 @@
 import { readRange } from "https://deno.land/std@0.149.0/io/files.ts";
 
 export class DdxBuffer {
+  private path = "";
   private file: Deno.FsFile | null = null;
 
   async open(path: string) {
+    this.path = path;
     this.file = await Deno.open(path, { read: true });
   }
 
   write() {
   }
 
+  async getSize() {
+    const stat = await Deno.stat(this.path);
+    return stat.size;
+  }
+
   getByte() {
   }
 
-  async getBytes(): Promise<Uint8Array> {
+  async getBytes(start: number, length: number): Promise<Uint8Array> {
     if (!this.file) {
       return new Uint8Array();
     }
-    return await readRange(this.file, { start: 0, end: 15 });
+
+    return await readRange(this.file, { start: start, end: start + length });
   }
 
   getInt8() {

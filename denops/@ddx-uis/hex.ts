@@ -7,7 +7,7 @@ import {
   UiActions,
   UiOptions,
 } from "../ddx/types.ts";
-import { Denops } from "../ddx/deps.ts";
+import { Denops, fn } from "../ddx/deps.ts";
 
 type Params = Record<never, never>;
 
@@ -20,16 +20,38 @@ export class Ui extends BaseUi<Params> {
     uiOptions: UiOptions;
     uiParams: Params;
   }): Promise<void> {
-    const bytes = await args.buffer.getBytes();
-
     function arrayBufferToHex(buffer: Uint8Array) {
       return Array.prototype.map.call(
         new Uint8Array(buffer),
         (x) => ("00" + x.toString(16)).slice(-2),
-      ).join("");
+      ).join(" ");
     }
 
-    console.log(arrayBufferToHex(bytes));
+    let lnum = 1;
+    let start = 0;
+    const size = await args.buffer.getSize();
+    const length = 16;
+
+    while (start < size) {
+      const bytes = await args.buffer.getBytes(
+        start,
+        Math.min(length, size - start) - 1,
+      );
+
+      const address = start.toString(16);
+      const padding = " ".repeat((16 - bytes.length) * 3);
+
+      await fn.setline(
+        args.denops,
+        lnum,
+        `${("00000000" + address).slice(-8)}: ${
+          arrayBufferToHex(bytes)
+        }${padding} |   ${new TextDecoder().decode(bytes)}`,
+      );
+
+      start += length;
+      lnum += 1;
+    }
   }
 
   async quit(_args: {
