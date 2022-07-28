@@ -44,7 +44,7 @@ export class Ddx {
       await errorException(
         denops,
         e,
-        `open: ${path} is failed`,
+        `open: ${path} failed`,
       );
       return;
     }
@@ -226,7 +226,7 @@ async function checkUiOnInit(
     await errorException(
       denops,
       e,
-      `[ddx.vim] ui: ${ui.name} "onInit()" is failed`,
+      `[ddx.vim] ui: ${ui.name} "onInit()" failed`,
     );
   }
 }
