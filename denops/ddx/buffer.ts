@@ -1,4 +1,4 @@
-import { readRange } from "https://deno.land/std@0.149.0/io/files.ts";
+import { readRange } from "https://deno.land/std@0.150.0/io/files.ts";
 
 export class DdxBuffer {
   private path = "";
