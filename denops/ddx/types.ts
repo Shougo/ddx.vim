@@ -7,6 +7,7 @@ export type DdxExtType = "ui";
 
 export type Context = {
   bufNr: number;
+  winId: number;
 };
 
 export type DdxOptions = {
