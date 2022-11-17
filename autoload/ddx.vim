@@ -57,15 +57,15 @@ function! s:init() abort
 
   augroup ddx
     autocmd!
+    autocmd User DDXReady :
   augroup END
 
   " Note: ddx.vim must be registered manually.
 
   " Note: denops load may be started
+  autocmd ddx User DenopsReady silent! call ddx#_register()
   if exists('g:loaded_denops') && denops#server#status() ==# 'running'
     silent! call ddx#_register()
-  else
-    autocmd ddx User DenopsReady silent! call ddx#_register()
   endif
 endfunction
 
@@ -74,6 +74,19 @@ function! ddx#_register() abort
   call denops#plugin#register('ddx',
         \ denops#util#join_path(s:root_dir, 'denops', 'ddx', 'app.ts'),
         \ { 'mode': 'skip' })
+
+  autocmd ddx User DenopsStopped call s:stopped()
+endfunction
+
+function! s:stopped() abort
+  unlet! g:ddx#_initialized
+
+  " Restore custom config
+  if exists('g:ddx#_customs')
+    for custom in g:ddx#_customs
+      call ddx#_notify(custom.method, custom.args)
+    endfor
+  endif
 endfunction
 
 function! ddx#_denops_running() abort
