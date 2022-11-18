@@ -49,9 +49,9 @@ function! s:init() abort
     return
   endif
 
-  if !has('patch-8.2.0662') && !has('nvim-0.6')
+  if !has('patch-8.2.0662') && !has('nvim-0.8')
     call ddx#util#print_error(
-          \ 'ddx requires Vim 8.2.0662+ or neovim 0.6.0+.')
+          \ 'ddx requires Vim 8.2.0662+ or neovim 0.8.0+.')
     return 1
   endif
 
@@ -73,7 +73,7 @@ let s:root_dir = fnamemodify(expand('<sfile>'), ':h:h')
 function! ddx#_register() abort
   call denops#plugin#register('ddx',
         \ denops#util#join_path(s:root_dir, 'denops', 'ddx', 'app.ts'),
-        \ { 'mode': 'skip' })
+        \ #{ mode: 'skip' })
 
   autocmd ddx User DenopsStopped call s:stopped()
 endfunction
