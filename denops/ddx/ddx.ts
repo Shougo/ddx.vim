@@ -106,31 +106,8 @@ export class Ddx {
       return [];
     }
 
-    const runtimepath = await op.runtimepath.getGlobal(denops);
-
-    async function globpath(
-      searches: string[],
-      files: string[],
-    ): Promise<string[]> {
-      let paths: string[] = [];
-      for (const search of searches) {
-        for (const file of files) {
-          paths = paths.concat(
-            await fn.globpath(
-              denops,
-              runtimepath,
-              search + file + ".ts",
-              1,
-              1,
-            ) as string[],
-          );
-        }
-      }
-
-      return paths;
-    }
-
     const paths = await globpath(
+      denops,
       [`denops/@ddx-${type}s/`],
       names.map((file) => this.aliases[type][file] ?? file),
     );
@@ -248,4 +225,38 @@ async function errorException(denops: Denops, e: unknown, message: string) {
       );
     }
   }
+}
+
+async function globpath(
+  denops: Denops,
+  searches: string[],
+  files: string[],
+): Promise<string[]> {
+  const runtimepath = await op.runtimepath.getGlobal(denops);
+
+  const check: Record<string, boolean> = {};
+  const paths: string[] = [];
+  for (const search of searches) {
+    for (const file of files) {
+      const glob = await fn.globpath(
+        denops,
+        runtimepath,
+        search + file + ".ts",
+        1,
+        1,
+      ) as string[];
+
+      for (const path of glob) {
+        // Skip already added name.
+        if (parse(path).name in check) {
+          continue;
+        }
+
+        paths.push(path);
+        check[parse(path).name] = true;
+      }
+    }
+  }
+
+  return paths;
 }
