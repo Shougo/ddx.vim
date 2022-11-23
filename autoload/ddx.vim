@@ -70,9 +70,10 @@ function! s:init() abort
 endfunction
 
 let s:root_dir = fnamemodify(expand('<sfile>'), ':h:h')
+let s:sep = has('win32') ? '\' : '/'
 function! ddx#_register() abort
   call denops#plugin#register('ddx',
-        \ denops#util#join_path(s:root_dir, 'denops', 'ddx', 'app.ts'),
+        \ join([s:root_dir, 'denops', 'ddx', 'app.ts'], s:sep),
         \ #{ mode: 'skip' })
 
   autocmd ddx User DenopsStopped call s:stopped()
