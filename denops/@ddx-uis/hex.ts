@@ -36,7 +36,7 @@ export type Params = {
 export class Ui extends BaseUi<Params> {
   private buffers: Record<string, number> = {};
 
-  async redraw(args: {
+  override async redraw(args: {
     denops: Denops;
     context: Context;
     options: DdxOptions;
@@ -138,7 +138,7 @@ export class Ui extends BaseUi<Params> {
     }
   }
 
-  async quit(args: {
+  override async quit(args: {
     denops: Denops;
     context: Context;
     options: DdxOptions;
@@ -164,7 +164,7 @@ export class Ui extends BaseUi<Params> {
     }
   }
 
-  actions: UiActions<Params> = {
+  override actions: UiActions<Params> = {
     quit: async (args: {
       denops: Denops;
       context: Context;
@@ -182,7 +182,7 @@ export class Ui extends BaseUi<Params> {
     },
   };
 
-  params(): Params {
+  override params(): Params {
     return {
       floatingBorder: "none",
       highlights: {},
