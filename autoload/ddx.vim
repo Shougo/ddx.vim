@@ -76,7 +76,7 @@ function! ddx#_register() abort
         \ join([s:root_dir, 'denops', 'ddx', 'app.ts'], s:sep),
         \ #{ mode: 'skip' })
 
-  autocmd ddx User DenopsProcessStopped:* call s:stopped()
+  autocmd ddx User DenopsClosed call s:stopped()
 endfunction
 
 function! s:stopped() abort
