@@ -124,13 +124,16 @@ export class Ui extends BaseUi<Params> {
       const address = start.toString(16);
       const padding = " ".repeat((16 - bytes.length) * 3);
 
+      // deno-lint-ignore no-control-regex
+      const ascii = (new TextDecoder().decode(bytes)).replaceAll(/[\x00-\x1f]/g, '.');
+
       await fn.setbufline(
         args.denops,
         bufnr,
         lnum,
         `${("00000000" + address).slice(-8)}: ${
           arrayBufferToHex(bytes)
-        }${padding} |   ${new TextDecoder().decode(bytes)}`,
+        }${padding} |   ${ascii}`,
       );
 
       start += length;
