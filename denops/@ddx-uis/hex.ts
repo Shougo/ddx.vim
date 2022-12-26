@@ -23,6 +23,7 @@ type HighlightGroup = {
 };
 
 export type Params = {
+  encoding: "utf-8";
   floatingBorder: FloatingBorder;
   highlights: HighlightGroup;
   split: "horizontal" | "vertical" | "floating" | "no";
