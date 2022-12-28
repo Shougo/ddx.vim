@@ -123,8 +123,11 @@ export class Ui extends BaseUi<Params> {
       const address = start.toString(16);
       const padding = " ".repeat((16 - bytes.length) * 3);
 
-      // deno-lint-ignore no-control-regex
-      const ascii = (new TextDecoder().decode(bytes)).replaceAll(/[\x00-\x1f]/g, '.');
+      const ascii = (new TextDecoder().decode(bytes)).replaceAll(
+        // deno-lint-ignore no-control-regex
+        /[\x00-\x1f]/g,
+        ".",
+      );
 
       await fn.setbufline(
         args.denops,
@@ -138,6 +141,8 @@ export class Ui extends BaseUi<Params> {
       start += length;
       lnum += 1;
     }
+
+    this.buffers[args.options.name] = bufnr;
   }
 
   override async quit(args: {
@@ -167,6 +172,30 @@ export class Ui extends BaseUi<Params> {
   }
 
   override actions: UiActions<Params> = {
+    change: async (args: {
+      denops: Denops;
+      context: Context;
+      options: DdxOptions;
+      uiParams: Params;
+    }) => {
+      // Get address
+      const currentLine = await fn.getline(args.denops, ".");
+      const curText = await args.denops.call(
+        "ddx#ui#hex#get_cur_text",
+        currentLine,
+        await fn.col(args.denops, "."),
+      );
+      const [address, type] = await args.denops.call(
+        "ddx#ui#hex#parse_address",
+        currentLine,
+        curText,
+        args.uiParams.encoding,
+      ) as string[];
+
+      console.log([address, type]);
+
+      return ActionFlags.None;
+    },
     quit: async (args: {
       denops: Denops;
       context: Context;
@@ -186,6 +215,7 @@ export class Ui extends BaseUi<Params> {
 
   override params(): Params {
     return {
+      encoding: "utf-8",
       floatingBorder: "none",
       highlights: {},
       split: "horizontal",

@@ -65,9 +65,23 @@ export async function main(denops: Denops) {
     async start(arg1: unknown): Promise<void> {
       const userOptions = ensureObject(arg1) as DdxOptions;
 
-      const ddx = getDdx("");
+      const [_, options] = await contextBuilder.get(denops, userOptions);
+
+      const ddx = getDdx(options.name);
 
       await ddx.start(denops, userOptions.path);
+    },
+    async uiAction(
+      arg1: unknown,
+      arg2: unknown,
+      arg3: unknown,
+    ): Promise<void> {
+      const name = ensureString(arg1);
+      const actionName = ensureString(arg2);
+      const params = ensureObject(arg3);
+
+      const ddu = getDdx(name);
+      await ddu.uiAction(denops, actionName, params);
     },
   };
 

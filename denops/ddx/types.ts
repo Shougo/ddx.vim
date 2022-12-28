@@ -28,7 +28,7 @@ export type ActionArguments<Params extends Record<string, unknown>> = {
   context: Context;
   options: DdxOptions;
   actionParams: unknown;
-  uiOptions: Record<string, Partial<UiOptions>>;
+  uiOptions: UiOptions;
   uiParams: Params;
 };
 

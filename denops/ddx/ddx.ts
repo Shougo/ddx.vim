@@ -1,5 +1,6 @@
 import { Denops, fn, op, parse, toFileUrl } from "./deps.ts";
 import {
+  ActionFlags,
   BaseUi,
   DdxBuffer,
   DdxExtType,
@@ -50,8 +51,6 @@ export class Ddx {
     }
 
     const uiName = "hex";
-    await this.autoload(denops, "ui", [uiName]);
-
     const [ui, uiOptions, uiParams] = await this.getUi(denops, uiName);
     if (!ui) {
       return;
@@ -117,6 +116,46 @@ export class Ddx {
     }));
 
     return paths;
+  }
+
+  async uiAction(
+    denops: Denops,
+    actionName: string,
+    params: unknown,
+  ): Promise<void> {
+    const uiName = "hex";
+    const [ui, uiOptions, uiParams] = await this.getUi(denops, uiName);
+    if (!ui) {
+      return;
+    }
+
+    const action = ui.actions[actionName];
+    if (!action) {
+      await denops.call(
+        "ddu#util#print_error",
+        `Invalid UI action: ${actionName}`,
+      );
+      return;
+    }
+    const flags = await action({
+      denops,
+      context: defaultContext(),
+      options: this.options,
+      uiOptions,
+      uiParams,
+      actionParams: params,
+    });
+
+    if (flags & ActionFlags.Redraw) {
+      await ui.redraw({
+        denops,
+        context: defaultContext(),
+        options: this.options,
+        buffer: this.buffer,
+        uiOptions,
+        uiParams,
+      });
+    }
   }
 
   getOptions() {
