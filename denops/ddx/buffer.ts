@@ -8,6 +8,10 @@ export class DdxBuffer {
   async open(path: string) {
     this.close();
 
+    if (!(await exists(path))) {
+      return;
+    }
+
     this.path = path;
     this.file = await Deno.open(path, { read: true });
   }
@@ -16,12 +20,20 @@ export class DdxBuffer {
   }
 
   close() {
-    if (this.file) {
-      this.file.close();
+    if (!this.file) {
+      return;
     }
+
+    this.file.close();
+    this.file = null;
+    this.path = "";
   }
 
   async getSize() {
+    if (!this.file) {
+      return 0;
+    }
+
     const stat = await Deno.stat(this.path);
     return stat.size;
   }
@@ -53,11 +65,37 @@ export class DdxBuffer {
   }
 }
 
+const exists = async (path: string) => {
+  // Note: Deno.stat() may be failed
+  try {
+    const stat = await Deno.stat(path);
+    if (stat.isDirectory || stat.isFile || stat.isSymlink) {
+      return true;
+    }
+  } catch (_: unknown) {
+    // Ignore stat exception
+  }
+
+  return false;
+};
+
+
 Deno.test("buffer", async () => {
+  const buffer = new DdxBuffer();
+
+  // Check empty
+  assertEquals(0, await buffer.getSize());
+  assertEquals(Uint8Array.from([]), await buffer.getBytes(0, 655535));
+
+  // Invalid path
+  await buffer.open("foo-bar-baz");
+  assertEquals(0, await buffer.getSize());
+  assertEquals(Uint8Array.from([]), await buffer.getBytes(0, 655535));
+
+  // Valid path
   const tempFilePath = await Deno.makeTempFile();
   await Deno.writeTextFile(tempFilePath, "Hello world!");
 
-  const buffer = new DdxBuffer();
   await buffer.open(tempFilePath);
 
   assertEquals(12, await buffer.getSize());
@@ -68,4 +106,8 @@ Deno.test("buffer", async () => {
   );
 
   buffer.close();
+
+  // Check close
+  assertEquals(0, await buffer.getSize());
+  assertEquals(Uint8Array.from([]), await buffer.getBytes(0, 655535));
 });
