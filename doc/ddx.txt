@@ -11,6 +11,11 @@ Interface		|ddx-interface|
   Options		  |ddx-options|
   Functions		  |ddx-functions|
   Custom Functions	  |ddx-custom-functions|
+UIs			|ddx-uis|
+  UI option	          |ddx-ui-options|
+  UI params	          |ddx-ui-params|
+Create UI		|ddx-create-ui|
+  UI attributes		  |ddx-ui-attributes|
 Examples		|ddx-examples|
 FAQ			|ddx-faq|
 Compatibility		|ddx-compatibility|
@@ -45,8 +50,150 @@ INTERFACE						*ddx-interface*
 ------------------------------------------------------------------------------
 OPTIONS	 						*ddx-options*
 
+							*ddx-option-name*
+name
+		Specify the name.
+
+		Default: "default"
+
+							*ddx-option-path*
+path
+		Specify the file path.
+
+		Default: ""
+
+							*ddx-option-ui*
+ui
+		Specify UI name.
+		Note: You must set the option in the first.
+
+		Default: ""
+
+					    		*ddx-option-uiOptions*
+uiOptions
+		It is a dictionary that maps UI names to its options.  The
+		options with the name "_" is used as the options for all
+		UIs.
+		See also |ddx-ui-options|.
+
+		Default: {}
+
+						*ddx-option-uiParams*
+uiParams
+		It is a dictionary that maps UI names to its parameters.
+		See also |ddx-ui-params|.
+
+		Default: {}
+
 ------------------------------------------------------------------------------
 FUNCTIONS 						*ddx-functions*
+
+							*ddx#start()*
+ddx#start({options})
+		Creates a new ddx.
+		Note: You cannot call it in |vim_starting|.  Because
+		denops.vim is not initialized.
+
+		Refer to |ddx-options| about {options}.  If you skip a value,
+		it uses the default value.
+
+							*ddx#ui_action()*
+ddx#ui_action({name}, {action}, {params})
+		Do the {action} action in current UI.
+
+		{name} is specified ddx name(|ddx-option-name|).
+
+		{params} is action params.
+
+CUSTOM FUNCTIONS 					*ddx-custom-functions*
+
+							*ddx#custom#alias()*
+ddx#custom#alias({type}, {alias-name}, {base-name})
+		Define {alias-name} alias based on {base-name}.
+		{type} must be "ui".
+		Note: It must be called before initialization.
+
+						*ddx#custom#get_aliases()*
+ddx#custom#get_aliases()
+		Get aliases.
+
+						*ddx#custom#get_current()*
+ddx#custom#get_current({name})
+		Get current ddx options for {name}.
+		{name} is specified by |ddx-option-name|.
+
+						*ddx#custom#get_global()*
+ddx#custom#get_global()
+		Get global options.
+
+						*ddx#custom#get_local()*
+ddx#custom#get_local()
+		Get current buffer specific options.
+
+						*ddx#custom#patch_global()*
+ddx#custom#patch_global({option-name}, {value})
+ddx#custom#patch_global({dict})
+		Set {option-name} option to {value}.
+		If {dict} is available, the key is {option-name} and the value
+		is {value}. See |ddx-options| for available {option-name}.
+
+						*ddx#custom#patch_local()*
+ddx#custom#patch_local({buffer-name}, {option-name}, {value})
+ddx#custom#patch_local({buffer-name}, {dict})
+		Set local options for specific |ddx-option-name|.
+		The arguments are the same as for |ddx#custom#patch_global()|.
+
+==============================================================================
+UIS							*ddx-uis*
+
+Note: The UIs are not bundled in ddx.vim.  You need to install them
+to use ddx.vim.  Please search them by https://github.com/topics/ddx-ui
+
+
+------------------------------------------------------------------------------
+UI OPTIONS						*ddx-ui-options*
+
+Note: The UIs cannot set default options for UI.  If the UI need
+to specify the recommended configuration, you should write it in the
+documentation instead.
+
+
+------------------------------------------------------------------------------
+UI PARAMS						*ddx-ui-params*
+
+These are the parameters that each UI can have.  Please read the UI
+documentation.
+
+
+==============================================================================
+CREATE UI						*ddx-create-ui*
+
+To create UI, you should read other UIs implementation.
+
+The UIs must put under "denops/@ddx-uis/*.ts".
+
+UI class must extend the BaseUi class.
+
+Note: It must be written in TypeScript language.
+
+Note: If you call Vim functions, it is not asynchronous.
+
+
+------------------------------------------------------------------------------
+UI ATTRIBUTES						*ddx-ui-attributes*
+
+						*ddx-ui-attribute-actions*
+actions			(Record<string, function>)	(Optional)
+		Defines UI actions.
+		The actions are called from |ddx#ui_action()|.
+
+						*ddx-ui-attribute-onInit*
+onInit			(function)			(Optional)
+		Called before call UI functions.
+
+						*ddx-ui-attribute-params*
+params			(function)			(Required)
+		Called to get UI params.
 
 ==============================================================================
 EXAMPLES						*ddx-examples*

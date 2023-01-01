@@ -83,7 +83,7 @@ See `:help ddx-options` for a complete list of options.
 
 ## Plans
 
-- [ ] View binary file
+- [x] View binary file
 - [ ] Edit binary file(especially, insert bytes and delete bytes)
 - [ ] Japanese encodings support
 - [ ] GB data support
