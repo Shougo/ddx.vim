@@ -117,7 +117,7 @@ export class Ui extends BaseUi<Params> {
     while (start < size) {
       const bytes = await args.buffer.getBytes(
         start,
-        Math.min(length, size - start) - 1,
+        Math.min(length, size - start),
       );
 
       const address = start.toString(16);
