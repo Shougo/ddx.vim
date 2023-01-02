@@ -87,7 +87,7 @@ export class DdxBuffer {
           bytesPos,
         );
       } else {
-        bytes.set(buffer.bytes, bytesPos);
+        bytes.set(buffer.bytes.slice(start, length - 1), bytesPos);
       }
 
       bytesPos += bufLength;
