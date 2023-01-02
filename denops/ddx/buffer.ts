@@ -70,22 +70,27 @@ export class DdxBuffer {
     const maxSize = this.getSize() - start;
 
     const bytes = new Uint8Array(maxSize < length ? maxSize : length);
-    let pos = 0;
+    let bytesPos = 0;
 
     for (const buffer of this.buffers) {
+      // Skip until "start".
+      const bufLength = isFileBuffer(buffer)
+        ? buffer.length
+        : buffer.bytes.length;
+
       if (isFileBuffer(buffer)) {
         bytes.set(
           await readRange(buffer.file, {
-            start: buffer.start,
-            end: buffer.start + length - 1,
+            start: buffer.start + start,
+            end: buffer.start + start + length - 1,
           }),
-          pos,
+          bytesPos,
         );
-        pos += buffer.length;
       } else {
-        bytes.set(buffer.bytes, pos);
-        pos += buffer.bytes.length;
+        bytes.set(buffer.bytes, bytesPos);
       }
+
+      bytesPos += bufLength;
     }
 
     return bytes;
