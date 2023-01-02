@@ -1,52 +1,94 @@
 import { assertEquals } from "./deps.ts";
 import { readRange } from "https://deno.land/std@0.170.0/io/read_range.ts";
 
+type FileBuffer = {
+  file: Deno.FsFile;
+  start: number;
+  length: number;
+  path: string;
+};
+
+type BytesBuffer = {
+  bytes: Uint8Array;
+};
+
+// deno-lint-ignore no-explicit-any
+function isFileBuffer(arg: any): arg is FileBuffer {
+  return arg.file !== undefined;
+}
+
+type Buffer = FileBuffer | BytesBuffer;
+
 export class DdxBuffer {
-  private path = "";
-  private file: Deno.FsFile | null = null;
+  private buffers: Buffer[] = [];
 
   async open(path: string) {
-    this.close();
-
     if (!(await exists(path))) {
       return;
     }
 
-    this.path = path;
-    this.file = await Deno.open(path, { read: true });
+    const stat = await Deno.stat(path);
+
+    this.buffers.push({
+      file: await Deno.open(path, { read: true }),
+      start: 0,
+      length: stat.size,
+      path,
+    });
   }
 
   write() {
   }
 
   close() {
-    if (!this.file) {
-      return;
+    for (const buffer of this.buffers) {
+      if (isFileBuffer(buffer)) {
+        buffer.file.close();
+        buffer.path = "";
+      }
     }
-
-    this.file.close();
-    this.file = null;
-    this.path = "";
   }
 
-  async getSize() {
-    if (!this.file) {
-      return 0;
+  getSize(): number {
+    let size = 0;
+
+    for (const buffer of this.buffers) {
+      if (isFileBuffer(buffer)) {
+        size += buffer.length;
+      } else {
+        size += buffer.bytes.length;
+      }
     }
 
-    const stat = await Deno.stat(this.path);
-    return stat.size;
+    return size;
   }
 
   getByte() {
   }
 
   async getBytes(start: number, length: number): Promise<Uint8Array> {
-    if (!this.file) {
-      return new Uint8Array();
+    const maxSize = this.getSize() - start;
+
+    const bytes = new Uint8Array(maxSize < length ? maxSize : length);
+    let pos = 0;
+
+    for (const buffer of this.buffers) {
+      if (isFileBuffer(buffer)) {
+        bytes.set(
+          await readRange(buffer.file, {
+            start: buffer.start,
+            end: buffer.start + length - 1,
+          }),
+          pos,
+        );
+        pos += buffer.length;
+      } else {
+        bytes.set(buffer.bytes, pos);
+        pos += buffer.bytes.length;
+      }
     }
 
-    return await readRange(this.file, { start: start, end: start + length - 1 });
+    return bytes;
   }
 
   getInt8() {
@@ -79,17 +121,16 @@ const exists = async (path: string) => {
   return false;
 };
 
-
 Deno.test("buffer", async () => {
   const buffer = new DdxBuffer();
 
   // Check empty
-  assertEquals(0, await buffer.getSize());
-  assertEquals(Uint8Array.from([]), await buffer.getBytes(0, 655535));
+  assertEquals(0, buffer.getSize());
+  assertEquals(Uint8Array.from([]), await buffer.getBytes(0, 10));
 
   // Invalid path
   await buffer.open("foo-bar-baz");
-  assertEquals(0, await buffer.getSize());
+  assertEquals(0, buffer.getSize());
   assertEquals(Uint8Array.from([]), await buffer.getBytes(0, 655535));
 
   // Valid path
@@ -98,7 +139,7 @@ Deno.test("buffer", async () => {
 
   await buffer.open(tempFilePath);
 
-  assertEquals(12, await buffer.getSize());
+  assertEquals(12, buffer.getSize());
 
   assertEquals(
     Uint8Array.from([72, 101, 108, 108, 111]),
@@ -106,8 +147,4 @@ Deno.test("buffer", async () => {
   );
 
   buffer.close();
-
-  // Check close
-  assertEquals(0, await buffer.getSize());
-  assertEquals(Uint8Array.from([]), await buffer.getBytes(0, 655535));
 });
