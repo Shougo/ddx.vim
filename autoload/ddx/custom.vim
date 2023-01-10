@@ -1,15 +1,9 @@
-function! ddx#custom#patch_global(key_or_dict, ...) abort
-  if a:0 > 1
-    call ddx#util#print_error('The args is too much: ' . string(a:000))
-  endif
-  let dict = s:normalize_key_or_dict(a:key_or_dict, get(a:000, 0, ''))
+function! ddx#custom#patch_global(key_or_dict, value = '') abort
+  let dict = s:normalize_key_or_dict(a:key_or_dict, a:value)
   call s:notify('patchGlobal', [dict])
 endfunction
-function! ddx#custom#patch_local(name, key_or_dict, ...) abort
-  if a:0 > 1
-    call ddx#util#print_error('The args is too much: ' . string(a:000))
-  endif
-  let dict = s:normalize_key_or_dict(a:key_or_dict, get(a:000, 0, ''))
+function! ddx#custom#patch_local(name, key_or_dict, value = '') abort
+  let dict = s:normalize_key_or_dict(a:key_or_dict, a:value)
   call s:notify('patchLocal', [dict, a:name])
 endfunction
 

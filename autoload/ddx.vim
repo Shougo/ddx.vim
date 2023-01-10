@@ -1,5 +1,5 @@
-function! ddx#start(...) abort
-  call ddx#_request('start', [get(a:000, 0, {})])
+function! ddx#start(options = {}) abort
+  call ddx#_request('start', [a:options])
 endfunction
 function! ddx#ui_action(name, action, params) abort
   call ddx#_request('uiAction', [a:name, a:action, a:params])

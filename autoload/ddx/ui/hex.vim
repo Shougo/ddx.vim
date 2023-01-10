@@ -1,9 +1,9 @@
-function! ddx#ui#hex#do_action(name, ...) abort
+function! ddx#ui#hex#do_action(name, options = {}) abort
   if !exists('b:ddx_ui_name') || &filetype !=# 'ddx-hex'
     return
   endif
 
-  call ddx#ui_action(b:ddx_ui_name, a:name, get(a:000, 0, {}))
+  call ddx#ui_action(b:ddx_ui_name, a:name, a:options)
 endfunction
 
 function! ddx#ui#hex#parse_address(string, cur_text, encoding) abort
