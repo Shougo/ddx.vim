@@ -111,7 +111,7 @@ export class Ui extends BaseUi<Params> {
 
     let lnum = 1;
     let start = 0;
-    const size = await args.buffer.getSize();
+    const size = args.buffer.getSize();
     const length = 16;
 
     while (start < size) {

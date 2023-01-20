@@ -1,5 +1,5 @@
 import { assertEquals } from "./deps.ts";
-import { readRange } from "https://deno.land/std@0.171.0/io/read_range.ts";
+import { readRange } from "https://deno.land/std@0.173.0/io/read_range.ts";
 
 type FileBuffer = {
   file: Deno.FsFile;
@@ -37,7 +37,15 @@ export class DdxBuffer {
     });
   }
 
-  write() {
+  insert(_pos: number, bytes: Uint8Array) {
+    this.buffers.push({
+      bytes,
+    });
+  }
+
+  async write(path: string) {
+    const bytes = await this.getBytes(0, this.getSize());
+    await Deno.writeFile(path, bytes);
   }
 
   close() {
@@ -87,7 +95,7 @@ export class DdxBuffer {
           bytesPos,
         );
       } else {
-        bytes.set(buffer.bytes.slice(start, length - 1), bytesPos);
+        bytes.set(buffer.bytes.slice(start, length), bytesPos);
       }
 
       bytesPos += bufLength;
@@ -149,6 +157,31 @@ Deno.test("buffer", async () => {
   assertEquals(
     Uint8Array.from([72, 101, 108, 108, 111]),
     await buffer.getBytes(0, 5),
+  );
+
+  buffer.close();
+});
+
+Deno.test("bytes insertion", async () => {
+  const buffer = new DdxBuffer();
+
+  const bytes = Uint8Array.from([72, 101, 108, 108, 111]);
+
+  buffer.insert(0, bytes);
+  assertEquals(5, buffer.getSize());
+
+  assertEquals(
+    bytes,
+    await buffer.getBytes(0, 5),
+  );
+
+  // Save
+  const tempFilePath = await Deno.makeTempFile();
+  await buffer.write(tempFilePath);
+
+  assertEquals(
+    bytes,
+    await Deno.readFile(tempFilePath),
   );
 
   buffer.close();
