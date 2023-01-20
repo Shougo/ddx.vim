@@ -1,5 +1,5 @@
 import { assertEquals, Denops, fn } from "./deps.ts";
-import { Context, DdxOptions, UiOptions } from "./types.ts";
+import { Context, DdxOptions, UiOptions, BaseUiParams, UserOptions } from "./types.ts";
 
 // where
 // T: Object
@@ -19,7 +19,7 @@ function overwrite<T>(a: T, b: Partial<T>): T {
 
 export const mergeUiOptions: Merge<UiOptions> = overwrite;
 
-export const mergeUiParams: Merge<Record<string, unknown>> = overwrite;
+export const mergeUiParams: Merge<BaseUiParams> = overwrite;
 
 export function foldMerge<T>(
   merge: Merge<T>,
@@ -116,7 +116,7 @@ class Custom {
   global: Partial<DdxOptions> = {};
   local: Record<string, Partial<DdxOptions>> = {};
 
-  get(userOptions: Record<string, unknown>): DdxOptions {
+  get(userOptions: UserOptions): DdxOptions {
     const options = foldMerge(mergeDdxOptions, defaultDdxOptions, [
       this.global,
       userOptions,
@@ -156,7 +156,7 @@ export class ContextBuilder {
 
   async get(
     denops: Denops,
-    options: Record<string, unknown>,
+    options: UserOptions,
   ): Promise<[Context, DdxOptions]> {
     return [
       {

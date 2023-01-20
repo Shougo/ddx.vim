@@ -2,10 +2,12 @@ import { Denops, fn, op, parse, toFileUrl } from "./deps.ts";
 import {
   ActionFlags,
   BaseUi,
+  BaseUiParams,
   DdxBuffer,
   DdxExtType,
   DdxOptions,
   UiOptions,
+  UserOptions,
 } from "./types.ts";
 import { defaultUiOptions, defaultUiParams } from "./base/ui.ts";
 import {
@@ -17,14 +19,14 @@ import {
 } from "./context.ts";
 
 export class Ddx {
-  private uis: Record<string, BaseUi<Record<string, unknown>>> = {};
+  private uis: Record<string, BaseUi<BaseUiParams>> = {};
   private aliases: Record<DdxExtType, Record<string, string>> = {
     ui: {},
   };
 
   private checkPaths: Record<string, boolean> = {};
   private options: DdxOptions = defaultDdxOptions();
-  private userOptions: Record<string, unknown> = {};
+  private userOptions: UserOptions = {};
   private buffer: DdxBuffer = new DdxBuffer();
 
   async start(
@@ -171,9 +173,9 @@ export class Ddx {
     name: string,
   ): Promise<
     [
-      BaseUi<Record<string, unknown>> | undefined,
+      BaseUi<BaseUiParams> | undefined,
       UiOptions,
-      Record<string, unknown>,
+      BaseUiParams,
     ]
   > {
     await this.autoload(denops, "ui", [name]);
@@ -199,11 +201,11 @@ export class Ddx {
 }
 
 function uiArgs<
-  Params extends Record<string, unknown>,
+  Params extends BaseUiParams,
 >(
   options: DdxOptions,
   ui: BaseUi<Params>,
-): [UiOptions, Record<string, unknown>] {
+): [UiOptions, BaseUiParams] {
   const o = foldMerge(
     mergeUiOptions,
     defaultUiOptions,
@@ -221,10 +223,10 @@ function uiArgs<
 }
 
 async function checkUiOnInit(
-  ui: BaseUi<Record<string, unknown>>,
+  ui: BaseUi<BaseUiParams>,
   denops: Denops,
   uiOptions: UiOptions,
-  uiParams: Record<string, unknown>,
+  uiParams: BaseUiParams,
 ) {
   if (ui.isInitialized) {
     return;

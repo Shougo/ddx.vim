@@ -1,7 +1,9 @@
 export { BaseUi } from "./base/ui.ts";
-export type { UiActions } from "./base/ui.ts";
-import { Denops } from "./deps.ts";
+export type { UiActions, BaseUiParams } from "./base/ui.ts";
 export { DdxBuffer } from "./buffer.ts";
+
+import { Denops } from "./deps.ts";
+import type { BaseUiParams } from "./base/ui.ts";
 
 export type DdxExtType = "ui";
 
@@ -15,15 +17,17 @@ export type DdxOptions = {
   path: string;
   ui: string;
   uiOptions: Record<string, Partial<UiOptions>>;
-  uiParams: Record<string, Partial<Record<string, unknown>>>;
+  uiParams: Record<string, Partial<BaseUiParams>>;
 };
+
+export type UserOptions = Record<string, unknown>;
 
 export type UiOptions = {
   // TODO: add options and remove placeholder
   placeholder?: unknown;
 };
 
-export type ActionArguments<Params extends Record<string, unknown>> = {
+export type ActionArguments<Params extends BaseUiParams> = {
   denops: Denops;
   context: Context;
   options: DdxOptions;

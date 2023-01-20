@@ -8,18 +8,20 @@ import {
 } from "../types.ts";
 import { Denops } from "../deps.ts";
 
-export type UiActions<Params extends Record<string, unknown>> = Record<
+export type BaseUiParams = Record<string, unknown>;
+
+export type UiActions<Params extends BaseUiParams> = Record<
   string,
   (args: ActionArguments<Params>) => Promise<ActionFlags>
 >;
 
-export type OnInitArguments<Params extends Record<string, unknown>> = {
+export type OnInitArguments<Params extends BaseUiParams> = {
   denops: Denops;
   uiOptions: UiOptions;
   uiParams: Params;
 };
 
-export type RedrawArguments<Params extends Record<string, unknown>> = {
+export type RedrawArguments<Params extends BaseUiParams> = {
   denops: Denops;
   context: Context;
   options: DdxOptions;
@@ -28,7 +30,7 @@ export type RedrawArguments<Params extends Record<string, unknown>> = {
   uiParams: Params;
 };
 
-export type QuitArguments<Params extends Record<string, unknown>> = {
+export type QuitArguments<Params extends BaseUiParams> = {
   denops: Denops;
   context: Context;
   options: DdxOptions;
@@ -36,9 +38,7 @@ export type QuitArguments<Params extends Record<string, unknown>> = {
   uiParams: Params;
 };
 
-export abstract class BaseUi<
-  Params extends Record<string, unknown>,
-> {
+export abstract class BaseUi<Params extends BaseUiParams> {
   name = "";
   isInitialized = false;
 
@@ -59,6 +59,6 @@ export function defaultUiOptions(): UiOptions {
   return {};
 }
 
-export function defaultUiParams(): Record<string, unknown> {
+export function defaultUiParams(): BaseUiParams {
   return {};
 }
