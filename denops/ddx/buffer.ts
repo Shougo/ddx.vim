@@ -37,8 +37,25 @@ export class DdxBuffer {
     });
   }
 
-  insert(_pos: number, bytes: Uint8Array) {
-    this.buffers.push({
+  insert(pos: number, bytes: Uint8Array) {
+    let bytesPos = 0;
+    let index = 0;
+
+    for (const buffer of this.buffers) {
+      // Skip until "start".
+      const bufLength = isFileBuffer(buffer)
+        ? buffer.length
+        : buffer.bytes.length;
+
+      if (pos < bytesPos) {
+        break;
+      }
+
+      bytesPos += bufLength;
+      index++;
+    }
+
+    this.buffers.splice(index, 0, {
       bytes,
     });
   }
@@ -165,13 +182,18 @@ Deno.test("buffer", async () => {
 Deno.test("bytes insertion", async () => {
   const buffer = new DdxBuffer();
 
-  const bytes = Uint8Array.from([72, 101, 108, 108, 111]);
+  const bytes1 = Uint8Array.from([72, 101]);
+  const bytes2 = Uint8Array.from([108, 108, 111]);
+  const bytes3 = Uint8Array.from([72, 101, 108, 108, 111]);
 
-  buffer.insert(0, bytes);
+  buffer.insert(0, bytes1);
+  assertEquals(2, buffer.getSize());
+
+  buffer.insert(2, bytes2);
   assertEquals(5, buffer.getSize());
 
   assertEquals(
-    bytes,
+    bytes3,
     await buffer.getBytes(0, 5),
   );
 
@@ -180,7 +202,7 @@ Deno.test("bytes insertion", async () => {
   await buffer.write(tempFilePath);
 
   assertEquals(
-    bytes,
+    bytes3,
     await Deno.readFile(tempFilePath),
   );
 
