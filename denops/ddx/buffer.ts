@@ -88,7 +88,31 @@ export class DdxBuffer {
     return size;
   }
 
-  getByte() {
+  async getByte(pos: number): Promise<number | undefined> {
+    let bytesPos = 0;
+
+    for (const buffer of this.buffers) {
+      // Skip until "start".
+      const bufLength = isFileBuffer(buffer)
+        ? buffer.length
+        : buffer.bytes.length;
+
+      if (bytesPos < pos) {
+        bytesPos += bufLength;
+        continue;
+      }
+
+      if (isFileBuffer(buffer)) {
+        return (await readRange(buffer.file, {
+          start: buffer.start + pos,
+          end: buffer.start + pos + 1,
+        })).at(0);
+      } else {
+        return buffer.bytes.at(pos);
+      }
+    }
+
+    return undefined;
   }
 
   async getBytes(start: number, length: number): Promise<Uint8Array> {
