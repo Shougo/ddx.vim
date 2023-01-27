@@ -176,6 +176,7 @@ export class Ui extends BaseUi<Params> {
       denops: Denops;
       context: Context;
       options: DdxOptions;
+      buffer: DdxBuffer;
       uiParams: Params;
     }) => {
       // Get address
@@ -185,14 +186,27 @@ export class Ui extends BaseUi<Params> {
         currentLine,
         await fn.col(args.denops, "."),
       );
-      const [address, type] = await args.denops.call(
+      const [type, addressString] = await args.denops.call(
         "ddx#ui#hex#parse_address",
         currentLine,
         curText,
         args.uiParams.encoding,
       ) as string[];
 
-      console.log([address, type]);
+      const address = parseInt(addressString, 16);
+      console.log([addressString, address, type]);
+      const currentValue = await args.buffer.getByte(address);
+      const input = await args.denops.call(
+        "ddx#ui#hex#input",
+        "New value: ",
+      ) as string;
+      if (input == "") {
+        return ActionFlags.Persist;
+      }
+
+      const value = parseInt(input, 16);
+      console.log([currentValue, value]);
+      await args.buffer.change(address, value);
 
       return ActionFlags.Redraw;
     },

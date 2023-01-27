@@ -145,6 +145,9 @@ export class DdxBuffer {
     return bytes;
   }
 
+  async change(_pos: number, _value: number) {
+  }
+
   getInt8() {
   }
 

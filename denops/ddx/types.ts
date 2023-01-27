@@ -1,5 +1,6 @@
 import { Denops } from "./deps.ts";
 import type { BaseUiParams } from "./base/ui.ts";
+import { DdxBuffer } from "./buffer.ts";
 
 export { BaseUi } from "./base/ui.ts";
 export type { BaseUiParams, UiActions } from "./base/ui.ts";
@@ -31,6 +32,7 @@ export type ActionArguments<Params extends BaseUiParams> = {
   denops: Denops;
   context: Context;
   options: DdxOptions;
+  buffer: DdxBuffer;
   actionParams: unknown;
   uiOptions: UiOptions;
   uiParams: Params;

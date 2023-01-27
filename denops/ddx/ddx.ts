@@ -143,6 +143,7 @@ export class Ddx {
       denops,
       context: defaultContext(),
       options: this.options,
+      buffer: this.buffer,
       uiOptions,
       uiParams,
       actionParams: params,
