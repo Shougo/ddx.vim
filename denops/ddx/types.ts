@@ -38,7 +38,6 @@ export type ActionArguments<Params extends BaseUiParams> = {
 
 export enum ActionFlags {
   None = 0,
-  RefreshItems = 1 << 0,
-  Redraw = 1 << 1,
-  Persist = 1 << 2,
+  Redraw = 1 << 0,
+  Persist = 1 << 1,
 }

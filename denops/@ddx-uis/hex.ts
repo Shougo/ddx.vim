@@ -194,7 +194,7 @@ export class Ui extends BaseUi<Params> {
 
       console.log([address, type]);
 
-      return ActionFlags.None;
+      return ActionFlags.Redraw;
     },
     quit: async (args: {
       denops: Denops;
