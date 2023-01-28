@@ -193,8 +193,17 @@ export class Ui extends BaseUi<Params> {
         args.uiParams.encoding,
       ) as string[];
 
-      const address = parseInt(addressString, 16);
+      const address = parseInt(addressString, 16) || -1;
+      if (address < 0) {
+        await args.denops.call(
+          "ddx#util#print_error",
+          "Invalid address",
+        );
+        return ActionFlags.Persist;
+      }
+
       console.log([addressString, address, type]);
+
       const currentValue = await args.buffer.getByte(address);
       const input = await args.denops.call(
         "ddx#ui#hex#input",
@@ -204,8 +213,17 @@ export class Ui extends BaseUi<Params> {
         return ActionFlags.Persist;
       }
 
-      const value = parseInt(input, 16);
+      const value = parseInt(input, 16) || -1;
+      if (value < 0) {
+        await args.denops.call(
+          "ddx#util#print_error",
+          "Invalid value",
+        );
+        return ActionFlags.Persist;
+      }
+
       console.log([currentValue, value]);
+
       await args.buffer.change(address, value);
 
       return ActionFlags.Redraw;
