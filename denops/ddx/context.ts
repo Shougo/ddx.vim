@@ -164,14 +164,34 @@ export class ContextBuilder {
     denops: Denops,
     options: UserOptions,
   ): Promise<[Context, DdxOptions]> {
+    const userOptions = this.custom.get(options);
+
+    await this.validate(denops, "options", userOptions, defaultDdxOptions());
+
     return [
       {
         ...defaultContext(),
         bufNr: await fn.bufnr(denops, "%"),
         winId: await fn.win_getid(denops) as number,
       },
-      this.custom.get(options),
+      userOptions,
     ];
+  }
+
+  async validate(
+    denops: Denops,
+    name: string,
+    options: Record<string, unknown>,
+    defaults: Record<string, unknown>,
+  ) {
+    for (const key in options) {
+      if (!(key in defaults)) {
+        await denops.call(
+          "ddx#util#print_error",
+          `Invalid ${name}: "${key}"`,
+        );
+      }
+    }
   }
 
   getGlobal(): Partial<DdxOptions> {
