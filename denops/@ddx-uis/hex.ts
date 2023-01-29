@@ -193,8 +193,8 @@ export class Ui extends BaseUi<Params> {
         args.uiParams.encoding,
       ) as string[];
 
-      const address = parseInt(addressString, 16) || -1;
-      if (address < 0) {
+      const address = parseInt(addressString, 16);
+      if (Number.isNaN(address)) {
         await args.denops.call(
           "ddx#util#print_error",
           "Invalid address",
@@ -213,8 +213,8 @@ export class Ui extends BaseUi<Params> {
         return ActionFlags.Persist;
       }
 
-      const value = parseInt(input, 16) || -1;
-      if (value < 0) {
+      const value = parseInt(input, 16);
+      if (Number.isNaN(value)) {
         await args.denops.call(
           "ddx#util#print_error",
           "Invalid value",
@@ -224,7 +224,7 @@ export class Ui extends BaseUi<Params> {
 
       console.log([currentValue, value]);
 
-      await args.buffer.change(address, value);
+      args.buffer.change(address, value);
 
       return ActionFlags.Redraw;
     },

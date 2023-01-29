@@ -37,23 +37,30 @@ export class DdxBuffer {
     });
   }
 
-  insert(pos: number, bytes: Uint8Array) {
+  getIndex(pos: number): [number, number] {
     let bytesPos = 0;
     let index = 0;
+    let offset = pos;
 
     for (const buffer of this.buffers) {
-      // Skip until "start".
-      const bufLength = isFileBuffer(buffer)
-        ? buffer.length
-        : buffer.bytes.length;
-
       if (pos < bytesPos) {
         break;
       }
 
+      const bufLength = isFileBuffer(buffer)
+        ? buffer.length
+        : buffer.bytes.length;
+
       bytesPos += bufLength;
+      offset -= bufLength;
       index++;
     }
+
+    return [index, offset];
+  }
+
+  insert(pos: number, bytes: Uint8Array) {
+    const [index, offset] = this.getIndex(pos);
 
     this.buffers.splice(index, 0, {
       bytes,
@@ -145,7 +152,33 @@ export class DdxBuffer {
     return bytes;
   }
 
-  async change(_pos: number, _value: number) {
+  change(pos: number, value: number) {
+    if (this.buffers.length == 0) {
+      this.insert(pos, Uint8Array.from([value]));
+      return;
+    }
+
+    const [index, offset] = this.getIndex(pos);
+    this.insert(pos, Uint8Array.from([value]));
+
+    const prevBuffer = this.buffers[index];
+    this.buffers.splice(index, 0, prevBuffer);
+
+    if (isFileBuffer(prevBuffer)) {
+      prevBuffer.length = offset;
+    } else {
+      prevBuffer.bytes = prevBuffer.bytes.slice(offset);
+    }
+
+    const nextBuffer = this.buffers[index + 2];
+    if (nextBuffer) {
+      if (isFileBuffer(nextBuffer)) {
+        nextBuffer.start = offset + 1;
+        nextBuffer.length -= offset + 1;
+      } else {
+        nextBuffer.bytes = nextBuffer.bytes.slice(offset + 1);
+      }
+    }
   }
 
   getInt8() {
