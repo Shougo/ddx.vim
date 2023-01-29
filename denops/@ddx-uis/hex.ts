@@ -224,7 +224,7 @@ export class Ui extends BaseUi<Params> {
 
       console.log([currentValue, value]);
 
-      args.buffer.change(address, value);
+      args.buffer.insert(address, Uint8Array.from([value]));
 
       return ActionFlags.Redraw;
     },
