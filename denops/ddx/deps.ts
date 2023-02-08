@@ -13,10 +13,10 @@ export {
   ensureObject,
   ensureString,
 } from "https://deno.land/x/unknownutil@v2.1.0/mod.ts";
-export { assertEquals } from "https://deno.land/std@0.173.0/testing/asserts.ts";
-export { parse, toFileUrl } from "https://deno.land/std@0.173.0/path/mod.ts";
+export { assertEquals } from "https://deno.land/std@0.177.0/testing/asserts.ts";
+export { parse, toFileUrl } from "https://deno.land/std@0.177.0/path/mod.ts";
 export {
   deadline,
   DeadlineError,
-} from "https://deno.land/std@0.173.0/async/mod.ts";
+} from "https://deno.land/std@0.177.0/async/mod.ts";
 export { TimeoutError } from "https://deno.land/x/msgpack_rpc@v4.0.0/response_waiter.ts";
