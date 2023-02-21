@@ -14,7 +14,9 @@ function! ddx#custom#set_local(name, dict) abort
   call s:notify('setLocal', [a:dict, a:name])
 endfunction
 
-let s:aliases = #{ ui: {} }
+let s:aliases = #{
+      \   ui: {},
+      \ }
 function! ddx#custom#alias(type, alias, base) abort
   if !has_key(s:aliases, a:type)
     call ddx#util#print_error('Invalid alias type: ' . a:type)
