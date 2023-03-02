@@ -18,7 +18,7 @@ let s:aliases = #{
       \   ui: {},
       \ }
 function! ddx#custom#alias(type, alias, base) abort
-  if !has_key(s:aliases, a:type)
+  if !(s:aliases->has_key(a:type))
     call ddx#util#print_error('Invalid alias type: ' . a:type)
     return
   endif
@@ -42,9 +42,9 @@ function! ddx#custom#get_aliases() abort
 endfunction
 
 function! s:normalize_key_or_dict(key_or_dict, value) abort
-  if type(a:key_or_dict) == v:t_dict
+  if a:key_or_dict->type() == v:t_dict
     return a:key_or_dict
-  elseif type(a:key_or_dict) == v:t_string
+  elseif a:key_or_dict->type() == v:t_string
     let base = {}
     let base[a:key_or_dict] = a:value
     return base
@@ -53,9 +53,9 @@ function! s:normalize_key_or_dict(key_or_dict, value) abort
 endfunction
 
 function! s:normalize_string_or_list(string_or_list) abort
-  if type(a:string_or_list) == v:t_list
+  if a:string_or_list->type() == v:t_list
     return a:string_or_list
-  elseif type(a:string_or_list) == v:t_string
+  elseif a:string_or_list->type() == v:t_string
     return [a:string_or_list]
   endif
   return []
@@ -63,7 +63,7 @@ endfunction
 
 function! s:notify(method, args) abort
   " Save notify args
-  if !exists('g:ddx#_customs')
+  if !('g:ddx#_customs'->exists())
     let g:ddx#_customs = []
   endif
 

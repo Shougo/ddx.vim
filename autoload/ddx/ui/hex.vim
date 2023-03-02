@@ -1,5 +1,5 @@
 function! ddx#ui#hex#do_action(name, options = {}) abort
-  if !exists('b:ddx_ui_name') || &filetype !=# 'ddx-hex'
+  if !('b:ddx_ui_name'->exists()) || &filetype !=# 'ddx-hex'
     return
   endif
 
@@ -8,24 +8,24 @@ endfunction
 
 function! ddx#ui#hex#parse_address(string, cur_text, encoding) abort
   " Get last address.
-  let base_address = matchstr(a:string, '^\x\+')
+  let base_address = a:string->matchstr('^\x\+')
 
   " Default.
   let type = 'address'
-  let address = str2nr(base_address, 16)
+  let address = base_address->str2nr(16)
 
   if a:cur_text =~# '^\s*\x\+\s*:[[:xdigit:][:space:]]\+\S$'
     " Check hex line.
-    let offset = len(split(matchstr(a:cur_text,
-          \ '^\s*\x\+\s*:\zs[[:xdigit:][:space:]]\+$'))) - 1
+    let offset = a:cur_text->matchstr(
+          \ '^\s*\x\+\s*:\zs[[:xdigit:][:space:]]\+$')->split()->len() - 1
     if 0 <= offset && offset < 16
       let type = 'hex'
       let address += offset
     endif
   elseif a:cur_text =~# '\x\+\s\+|.*$'
-    let chars = matchstr(a:cur_text, '\x\+\s\+|\zs.*\ze.$')
+    let chars = a:cur_text->matchstr('\x\+\s\+|\zs.*\ze.$')
     let offset = (a:encoding ==# 'latin1') ?
-          \ len(chars) - 4 + 1 : strwidth(chars) - 4 + 1
+          \ chars->len() - 4 + 1 : chars->strwidth() - 4 + 1
     if offset < 0
       let offset = 0
     endif
@@ -40,14 +40,14 @@ function! ddx#ui#hex#parse_address(string, cur_text, encoding) abort
 endfunction
 
 function! ddx#ui#hex#get_cur_text(string, col) abort
-  return matchstr(a:string, '^.*\%' . a:col . 'c.')
+  return a:string->matchstr('^.*\%' . a:col . 'c.')
 endfunction
 
 function! ddx#ui#hex#input(prompt, text='') abort
   redraw
 
   try
-    return input(a:prompt, a:text)
+    return a:prompt->input(a:text)
   catch /^Vim:Interrupt/
   endtry
 

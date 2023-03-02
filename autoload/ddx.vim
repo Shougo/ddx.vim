@@ -17,7 +17,7 @@ function! ddx#_request(method, args) abort
     return {}
   endif
 
-  if bufname('%') ==# '[Command Line]'
+  if '%'->bufname() ==# '[Command Line]'
     " Must quit from command line window
     quit
   endif
@@ -41,14 +41,14 @@ function! ddx#_notify(method, args) abort
     " Lazy call notify
     execute printf('autocmd User ddxReady call ' .
           \ 'denops#notify("ddx", "%s", %s)',
-          \ a:method, string(a:args))
+          \ a:method, a:args->string())
   endif
 
   return {}
 endfunction
 
 function! s:init() abort
-  if exists('g:ddx#_initialized')
+  if 'g:ddx#_initialized'->exists()
     return
   endif
 
@@ -67,16 +67,16 @@ function! s:init() abort
 
   " Note: denops load may be started
   autocmd ddx User DenopsReady silent! call ddx#_register()
-  if exists('g:loaded_denops') && denops#server#status() ==# 'running'
+  if 'g:loaded_denops'->exists() && denops#server#status() ==# 'running'
     silent! call ddx#_register()
   endif
 endfunction
 
-let s:root_dir = fnamemodify(expand('<sfile>'), ':h:h')
+let s:root_dir = '<sfile>'->expand()->fnamemodify(':h:h')
 let s:sep = has('win32') ? '\' : '/'
 function! ddx#_register() abort
   call denops#plugin#register('ddx',
-        \ join([s:root_dir, 'denops', 'ddx', 'app.ts'], s:sep),
+        \ [s:root_dir, 'denops', 'ddx', 'app.ts']->join(s:sep),
         \ #{ mode: 'skip' })
 
   autocmd ddx User DenopsClosed call s:stopped()
@@ -86,7 +86,7 @@ function! s:stopped() abort
   unlet! g:ddx#_initialized
 
   " Restore custom config
-  if exists('g:ddx#_customs')
+  if 'g:ddx#_customs'->exists()
     for custom in g:ddx#_customs
       call ddx#_notify(custom.method, custom.args)
     endfor
