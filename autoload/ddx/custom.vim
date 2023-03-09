@@ -19,7 +19,7 @@ let s:aliases = #{
       \ }
 function! ddx#custom#alias(type, alias, base) abort
   if !(s:aliases->has_key(a:type))
-    call ddx#util#print_error('Invalid alias type: ' . a:type)
+    call ddx#util#print_error('Invalid alias type: ' .. a:type)
     return
   endif
 

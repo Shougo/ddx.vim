@@ -40,7 +40,7 @@ function! ddx#ui#hex#parse_address(string, cur_text, encoding) abort
 endfunction
 
 function! ddx#ui#hex#get_cur_text(string, col) abort
-  return a:string->matchstr('^.*\%' . a:col . 'c.')
+  return a:string->matchstr('^.*\%' .. a:col . 'c.')
 endfunction
 
 function! ddx#ui#hex#input(prompt, text='') abort
