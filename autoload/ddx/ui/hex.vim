@@ -8,7 +8,7 @@ endfunction
 
 function! ddx#ui#hex#parse_address(string, cur_text, encoding) abort
   " Get last address.
-  let base_address = a:string->matchstr('^\x\+')
+  const base_address = a:string->matchstr('^\x\+')
 
   " Default.
   let type = 'address'
