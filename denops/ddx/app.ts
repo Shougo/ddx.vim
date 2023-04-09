@@ -1,7 +1,7 @@
 import { batch, Denops, ensureObject, ensureString, vars } from "./deps.ts";
 import { Ddx } from "./ddx.ts";
 import { DdxExtType, DdxOptions } from "./types.ts";
-import { ContextBuilder } from "./context.ts";
+import { ContextBuilder, defaultDdxOptions } from "./context.ts";
 
 export async function main(denops: Denops) {
   const ddxs: Record<string, Ddx[]> = {};
@@ -53,6 +53,9 @@ export async function main(denops: Denops) {
       const name = ensureString(arg1);
       const ddx = getDdx(name);
       return Promise.resolve(ddx.getOptions());
+    },
+    getDefaultOptions(): Promise<Partial<DdxOptions>> {
+      return Promise.resolve(defaultDdxOptions());
     },
     alias(arg1: unknown, arg2: unknown, arg3: unknown): Promise<void> {
       const extType = ensureString(arg1) as DdxExtType;

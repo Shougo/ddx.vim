@@ -40,6 +40,9 @@ endfunction
 function! ddx#custom#get_aliases() abort
   return s:aliases
 endfunction
+function! ddx#custom#get_default_options() abort
+  return ddx#_request('getDefaultOptions', [])
+endfunction
 
 function! s:normalize_key_or_dict(key_or_dict, value) abort
   if a:key_or_dict->type() == v:t_dict
