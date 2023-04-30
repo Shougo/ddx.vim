@@ -48,7 +48,7 @@ INTERFACE						*ddx-interface*
 
 
 ------------------------------------------------------------------------------
-OPTIONS	 						*ddx-options*
+OPTIONS							*ddx-options*
 
 							*ddx-option-name*
 name
@@ -69,7 +69,7 @@ ui
 
 		Default: ""
 
-					    		*ddx-option-uiOptions*
+							*ddx-option-uiOptions*
 uiOptions
 		It is a dictionary that maps UI names to its options.  The
 		options with the name "_" is used as the options for all
@@ -86,7 +86,7 @@ uiParams
 		Default: {}
 
 ------------------------------------------------------------------------------
-FUNCTIONS 						*ddx-functions*
+FUNCTIONS						*ddx-functions*
 
 							*ddx#start()*
 ddx#start({options})
@@ -105,7 +105,7 @@ ddx#ui_action({name}, {action}, {params})
 
 		{params} is action params.
 
-CUSTOM FUNCTIONS 					*ddx-custom-functions*
+CUSTOM FUNCTIONS					*ddx-custom-functions*
 
 							*ddx#custom#alias()*
 ddx#custom#alias({type}, {alias-name}, {base-name})
