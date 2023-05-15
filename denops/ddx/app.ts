@@ -83,8 +83,8 @@ export async function main(denops: Denops) {
       const actionName = ensureString(arg2);
       const params = ensureObject(arg3);
 
-      const ddu = getDdx(name);
-      await ddu.uiAction(denops, actionName, params);
+      const ddx = getDdx(name);
+      await ddx.uiAction(denops, actionName, params);
     },
   };
 

@@ -134,7 +134,7 @@ export class Ddx {
     const action = ui.actions[actionName];
     if (!action) {
       await denops.call(
-        "ddu#util#print_error",
+        "ddx#util#print_error",
         `Invalid UI action: ${actionName}`,
       );
       return;

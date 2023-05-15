@@ -77,7 +77,7 @@ Ddx.vim requires both Deno and denops.vim.
 ```vim
 " You must set the default ui.
 " Note: hex ui
-call ddu#custom#patch_global({
+call ddx#custom#patch_global({
     \ 'ui': 'hex',
     \ })
 ```
