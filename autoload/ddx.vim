@@ -47,7 +47,7 @@ function! ddx#_notify(method, args) abort
 endfunction
 
 function! s:init() abort
-  if 'g:ddx#_initialized'->exists()
+  if 's:initialized'->exists()
     return
   endif
 
@@ -59,7 +59,7 @@ function! s:init() abort
 
   augroup ddx
     autocmd!
-    autocmd User DDXReady :
+    autocmd User DDXReady let s:initialized = v:true
   augroup END
 
   " Note: ddx.vim must be registered manually.
@@ -82,7 +82,7 @@ function! ddx#_register() abort
 endfunction
 
 function! s:stopped() abort
-  unlet! g:ddx#_initialized
+  unlet! s:initialized
 
   " Restore custom config
   if 'g:ddx#_customs'->exists()

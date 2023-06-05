@@ -1,9 +1,9 @@
-import { batch, Denops, ensureObject, ensureString, vars } from "./deps.ts";
+import { batch, Denops, ensureObject, ensureString } from "./deps.ts";
 import { Ddx } from "./ddx.ts";
 import { DdxExtType, DdxOptions } from "./types.ts";
 import { ContextBuilder, defaultDdxOptions } from "./context.ts";
 
-export async function main(denops: Denops) {
+export function main(denops: Denops) {
   const ddxs: Record<string, Ddx[]> = {};
   const contextBuilder = new ContextBuilder();
   const aliases: Record<DdxExtType, Record<string, string>> = {
@@ -88,8 +88,7 @@ export async function main(denops: Denops) {
     },
   };
 
-  await batch(denops, async (denops: Denops) => {
-    await vars.g.set(denops, "ddx#_initialized", 1);
+  batch(denops, async (denops: Denops) => {
     await denops.cmd("doautocmd <nomodeline> User DDXReady");
     await denops.cmd("autocmd! User DDXReady");
   });
