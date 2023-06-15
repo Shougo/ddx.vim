@@ -141,7 +141,7 @@ EXAMPLES					*ddx-ui-hex-examples*
 	    \ })
 
 	autocmd FileType ddx-hex call s:ddx_hex_my_settings()
-	function! s:ddx_hex_my_settings() abort
+	function s:ddx_hex_my_settings() abort
 	  nnoremap <buhexer> q
 	  \ <Cmd>call ddx#ui#hex#do_action('quit')<CR>
 	  nnoremap <buhexer> r

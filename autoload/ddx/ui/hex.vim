@@ -1,4 +1,4 @@
-function! ddx#ui#hex#do_action(name, options = {}) abort
+function ddx#ui#hex#do_action(name, options = {}) abort
   if !('b:ddx_ui_name'->exists()) || &filetype !=# 'ddx-hex'
     return
   endif
@@ -6,7 +6,7 @@ function! ddx#ui#hex#do_action(name, options = {}) abort
   call ddx#ui_action(b:ddx_ui_name, a:name, a:options)
 endfunction
 
-function! ddx#ui#hex#parse_address(string, cur_text, encoding) abort
+function ddx#ui#hex#parse_address(string, cur_text, encoding) abort
   " Get last address.
   const base_address = a:string->matchstr('^\x\+')
 
@@ -39,11 +39,11 @@ function! ddx#ui#hex#parse_address(string, cur_text, encoding) abort
   return [type, address]
 endfunction
 
-function! ddx#ui#hex#get_cur_text(string, col) abort
+function ddx#ui#hex#get_cur_text(string, col) abort
   return a:string->matchstr('^.*\%' .. a:col . 'c.')
 endfunction
 
-function! ddx#ui#hex#input(prompt, text='') abort
+function ddx#ui#hex#input(prompt, text='') abort
   redraw
 
   try

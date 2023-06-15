@@ -1,11 +1,11 @@
-function! ddx#start(options = {}) abort
+function ddx#start(options = {}) abort
   call ddx#_request('start', [a:options])
 endfunction
-function! ddx#ui_action(name, action, params) abort
+function ddx#ui_action(name, action, params) abort
   call ddx#_request('uiAction', [a:name, a:action, a:params])
 endfunction
 
-function! ddx#_request(method, args) abort
+function ddx#_request(method, args) abort
   if s:init()
     return {}
   endif
@@ -27,7 +27,7 @@ function! ddx#_request(method, args) abort
   endif
   return denops#request('ddx', a:method, a:args)
 endfunction
-function! ddx#_notify(method, args) abort
+function ddx#_notify(method, args) abort
   if s:init()
     return {}
   endif
@@ -46,7 +46,7 @@ function! ddx#_notify(method, args) abort
   return {}
 endfunction
 
-function! s:init() abort
+function s:init() abort
   if 's:initialized'->exists()
     return
   endif
@@ -73,7 +73,7 @@ endfunction
 
 let s:root_dir = '<sfile>'->expand()->fnamemodify(':h:h')
 let s:sep = has('win32') ? '\' : '/'
-function! ddx#_register() abort
+function ddx#_register() abort
   call denops#plugin#register('ddx',
         \ [s:root_dir, 'denops', 'ddx', 'app.ts']->join(s:sep),
         \ #{ mode: 'skip' })
@@ -81,7 +81,7 @@ function! ddx#_register() abort
   autocmd ddx User DenopsClosed call s:stopped()
 endfunction
 
-function! s:stopped() abort
+function s:stopped() abort
   unlet! s:initialized
 
   " Restore custom config
@@ -92,7 +92,7 @@ function! s:stopped() abort
   endif
 endfunction
 
-function! ddx#_denops_running() abort
+function ddx#_denops_running() abort
   return 'g:loaded_denops'->exists()
         \ && denops#server#status() ==# 'running'
         \ && denops#plugin#is_loaded('ddx')
