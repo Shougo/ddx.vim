@@ -27,7 +27,8 @@ function ddx#custom#alias(type, alias, base) abort
   call s:notify('alias', [a:type, a:alias, a:base])
 endfunction
 
-" This should be called manually, so wait until ddxReady by the user himself.
+" This should be called manually, so wait until DenopsPluginPost:ddx by the
+" user himself.
 function ddx#custom#get_global() abort
   return ddx#_request('getGlobal', [])
 endfunction

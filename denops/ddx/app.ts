@@ -1,4 +1,4 @@
-import { batch, Denops, ensureObject, ensureString } from "./deps.ts";
+import { Denops, ensure, is } from "./deps.ts";
 import { Ddx } from "./ddx.ts";
 import { DdxExtType, DdxOptions } from "./types.ts";
 import { ContextBuilder, defaultDdxOptions } from "./context.ts";
@@ -22,24 +22,24 @@ export function main(denops: Denops) {
 
   denops.dispatcher = {
     setGlobal(arg1: unknown): Promise<void> {
-      const options = ensureObject(arg1);
+      const options = ensure(arg1, is.Record);
       contextBuilder.setGlobal(options);
       return Promise.resolve();
     },
     setLocal(arg1: unknown, arg2: unknown): Promise<void> {
-      const options = ensureObject(arg1);
-      const name = ensureString(arg2);
+      const options = ensure(arg1, is.Record);
+      const name = ensure(arg2, is.String);
       contextBuilder.setLocal(name, options);
       return Promise.resolve();
     },
     patchGlobal(arg1: unknown): Promise<void> {
-      const options = ensureObject(arg1);
+      const options = ensure(arg1, is.Record);
       contextBuilder.patchGlobal(options);
       return Promise.resolve();
     },
     patchLocal(arg1: unknown, arg2: unknown): Promise<void> {
-      const options = ensureObject(arg1);
-      const name = ensureString(arg2);
+      const options = ensure(arg1, is.Record);
+      const name = ensure(arg2, is.String);
       contextBuilder.patchLocal(name, options);
       return Promise.resolve();
     },
@@ -50,7 +50,7 @@ export function main(denops: Denops) {
       return Promise.resolve(contextBuilder.getLocal());
     },
     getCurrent(arg1: unknown): Promise<Partial<DdxOptions>> {
-      const name = ensureString(arg1);
+      const name = ensure(arg1, is.String);
       const ddx = getDdx(name);
       return Promise.resolve(ddx.getOptions());
     },
@@ -58,15 +58,15 @@ export function main(denops: Denops) {
       return Promise.resolve(defaultDdxOptions());
     },
     alias(arg1: unknown, arg2: unknown, arg3: unknown): Promise<void> {
-      const extType = ensureString(arg1) as DdxExtType;
-      const alias = ensureString(arg2);
-      const base = ensureString(arg3);
+      const extType = ensure(arg1, is.String) as DdxExtType;
+      const alias = ensure(arg2, is.String);
+      const base = ensure(arg3, is.String);
 
       aliases[extType][alias] = base;
       return Promise.resolve();
     },
     async start(arg1: unknown): Promise<void> {
-      const userOptions = ensureObject(arg1) as DdxOptions;
+      const userOptions = ensure(arg1, is.Record) as DdxOptions;
 
       const [_, options] = await contextBuilder.get(denops, userOptions);
 
@@ -79,17 +79,12 @@ export function main(denops: Denops) {
       arg2: unknown,
       arg3: unknown,
     ): Promise<void> {
-      const name = ensureString(arg1);
-      const actionName = ensureString(arg2);
-      const params = ensureObject(arg3);
+      const name = ensure(arg1, is.String);
+      const actionName = ensure(arg2, is.String);
+      const params = ensure(arg3, is.Record);
 
       const ddx = getDdx(name);
       await ddx.uiAction(denops, actionName, params);
     },
   };
-
-  batch(denops, async (denops: Denops) => {
-    await denops.cmd("doautocmd <nomodeline> User DDXReady");
-    await denops.cmd("autocmd! User DDXReady");
-  });
 }

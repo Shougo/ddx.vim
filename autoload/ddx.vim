@@ -39,7 +39,7 @@ function ddx#_notify(method, args) abort
     call denops#notify('ddx', a:method, a:args)
   else
     " Lazy call notify
-    execute printf('autocmd User ddxReady call '
+    execute printf('autocmd User DenopsPluginPost:ddx call '
           \ .. 'denops#notify("ddx", "%s", %s)', a:method, a:args->string())
   endif
 
@@ -59,7 +59,7 @@ function s:init() abort
 
   augroup ddx
     autocmd!
-    autocmd User DDXReady let s:initialized = v:true
+    autocmd User DenopsPluginPost:ddx let s:initialized = v:true
   augroup END
 
   " Note: ddx.vim must be registered manually.

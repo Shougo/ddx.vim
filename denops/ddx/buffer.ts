@@ -1,5 +1,5 @@
 import { assertEquals } from "./deps.ts";
-import { readRange } from "https://deno.land/std@0.191.0/io/read_range.ts";
+import { readRange } from "https://deno.land/std@0.192.0/io/read_range.ts";
 
 type FileBuffer = {
   file: Deno.FsFile;
