@@ -85,6 +85,7 @@ uiParams
 
 		Default: {}
 
+
 ------------------------------------------------------------------------------
 FUNCTIONS						*ddx-functions*
 
@@ -143,6 +144,7 @@ ddx#custom#patch_local({buffer-name}, {dict})
 		Set local options for specific |ddx-option-name|.
 		The arguments are the same as for |ddx#custom#patch_global()|.
 
+
 ==============================================================================
 UIS							*ddx-uis*
 
@@ -195,6 +197,7 @@ onInit			(function)			(Optional)
 params			(function)			(Required)
 		Called to get UI params.
 
+
 ==============================================================================
 EXAMPLES						*ddx-examples*
 >
@@ -204,9 +207,19 @@ EXAMPLES						*ddx-examples*
 	    \ 'ui': 'hex',
 	    \ })
 <
+
 ==============================================================================
 FREQUENTLY ASKED QUESTIONS (FAQ)			*ddx-faq*
 
+FAQ 1:							|ddx-faq-1|
+	How to donate money to you?
+
+FAQ 2:							|ddx-faq-2|
+	I want to use ":Ddx" command like ":Vinarise" in vinarise.nvim.
+
+
+------------------------------------------------------------------------------
+							*ddx-faq-1*
 Q: How to donate money to you?
 
 A: I have started github sponsorship to spend more time for Vim/neovim
@@ -214,7 +227,8 @@ plugins.  You can donate money to help me!
 
    https://github.com/sponsors/Shougo
 
-Q: I want to use ":Ddx" command like ":Vinarise" in vinarise.nvim
+							*ddx-faq-2*
+Q: I want to use ":Ddx" command like ":Vinarise" in vinarise.nvim.
 
 A: You can use ddx-commands.vim.
 https://github.com/Shougo/ddx-commands.vim
