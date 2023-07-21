@@ -3,7 +3,7 @@
 Author: Shougo <Shougo.Matsu at gmail.com>
 License: MIT license
 
-CONTENTS						*ddx-contents*
+CONTENTS                                                        *ddx-contents*
 
 Introduction		|ddx-introduction|
 Install			|ddx-install|
@@ -22,7 +22,7 @@ Compatibility		|ddx-compatibility|
 
 
 ==============================================================================
-INTRODUCTION						*ddx-introduction*
+INTRODUCTION                                                *ddx-introduction*
 
 *ddx* is the abbreviation of "dark deno-powered heXadecimal".  It provides an
 asynchronous hexadecimal editor UI.
@@ -32,7 +32,7 @@ It does not work with zero configuration.  You can use other plugins.
 
 
 ==============================================================================
-INSTALL							*ddx-install*
+INSTALL                                                          *ddx-install*
 
 Note: ddx.vim requires Neovim (0.8.0+) or Vim 9.0.1499+ (latest is
 recommended).
@@ -44,32 +44,32 @@ https://github.com/vim-denops/denops.vim
 
 
 ==============================================================================
-INTERFACE						*ddx-interface*
+INTERFACE                                                      *ddx-interface*
 
 
 ------------------------------------------------------------------------------
-OPTIONS							*ddx-options*
+OPTIONS                                                          *ddx-options*
 
-							*ddx-option-name*
+                                                             *ddx-option-name*
 name
 		Specify the name.
 
 		Default: "default"
 
-							*ddx-option-path*
+                                                             *ddx-option-path*
 path
 		Specify the file path.
 
 		Default: ""
 
-							*ddx-option-ui*
+                                                               *ddx-option-ui*
 ui
 		Specify UI name.
 		Note: You must set the option in the first.
 
 		Default: ""
 
-							*ddx-option-uiOptions*
+                                                        *ddx-option-uiOptions*
 uiOptions
 		It is a dictionary that maps UI names to its options.  The
 		options with the name "_" is used as the options for all
@@ -78,7 +78,7 @@ uiOptions
 
 		Default: {}
 
-						*ddx-option-uiParams*
+                                                         *ddx-option-uiParams*
 uiParams
 		It is a dictionary that maps UI names to its parameters.
 		See also |ddx-ui-params|.
@@ -87,9 +87,9 @@ uiParams
 
 
 ------------------------------------------------------------------------------
-FUNCTIONS						*ddx-functions*
+FUNCTIONS                                                      *ddx-functions*
 
-							*ddx#start()*
+                                                                 *ddx#start()*
 ddx#start({options})
 		Creates a new ddx.
 		Note: You cannot call it in |vim_starting|.  Because
@@ -98,7 +98,7 @@ ddx#start({options})
 		Refer to |ddx-options| about {options}.  If you skip a value,
 		it uses the default value.
 
-							*ddx#ui_action()*
+                                                             *ddx#ui_action()*
 ddx#ui_action({name}, {action}, {params})
 		Do the {action} action in current UI.
 
@@ -108,37 +108,37 @@ ddx#ui_action({name}, {action}, {params})
 
 CUSTOM FUNCTIONS					*ddx-custom-functions*
 
-							*ddx#custom#alias()*
+                                                          *ddx#custom#alias()*
 ddx#custom#alias({type}, {alias-name}, {base-name})
 		Define {alias-name} alias based on {base-name}.
 		{type} must be "ui".
 		Note: It must be called before initialization.
 
-						*ddx#custom#get_aliases()*
+                                                    *ddx#custom#get_aliases()*
 ddx#custom#get_aliases()
 		Get aliases.
 
-						*ddx#custom#get_current()*
+                                                    *ddx#custom#get_current()*
 ddx#custom#get_current({name})
 		Get current ddx options for {name}.
 		{name} is specified by |ddx-option-name|.
 
-						*ddx#custom#get_global()*
+                                                     *ddx#custom#get_global()*
 ddx#custom#get_global()
 		Get global options.
 
-						*ddx#custom#get_local()*
+                                                      *ddx#custom#get_local()*
 ddx#custom#get_local()
 		Get current buffer specific options.
 
-						*ddx#custom#patch_global()*
+                                                   *ddx#custom#patch_global()*
 ddx#custom#patch_global({option-name}, {value})
 ddx#custom#patch_global({dict})
 		Set {option-name} option to {value}.
 		If {dict} is available, the key is {option-name} and the value
 		is {value}. See |ddx-options| for available {option-name}.
 
-						*ddx#custom#patch_local()*
+                                                    *ddx#custom#patch_local()*
 ddx#custom#patch_local({buffer-name}, {option-name}, {value})
 ddx#custom#patch_local({buffer-name}, {dict})
 		Set local options for specific |ddx-option-name|.
@@ -146,7 +146,7 @@ ddx#custom#patch_local({buffer-name}, {dict})
 
 
 ==============================================================================
-UIS							*ddx-uis*
+UIS                                                                  *ddx-uis*
 
 Note: The UIs are not bundled in ddx.vim.  You need to install them
 to use ddx.vim.  Please search them by https://github.com/topics/ddx-ui
@@ -184,22 +184,22 @@ Note: If you call Vim functions, it is not asynchronous.
 ------------------------------------------------------------------------------
 UI ATTRIBUTES						*ddx-ui-attributes*
 
-						*ddx-ui-attribute-actions*
+                                                    *ddx-ui-attribute-actions*
 actions			(Record<string, function>)	(Optional)
 		Defines UI actions.
 		The actions are called from |ddx#ui_action()|.
 
-						*ddx-ui-attribute-onInit*
+                                                     *ddx-ui-attribute-onInit*
 onInit			(function)			(Optional)
 		Called before call UI functions.
 
-						*ddx-ui-attribute-params*
+                                                     *ddx-ui-attribute-params*
 params			(function)			(Required)
 		Called to get UI params.
 
 
 ==============================================================================
-EXAMPLES						*ddx-examples*
+EXAMPLES                                                        *ddx-examples*
 >
 	" You must set the default ui.
 	" Note: hex ui
@@ -219,7 +219,7 @@ FAQ 2:							|ddx-faq-2|
 
 
 ------------------------------------------------------------------------------
-							*ddx-faq-1*
+                                                                   *ddx-faq-1*
 Q: How to donate money to you?
 
 A: I have started github sponsorship to spend more time for Vim/neovim
@@ -227,7 +227,7 @@ plugins.  You can donate money to help me!
 
    https://github.com/sponsors/Shougo
 
-							*ddx-faq-2*
+                                                                   *ddx-faq-2*
 Q: I want to use ":Ddx" command like ":Vinarise" in vinarise.nvim.
 
 A: You can use ddx-commands.vim.
@@ -236,7 +236,7 @@ It is not all users needed plugin and users can define the original commands.
 
 
 ==============================================================================
-COMPATIBILITY						*ddx-compatibility*
+COMPATIBILITY                                              *ddx-compatibility*
 
 ==============================================================================
 vim:tw=78:ts=8:ft=help:norl:noet:fen:noet:
