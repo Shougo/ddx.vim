@@ -106,7 +106,7 @@ ddx#ui_action({name}, {action}, {params})
 
 		{params} is action params.
 
-CUSTOM FUNCTIONS					*ddx-custom-functions*
+CUSTOM FUNCTIONS                                        *ddx-custom-functions*
 
                                                           *ddx#custom#alias()*
 ddx#custom#alias({type}, {alias-name}, {base-name})
@@ -153,7 +153,7 @@ to use ddx.vim.  Please search them by https://github.com/topics/ddx-ui
 
 
 ------------------------------------------------------------------------------
-UI OPTIONS						*ddx-ui-options*
+UI OPTIONS                                                    *ddx-ui-options*
 
 Note: The UIs cannot set default options for UI.  If the UI need
 to specify the recommended configuration, you should write it in the
@@ -161,14 +161,14 @@ documentation instead.
 
 
 ------------------------------------------------------------------------------
-UI PARAMS						*ddx-ui-params*
+UI PARAMS                                                      *ddx-ui-params*
 
 These are the parameters that each UI can have.  Please read the UI
 documentation.
 
 
 ==============================================================================
-CREATE UI						*ddx-create-ui*
+CREATE UI                                                      *ddx-create-ui*
 
 To create UI, you should read other UIs implementation.
 
@@ -182,7 +182,7 @@ Note: If you call Vim functions, it is not asynchronous.
 
 
 ------------------------------------------------------------------------------
-UI ATTRIBUTES						*ddx-ui-attributes*
+UI ATTRIBUTES                                              *ddx-ui-attributes*
 
                                                     *ddx-ui-attribute-actions*
 actions			(Record<string, function>)	(Optional)
