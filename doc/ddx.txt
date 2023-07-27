@@ -1,4 +1,4 @@
-*ddx.txt*	Dark deno-powered hexadecimal plugin for neovim/Vim8
+*ddx.txt*	Dark deno-powered hexadecimal plugin for neovim/Vim
 
 Author: Shougo <Shougo.Matsu at gmail.com>
 License: MIT license

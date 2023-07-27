@@ -1,6 +1,6 @@
 # ddx.vim
 
-> Dark deno-powered hexadecimal plugin for neovim/Vim8
+> Dark deno-powered hexadecimal plugin for neovim/Vim
 
 If you don't want to configure plugins, you don't have to use the plugin. It
 does not work with zero configuration. You can use other plugins.
@@ -18,8 +18,6 @@ The development is supported by
 
 - [Introduction](#introduction)
 - [Install](#install)
-  - [Requirements](#requirements)
-- [Configuration](#configuration)
 - [Screenshots](#screenshots)
 
 <!-- vim-markdown-toc -->
@@ -32,7 +30,7 @@ better than neovim Python interface.
 - Easy to setup
 - Minimal dependency
 - Stability
-- neovim/Vim8 compatibility
+- neovim/Vim compatibility
 - Speed
 - Library
 - Easy to hack
@@ -43,7 +41,14 @@ better than neovim Python interface.
 recommended) or Vim 9.0.1499+. See [requirements](#requirements) if you aren't
 sure whether you have this.
 
-For vim-plug
+### Requirements
+
+Ddx.vim requires both Deno and denops.vim.
+
+- <https://deno.land/>
+- <https://github.com/vim-denops/denops.vim>
+
+### For vim-plug
 
 ```vim
 call plug#begin()
@@ -54,7 +59,7 @@ Plug 'Shougo/ddx.vim'
 call plug#end()
 ```
 
-For dein.vim
+### For dein.vim
 
 ```vim
 call dein#begin()
@@ -64,25 +69,6 @@ call dein#add('Shougo/ddx.vim')
 
 call dein#end()
 ```
-
-### Requirements
-
-Ddx.vim requires both Deno and denops.vim.
-
-- <https://deno.land/>
-- <https://github.com/vim-denops/denops.vim>
-
-## Configuration
-
-```vim
-" You must set the default ui.
-" Note: hex ui
-call ddx#custom#patch_global({
-    \ 'ui': 'hex',
-    \ })
-```
-
-See `:help ddx-options` for a complete list of options.
 
 ## Screenshots
 
