@@ -28,6 +28,10 @@ export type UiOptions = {
   placeholder?: unknown;
 };
 
+export type UiActionCallback<Params extends BaseUiParams> = (
+  args: ActionArguments<Params>,
+) => ActionFlags | Promise<ActionFlags>;
+
 export type ActionArguments<Params extends BaseUiParams> = {
   denops: Denops;
   context: Context;

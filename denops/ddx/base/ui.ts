@@ -1,9 +1,8 @@
 import {
-  ActionArguments,
-  ActionFlags,
   Context,
   DdxBuffer,
   DdxOptions,
+  UiActionCallback,
   UiOptions,
 } from "../types.ts";
 import { Denops } from "../deps.ts";
@@ -12,7 +11,7 @@ export type BaseUiParams = Record<string, unknown>;
 
 export type UiActions<Params extends BaseUiParams> = Record<
   string,
-  (args: ActionArguments<Params>) => Promise<ActionFlags>
+  UiActionCallback<Params>
 >;
 
 export type OnInitArguments<Params extends BaseUiParams> = {
@@ -44,11 +43,11 @@ export abstract class BaseUi<Params extends BaseUiParams> {
 
   apiVersion = 1;
 
-  async onInit(_args: OnInitArguments<Params>): Promise<void> {}
+  onInit(_args: OnInitArguments<Params>): void | Promise<void> {}
 
-  async redraw(_args: RedrawArguments<Params>): Promise<void> {}
+  redraw(_args: RedrawArguments<Params>): void | Promise<void> {}
 
-  async quit(_args: QuitArguments<Params>): Promise<void> {}
+  quit(_args: QuitArguments<Params>): void | Promise<void> {}
 
   actions: UiActions<Params> = {};
 
