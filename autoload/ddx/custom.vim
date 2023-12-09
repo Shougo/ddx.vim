@@ -18,7 +18,7 @@ let s:aliases = #{
       \   ui: {},
       \ }
 function ddx#custom#alias(type, alias, base) abort
-  if !(s:aliases->has_key(a:type))
+  if !s:aliases->has_key(a:type)
     call ddx#util#print_error('Invalid alias type: ' .. a:type)
     return
   endif
@@ -67,7 +67,7 @@ endfunction
 
 function s:notify(method, args) abort
   " Save notify args
-  if !('g:ddx#_customs'->exists())
+  if !'g:ddx#_customs'->exists()
     let g:ddx#_customs = []
   endif
 

@@ -95,5 +95,5 @@ endfunction
 function ddx#_denops_running() abort
   return 'g:loaded_denops'->exists()
         \ && denops#server#status() ==# 'running'
-        \ && denops#plugin#is_loaded('ddx')
+        \ && 'ddx'->denops#plugin#is_loaded()
 endfunction

@@ -1,5 +1,5 @@
 function ddx#ui#hex#do_action(name, options = {}) abort
-  if !('b:ddx_ui_name'->exists()) || &filetype !=# 'ddx-hex'
+  if !'b:ddx_ui_name'->exists() || &filetype !=# 'ddx-hex'
     return
   endif
 
