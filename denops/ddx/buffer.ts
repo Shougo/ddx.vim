@@ -147,8 +147,8 @@ export class DdxBuffer {
           .pipeThrough(
             new ByteSliceStream(buffer.start + pos, buffer.start + pos),
           );
-        const array = await readAll(rangedStream);
-        return array.at(0);
+        const range = await readAll(rangedStream);
+        return range.at(0);
       } else {
         return buffer.bytes.at(pos);
       }
@@ -178,8 +178,8 @@ export class DdxBuffer {
               buffer.start + start + length - 1,
             ),
           );
-        const array = await readAll(rangedStream);
-        bytes.set(array, bytesPos);
+        const range = await readAll(rangedStream);
+        bytes.set(range, bytesPos);
       } else {
         bytes.set(buffer.bytes.slice(start, length), bytesPos);
       }
