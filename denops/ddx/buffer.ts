@@ -20,7 +20,7 @@ function isFileBuffer(arg: any): arg is FileBuffer {
 type Buffer = FileBuffer | BytesBuffer;
 
 export class DdxBuffer {
-  private buffers: Buffer[] = [];
+  #buffers: Buffer[] = [];
 
   async open(path: string) {
     if (!(await exists(path))) {
@@ -29,7 +29,7 @@ export class DdxBuffer {
 
     const stat = await Deno.stat(path);
 
-    this.buffers.push({
+    this.#buffers.push({
       file: await Deno.open(path, { read: true }),
       start: 0,
       length: stat.size,
@@ -42,7 +42,7 @@ export class DdxBuffer {
     let index = 0;
     let offset = pos;
 
-    for (const buffer of this.buffers) {
+    for (const buffer of this.#buffers) {
       if (pos < bytesPos) {
         break;
       }
@@ -60,8 +60,8 @@ export class DdxBuffer {
   }
 
   insert(pos: number, bytes: Uint8Array) {
-    if (this.buffers.length == 0) {
-      this.buffers.push({
+    if (this.#buffers.length == 0) {
+      this.#buffers.push({
         bytes,
       });
       return;
@@ -69,7 +69,7 @@ export class DdxBuffer {
 
     const [index, offset] = this.getIndex(pos);
 
-    this.buffers.splice(index, 0, {
+    this.#buffers.splice(index, 0, {
       bytes,
     });
 
@@ -78,8 +78,8 @@ export class DdxBuffer {
       return;
     }
 
-    const prevBuffer = this.buffers[index];
-    this.buffers.splice(index, 0, prevBuffer);
+    const prevBuffer = this.#buffers[index];
+    this.#buffers.splice(index, 0, prevBuffer);
 
     if (isFileBuffer(prevBuffer)) {
       prevBuffer.length = offset;
@@ -87,7 +87,7 @@ export class DdxBuffer {
       prevBuffer.bytes = prevBuffer.bytes.slice(offset);
     }
 
-    const nextBuffer = this.buffers[index + 2];
+    const nextBuffer = this.#buffers[index + 2];
     if (nextBuffer) {
       if (isFileBuffer(nextBuffer)) {
         nextBuffer.start = offset + 1;
@@ -104,7 +104,7 @@ export class DdxBuffer {
   }
 
   close() {
-    for (const buffer of this.buffers) {
+    for (const buffer of this.#buffers) {
       if (isFileBuffer(buffer)) {
         buffer.file.close();
         buffer.path = "";
@@ -115,7 +115,7 @@ export class DdxBuffer {
   getSize(): number {
     let size = 0;
 
-    for (const buffer of this.buffers) {
+    for (const buffer of this.#buffers) {
       if (isFileBuffer(buffer)) {
         size += buffer.length;
       } else {
@@ -129,7 +129,7 @@ export class DdxBuffer {
   async getByte(pos: number): Promise<number | undefined> {
     let bytesPos = 0;
 
-    for (const buffer of this.buffers) {
+    for (const buffer of this.#buffers) {
       // Skip until "start".
       const bufLength = isFileBuffer(buffer)
         ? buffer.length
@@ -159,7 +159,7 @@ export class DdxBuffer {
     const bytes = new Uint8Array(maxSize < length ? maxSize : length);
     let bytesPos = 0;
 
-    for (const buffer of this.buffers) {
+    for (const buffer of this.#buffers) {
       // Skip until "start".
       const bufLength = isFileBuffer(buffer)
         ? buffer.length

@@ -158,13 +158,13 @@ class Custom {
 }
 
 export class ContextBuilder {
-  private custom: Custom = new Custom();
+  #custom: Custom = new Custom();
 
   async get(
     denops: Denops,
     options: UserOptions,
   ): Promise<[Context, DdxOptions]> {
-    const userOptions = this.custom.get(options);
+    const userOptions = this.#custom.get(options);
 
     await this.validate(denops, "options", userOptions, defaultDdxOptions());
 
@@ -195,24 +195,24 @@ export class ContextBuilder {
   }
 
   getGlobal(): Partial<DdxOptions> {
-    return this.custom.global;
+    return this.#custom.global;
   }
   getLocal(): Record<number, Partial<DdxOptions>> {
-    return this.custom.local;
+    return this.#custom.local;
   }
 
   setGlobal(options: Partial<DdxOptions>) {
-    this.custom.setGlobal(options);
+    this.#custom.setGlobal(options);
   }
   setLocal(name: string, options: Partial<DdxOptions>) {
-    this.custom.setLocal(name, options);
+    this.#custom.setLocal(name, options);
   }
 
   patchGlobal(options: Partial<DdxOptions>) {
-    this.custom.patchGlobal(options);
+    this.#custom.patchGlobal(options);
   }
   patchLocal(name: string, options: Partial<DdxOptions>) {
-    this.custom.patchLocal(name, options);
+    this.#custom.patchLocal(name, options);
   }
 }
 

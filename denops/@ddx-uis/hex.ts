@@ -35,7 +35,7 @@ export type Params = {
 };
 
 export class Ui extends BaseUi<Params> {
-  private buffers: Record<string, number> = {};
+  #buffers: Record<string, number> = {};
 
   override async redraw(args: {
     denops: Denops;
@@ -53,10 +53,11 @@ export class Ui extends BaseUi<Params> {
     }
 
     const bufferName = `ddx-ff-${args.options.name}`;
-    const initialized = this.buffers[args.options.name] ||
+    const initialized = this.#buffers[args.options.name] ||
       (await fn.bufexists(args.denops, bufferName) &&
         await fn.bufnr(args.denops, bufferName));
-    const bufnr = initialized || await this.initBuffer(args.denops, bufferName);
+    const bufnr = initialized ||
+      await this.#initBuffer(args.denops, bufferName);
     const winid = await fn.bufwinid(args.denops, bufnr);
 
     const hasNvim = args.denops.meta.host == "nvim";
@@ -102,11 +103,11 @@ export class Ui extends BaseUi<Params> {
       }
     }
 
-    await this.setDefaultParams(args.denops, args.uiParams);
+    await this.#setDefaultParams(args.denops, args.uiParams);
 
     // NOTE: buffers may be restored
-    if (!this.buffers[args.options.name] || winid < 0) {
-      await this.initOptions(args.denops, args.options, args.uiParams, bufnr);
+    if (!this.#buffers[args.options.name] || winid < 0) {
+      await this.#initOptions(args.denops, args.options, args.uiParams, bufnr);
     }
 
     let lnum = 1;
@@ -142,7 +143,7 @@ export class Ui extends BaseUi<Params> {
       lnum += 1;
     }
 
-    this.buffers[args.options.name] = bufnr;
+    this.#buffers[args.options.name] = bufnr;
   }
 
   override async quit(args: {
@@ -152,7 +153,7 @@ export class Ui extends BaseUi<Params> {
     uiParams: Params;
   }): Promise<void> {
     // Move to the UI window.
-    const bufnr = this.buffers[args.options.name];
+    const bufnr = this.#buffers[args.options.name];
     await fn.win_gotoid(
       args.denops,
       await fn.bufwinid(args.denops, bufnr),
@@ -161,7 +162,7 @@ export class Ui extends BaseUi<Params> {
     const winnr = await fn.winnr(args.denops, "$");
     if (args.uiParams.split == "no" || winnr == 1) {
       await args.denops.cmd(
-        args.context.bufNr == this.buffers[args.options.name]
+        args.context.bufNr == this.#buffers[args.options.name]
           ? "enew"
           : `buffer ${args.context.bufNr}`,
       );
@@ -259,7 +260,7 @@ export class Ui extends BaseUi<Params> {
     };
   }
 
-  private async initBuffer(
+  async #initBuffer(
     denops: Denops,
     bufferName: string,
   ): Promise<number> {
@@ -269,7 +270,7 @@ export class Ui extends BaseUi<Params> {
     return bufnr;
   }
 
-  private async initOptions(
+  async #initOptions(
     denops: Denops,
     options: DdxOptions,
     uiParams: Params,
@@ -306,7 +307,7 @@ export class Ui extends BaseUi<Params> {
     });
   }
 
-  private async setDefaultParams(denops: Denops, uiParams: Params) {
+  async #setDefaultParams(denops: Denops, uiParams: Params) {
     if (uiParams.winRow == 0) {
       uiParams.winRow = Math.trunc(
         (await denops.call("eval", "&lines") as number) / 2 - 10,

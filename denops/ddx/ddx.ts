@@ -19,15 +19,15 @@ import {
 } from "./context.ts";
 
 export class Ddx {
-  private uis: Record<string, BaseUi<BaseUiParams>> = {};
-  private aliases: Record<DdxExtType, Record<string, string>> = {
+  #uis: Record<string, BaseUi<BaseUiParams>> = {};
+  #aliases: Record<DdxExtType, Record<string, string>> = {
     ui: {},
   };
 
-  private checkPaths: Record<string, boolean> = {};
-  private options: DdxOptions = defaultDdxOptions();
-  private userOptions: UserOptions = {};
-  private buffer: DdxBuffer = new DdxBuffer();
+  #checkPaths: Record<string, boolean> = {};
+  #options: DdxOptions = defaultDdxOptions();
+  #userOptions: UserOptions = {};
+  #buffer: DdxBuffer = new DdxBuffer();
 
   async start(
     denops: Denops,
@@ -42,7 +42,7 @@ export class Ddx {
     }
 
     try {
-      await this.buffer.open(path);
+      await this.#buffer.open(path);
     } catch (e: unknown) {
       await errorException(
         denops,
@@ -53,7 +53,7 @@ export class Ddx {
     }
 
     const uiName = "hex";
-    const [ui, uiOptions, uiParams] = await this.getUi(denops, uiName);
+    const [ui, uiOptions, uiParams] = await this.#getUi(denops, uiName);
     if (!ui) {
       return;
     }
@@ -62,14 +62,14 @@ export class Ddx {
       denops,
       context: defaultContext(),
       options: defaultDdxOptions(),
-      buffer: this.buffer,
+      buffer: this.#buffer,
       uiOptions,
       uiParams,
     });
   }
 
   async register(type: DdxExtType, path: string, name: string) {
-    if (path in this.checkPaths) {
+    if (path in this.#checkPaths) {
       return;
     }
 
@@ -81,7 +81,7 @@ export class Ddx {
         add = (name: string) => {
           const ui = new mod.Ui();
           ui.name = name;
-          this.uis[ui.name] = ui;
+          this.#uis[ui.name] = ui;
         };
         break;
     }
@@ -89,14 +89,14 @@ export class Ddx {
     add(name);
 
     // Check alias
-    const aliases = Object.keys(this.aliases[type]).filter(
-      (k) => this.aliases[type][k] == name,
+    const aliases = Object.keys(this.#aliases[type]).filter(
+      (k) => this.#aliases[type][k] == name,
     );
     for (const alias of aliases) {
       add(alias);
     }
 
-    this.checkPaths[path] = true;
+    this.#checkPaths[path] = true;
   }
 
   async autoload(
@@ -111,7 +111,7 @@ export class Ddx {
     const paths = await globpath(
       denops,
       [`denops/@ddx-${type}s/`],
-      names.map((file) => this.aliases[type][file] ?? file),
+      names.map((file) => this.#aliases[type][file] ?? file),
     );
 
     await Promise.all(
@@ -127,7 +127,7 @@ export class Ddx {
     params: unknown,
   ): Promise<void> {
     const uiName = "hex";
-    const [ui, uiOptions, uiParams] = await this.getUi(denops, uiName);
+    const [ui, uiOptions, uiParams] = await this.#getUi(denops, uiName);
     if (!ui) {
       return;
     }
@@ -143,8 +143,8 @@ export class Ddx {
     const flags = await action({
       denops,
       context: defaultContext(),
-      options: this.options,
-      buffer: this.buffer,
+      options: this.#options,
+      buffer: this.#buffer,
       uiOptions,
       uiParams,
       actionParams: params,
@@ -154,8 +154,8 @@ export class Ddx {
       await ui.redraw({
         denops,
         context: defaultContext(),
-        options: this.options,
-        buffer: this.buffer,
+        options: this.#options,
+        buffer: this.#buffer,
         uiOptions,
         uiParams,
       });
@@ -163,14 +163,14 @@ export class Ddx {
   }
 
   getOptions() {
-    return this.options;
+    return this.#options;
   }
 
   getUserOptions() {
-    return this.userOptions;
+    return this.#userOptions;
   }
 
-  private async getUi(
+  async #getUi(
     denops: Denops,
     name: string,
   ): Promise<
@@ -181,9 +181,9 @@ export class Ddx {
     ]
   > {
     await this.autoload(denops, "ui", [name]);
-    const ui = this.uis[name];
+    const ui = this.#uis[name];
     if (!ui) {
-      const message = `Invalid ui: "${this.options.ui}"`;
+      const message = `Invalid ui: "${this.#options.ui}"`;
       await denops.call(
         "ddx#util#print_error",
         message,
@@ -195,7 +195,7 @@ export class Ddx {
       ];
     }
 
-    const [uiOptions, uiParams] = uiArgs(this.options, ui);
+    const [uiOptions, uiParams] = uiArgs(this.#options, ui);
     await checkUiOnInit(ui, denops, uiOptions, uiParams);
 
     return [ui, uiOptions, uiParams];
@@ -287,7 +287,7 @@ async function globpath(
         search + file + ".ts",
         1,
         1,
-      ) as string[];
+      );
 
       for (const path of glob) {
         // Skip already added name.
