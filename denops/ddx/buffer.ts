@@ -1,5 +1,6 @@
 import { assertEquals } from "./deps.ts";
-import { readRange } from "https://deno.land/std@0.209.0/io/read_range.ts";
+import { ByteSliceStream } from "https://deno.land/std@0.210.0/streams/byte_slice_stream.ts";
+import { readAll } from "https://deno.land/x/streamtools@v0.5.0/read_all.ts";
 
 type FileBuffer = {
   file: Deno.FsFile;
@@ -135,16 +136,19 @@ export class DdxBuffer {
         ? buffer.length
         : buffer.bytes.length;
 
-      if (bytesPos < pos) {
+      if (bytesPos + bufLength < pos) {
         bytesPos += bufLength;
         continue;
       }
 
       if (isFileBuffer(buffer)) {
-        return (await readRange(buffer.file, {
-          start: buffer.start + pos,
-          end: buffer.start + pos + 1,
-        })).at(0);
+        const file = await Deno.open(buffer.path, { read: true });
+        const rangedStream = file.readable
+          .pipeThrough(
+            new ByteSliceStream(buffer.start + pos, buffer.start + pos),
+          );
+        const array = await readAll(rangedStream);
+        return array.at(0);
       } else {
         return buffer.bytes.at(pos);
       }
@@ -166,13 +170,16 @@ export class DdxBuffer {
         : buffer.bytes.length;
 
       if (isFileBuffer(buffer)) {
-        bytes.set(
-          await readRange(buffer.file, {
-            start: buffer.start + start,
-            end: buffer.start + start + length - 1,
-          }),
-          bytesPos,
-        );
+        const file = await Deno.open(buffer.path, { read: true });
+        const rangedStream = file.readable
+          .pipeThrough(
+            new ByteSliceStream(
+              buffer.start + start,
+              buffer.start + start + length - 1,
+            ),
+          );
+        const array = await readAll(rangedStream);
+        bytes.set(array, bytesPos);
       } else {
         bytes.set(buffer.bytes.slice(start, length), bytesPos);
       }
