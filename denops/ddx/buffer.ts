@@ -1,6 +1,7 @@
 import { assertEquals } from "./deps.ts";
 import { ByteSliceStream } from "https://deno.land/std@0.210.0/streams/byte_slice_stream.ts";
-import { readAll } from "https://deno.land/x/streamtools@v0.5.0/read_all.ts";
+import { toArrayBuffer } from "https://deno.land/std@0.210.0/streams/to_array_buffer.ts";
+
 
 type FileBuffer = {
   file: Deno.FsFile;
@@ -147,8 +148,8 @@ export class DdxBuffer {
           .pipeThrough(
             new ByteSliceStream(buffer.start + pos, buffer.start + pos),
           );
-        const range = await readAll(rangedStream);
-        return range.at(0);
+        const range = await toArrayBuffer(rangedStream);
+        return new Uint8Array(range).at(0);
       } else {
         return buffer.bytes.at(pos);
       }
@@ -178,8 +179,8 @@ export class DdxBuffer {
               buffer.start + start + length - 1,
             ),
           );
-        const range = await readAll(rangedStream);
-        bytes.set(range, bytesPos);
+        const range = await toArrayBuffer(rangedStream);
+        bytes.set(new Uint8Array(range), bytesPos);
       } else {
         bytes.set(buffer.bytes.slice(start, length), bytesPos);
       }
