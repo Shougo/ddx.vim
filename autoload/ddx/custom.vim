@@ -30,19 +30,19 @@ endfunction
 " This should be called manually, so wait until DenopsPluginPost:ddx by the
 " user himself.
 function ddx#custom#get_global() abort
-  return ddx#_request('getGlobal', [])
+  return ddx#denops#_request('getGlobal', [])
 endfunction
 function ddx#custom#get_local() abort
-  return ddx#_request('getLocal', [])
+  return ddx#denops#_request('getLocal', [])
 endfunction
 function ddx#custom#get_current(name) abort
-  return ddx#_request('getCurrent', [a:name])
+  return ddx#denops#_request('getCurrent', [a:name])
 endfunction
 function ddx#custom#get_aliases() abort
   return s:aliases
 endfunction
 function ddx#custom#get_default_options() abort
-  return ddx#_request('getDefaultOptions', [])
+  return ddx#denops#_request('getDefaultOptions', [])
 endfunction
 
 function s:normalize_key_or_dict(key_or_dict, value) abort
@@ -73,5 +73,5 @@ function s:notify(method, args) abort
 
   call add(g:ddx#_customs, #{ method: a:method, args: a:args })
 
-  return ddx#_notify(a:method, a:args)
+  return ddx#denops#_notify(a:method, a:args)
 endfunction
