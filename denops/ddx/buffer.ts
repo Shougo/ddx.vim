@@ -1,6 +1,6 @@
 import { assertEquals } from "./deps.ts";
-import { ByteSliceStream } from "https://deno.land/std@0.210.0/streams/byte_slice_stream.ts";
-import { toArrayBuffer } from "https://deno.land/std@0.210.0/streams/to_array_buffer.ts";
+import { ByteSliceStream } from "https://deno.land/std@0.214.0/streams/byte_slice_stream.ts";
+import { toArrayBuffer } from "https://deno.land/std@0.214.0/streams/to_array_buffer.ts";
 
 
 type FileBuffer = {
