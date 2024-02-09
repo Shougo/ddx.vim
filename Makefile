@@ -3,11 +3,11 @@ TSTEST=$(shell grep -rl "Deno.test" denops)
 
 lint:
 	deno fmt --check denops
-	deno test --unstable --no-run -A ${TS}
-	deno lint --unstable denops
+	deno test --no-run -A ${TS}
+	deno lint denops
 
 test:
-	deno test --unstable -A ${TSTEST}
+	deno test -A ${TSTEST}
 
 format:
 	deno fmt denops
