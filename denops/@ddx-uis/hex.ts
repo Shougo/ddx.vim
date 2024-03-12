@@ -277,6 +277,7 @@ export class Ui extends BaseUi<Params> {
     bufnr: number,
   ): Promise<void> {
     const winid = await fn.bufwinid(denops, bufnr);
+    const existsWinFixBuf = await fn.exists(denops, "+winfixbuf");
 
     await batch(denops, async (denops: Denops) => {
       await fn.setbufvar(denops, bufnr, "ddx_ui_name", options.name);
@@ -293,6 +294,9 @@ export class Ui extends BaseUi<Params> {
       await fn.setwinvar(denops, winid, "&spell", 0);
       await fn.setwinvar(denops, winid, "&wrap", 0);
       await fn.setwinvar(denops, winid, "&signcolumn", "no");
+      if (existsWinFixBuf && uiParams.split !== "no") {
+        await fn.setwinvar(denops, winid, "&winfixbuf", true);
+      }
 
       await fn.setbufvar(denops, bufnr, "&bufhidden", "unload");
       await fn.setbufvar(denops, bufnr, "&buftype", "nofile");
