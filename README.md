@@ -48,28 +48,6 @@ Ddx.vim requires both Deno and denops.vim.
 - <https://deno.land/>
 - <https://github.com/vim-denops/denops.vim>
 
-### For vim-plug
-
-```vim
-call plug#begin()
-
-Plug 'vim-denops/denops.vim'
-Plug 'Shougo/ddx.vim'
-
-call plug#end()
-```
-
-### For dein.vim
-
-```vim
-call dein#begin()
-
-call dein#add('vim-denops/denops.vim')
-call dein#add('Shougo/ddx.vim')
-
-call dein#end()
-```
-
 ## Screenshots
 
 ## Plans
