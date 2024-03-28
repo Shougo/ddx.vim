@@ -22,24 +22,24 @@ export function main(denops: Denops) {
 
   denops.dispatcher = {
     setGlobal(arg1: unknown): Promise<void> {
-      const options = ensure(arg1, is.Record);
+      const options = ensure(arg1, is.Record) as Partial<DdxOptions>;
       contextBuilder.setGlobal(options);
       return Promise.resolve();
     },
     setLocal(arg1: unknown, arg2: unknown): Promise<void> {
-      const options = ensure(arg1, is.Record);
-      const name = ensure(arg2, is.String);
+      const options = ensure(arg1, is.Record) as Partial<DdxOptions>;
+      const name = ensure(arg2, is.String) as string;
       contextBuilder.setLocal(name, options);
       return Promise.resolve();
     },
     patchGlobal(arg1: unknown): Promise<void> {
-      const options = ensure(arg1, is.Record);
+      const options = ensure(arg1, is.Record) as Partial<DdxOptions>;
       contextBuilder.patchGlobal(options);
       return Promise.resolve();
     },
     patchLocal(arg1: unknown, arg2: unknown): Promise<void> {
-      const options = ensure(arg1, is.Record);
-      const name = ensure(arg2, is.String);
+      const options = ensure(arg1, is.Record) as Partial<DdxOptions>;
+      const name = ensure(arg2, is.String) as string;
       contextBuilder.patchLocal(name, options);
       return Promise.resolve();
     },
@@ -50,7 +50,7 @@ export function main(denops: Denops) {
       return Promise.resolve(contextBuilder.getLocal());
     },
     getCurrent(arg1: unknown): Promise<Partial<DdxOptions>> {
-      const name = ensure(arg1, is.String);
+      const name = ensure(arg1, is.String) as string;
       const ddx = getDdx(name);
       return Promise.resolve(ddx.getOptions());
     },
@@ -59,8 +59,8 @@ export function main(denops: Denops) {
     },
     alias(arg1: unknown, arg2: unknown, arg3: unknown): Promise<void> {
       const extType = ensure(arg1, is.String) as DdxExtType;
-      const alias = ensure(arg2, is.String);
-      const base = ensure(arg3, is.String);
+      const alias = ensure(arg2, is.String) as string;
+      const base = ensure(arg3, is.String) as string;
 
       aliases[extType][alias] = base;
       return Promise.resolve();
@@ -79,8 +79,8 @@ export function main(denops: Denops) {
       arg2: unknown,
       arg3: unknown,
     ): Promise<void> {
-      const name = ensure(arg1, is.String);
-      const actionName = ensure(arg2, is.String);
+      const name = ensure(arg1, is.String) as string;
+      const actionName = ensure(arg2, is.String) as string;
       const params = ensure(arg3, is.Record);
 
       const ddx = getDdx(name);
