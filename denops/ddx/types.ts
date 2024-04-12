@@ -8,6 +8,8 @@ export { DdxBuffer } from "./buffer.ts";
 
 export type DdxExtType = "ui";
 
+export type UiName = string;
+
 export type Context = {
   bufNr: number;
   winId: number;

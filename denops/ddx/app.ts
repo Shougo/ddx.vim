@@ -1,9 +1,16 @@
 import { Denops, ensure, is } from "./deps.ts";
 import { Ddx } from "./ddx.ts";
 import { DdxExtType, DdxOptions } from "./types.ts";
-import { ContextBuilder, defaultDdxOptions } from "./context.ts";
+import {
+  ContextBuilder,
+  defaultContext,
+  defaultDdxOptions,
+} from "./context.ts";
+import { Loader } from "./loader.ts";
+import { uiAction } from "./ext.ts";
 
 export function main(denops: Denops) {
+  const loader = new Loader();
   const ddxs: Record<string, Ddx[]> = {};
   const contextBuilder = new ContextBuilder();
   const aliases: Record<DdxExtType, Record<string, string>> = {
@@ -15,7 +22,7 @@ export function main(denops: Denops) {
       ddxs[name] = [];
     }
     if (ddxs[name].length == 0) {
-      ddxs[name].push(new Ddx());
+      ddxs[name].push(new Ddx(loader));
     }
     return ddxs[name].slice(-1)[0];
   };
@@ -84,7 +91,15 @@ export function main(denops: Denops) {
       const params = ensure(arg3, is.Record);
 
       const ddx = getDdx(name);
-      await ddx.uiAction(denops, actionName, params);
+      await uiAction(
+        denops,
+        loader,
+        defaultContext(),
+        ddx.getOptions(),
+        ddx.getBuffer(),
+        actionName,
+        params,
+      );
     },
   };
 }
