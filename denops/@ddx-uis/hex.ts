@@ -8,6 +8,7 @@ import {
   UiOptions,
 } from "../ddx/types.ts";
 import { batch, Denops, fn, op } from "../ddx/deps.ts";
+import { printError } from "../ddx/utils.ts";
 
 type FloatingBorder =
   | "none"
@@ -95,8 +96,8 @@ export class Ui extends BaseUi<Params> {
       } else if (args.uiParams.split == "no") {
         await args.denops.cmd(`silent keepalt buffer ${bufnr}`);
       } else {
-        await args.denops.call(
-          "ddx#util#print_error",
+        await printError(
+          args.denops,
           `Invalid split param: ${args.uiParams.split}`,
         );
         return;
@@ -196,8 +197,8 @@ export class Ui extends BaseUi<Params> {
 
       const address = parseInt(addressString, 16);
       if (Number.isNaN(address)) {
-        await args.denops.call(
-          "ddx#util#print_error",
+        await printError(
+          args.denops,
           "Invalid address",
         );
         return ActionFlags.Persist;
@@ -216,8 +217,8 @@ export class Ui extends BaseUi<Params> {
 
       const value = parseInt(input, 16);
       if (Number.isNaN(value)) {
-        await args.denops.call(
-          "ddx#util#print_error",
+        await printError(
+          args.denops,
           "Invalid value",
         );
         return ActionFlags.Persist;

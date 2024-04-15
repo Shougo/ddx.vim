@@ -11,7 +11,7 @@ import {
 import { defaultUiOptions, defaultUiParams } from "./base/ui.ts";
 import { foldMerge, mergeUiOptions, mergeUiParams } from "./context.ts";
 import { Loader } from "./loader.ts";
-import { errorException } from "./utils.ts";
+import { printError } from "./utils.ts";
 
 export async function uiAction(
   denops: Denops,
@@ -137,7 +137,7 @@ async function checkUiOnInit(
 
     ui.isInitialized = true;
   } catch (e: unknown) {
-    await errorException(
+    await printError(
       denops,
       e,
       `[ddx.vim] ui: ${ui.name} "onInit()" failed`,

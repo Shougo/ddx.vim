@@ -3,7 +3,7 @@ import { DdxBuffer, DdxOptions, UserOptions } from "./types.ts";
 import { defaultContext, defaultDdxOptions } from "./context.ts";
 import { Loader } from "./loader.ts";
 import { getUi } from "./ext.ts";
-import { errorException } from "./utils.ts";
+import { printError } from "./utils.ts";
 
 export class Ddx {
   #loader: Loader;
@@ -31,7 +31,7 @@ export class Ddx {
     try {
       await this.#buffer.open(path);
     } catch (e: unknown) {
-      await errorException(
+      await printError(
         denops,
         e,
         `open: ${path} failed`,
