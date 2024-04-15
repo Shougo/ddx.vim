@@ -14,5 +14,5 @@ export async function printError(
       return `${v}`;
     }
   }).join("\n");
-  await denops.call("ddu#util#print_error", message);
+  await denops.call("ddx#util#print_error", message);
 }
