@@ -11,4 +11,4 @@ export { basename, parse, toFileUrl } from "jsr:@std/path@0.224.0";
 export { deadline, DeadlineError } from "jsr:@std/async@0.224.0";
 
 export { Lock } from "jsr:@lambdalisue/async@2.1.1";
-export { ensure, is } from "https://deno.land/x/unknownutil@v3.18.0/mod.ts";
+export { ensure, is } from "jsr:@core/unknownutil@3.18.0";
