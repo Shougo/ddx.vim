@@ -10,5 +10,5 @@ export { assertEquals } from "jsr:@std/assert@0.225.1";
 export { basename, parse, toFileUrl } from "jsr:@std/path@0.224.0";
 export { deadline, DeadlineError } from "jsr:@std/async@0.224.0";
 
-export { Lock } from "https://deno.land/x/async@v2.1.0/mod.ts";
+export { Lock } from "jsr:@lambdalisue/async@2.1.1";
 export { ensure, is } from "https://deno.land/x/unknownutil@v3.18.0/mod.ts";
