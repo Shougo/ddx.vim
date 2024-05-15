@@ -1,4 +1,4 @@
-import { Denops, ensure, is } from "./deps.ts";
+import { Denops, ensure, Entrypoint, is } from "./deps.ts";
 import { Ddx } from "./ddx.ts";
 import { DdxExtType, DdxOptions } from "./types.ts";
 import {
@@ -9,7 +9,7 @@ import {
 import { Loader } from "./loader.ts";
 import { uiAction } from "./ext.ts";
 
-export function main(denops: Denops) {
+export const main: Entrypoint = (denops: Denops) => {
   const loader = new Loader();
   const ddxs: Record<string, Ddx[]> = {};
   const contextBuilder = new ContextBuilder();
@@ -102,4 +102,4 @@ export function main(denops: Denops) {
       );
     },
   };
-}
+};
