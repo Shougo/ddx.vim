@@ -52,7 +52,7 @@ function s:init() abort
 
   augroup ddx
     autocmd!
-    autocmd User DenopsPluginPost:ddx let s:initialized = v:true
+    autocmd User DenopsPluginPost:ddx ++nested let s:initialized = v:true
   augroup END
 
   " Note: ddx.vim must be registered manually.
@@ -63,7 +63,7 @@ function s:init() abort
         \  denops#server#status() ==# 'running')
     call s:register()
   else
-    autocmd ddx User DenopsReady call s:register()
+    autocmd ddx User DenopsReady ++nested call s:register()
   endif
 endfunction
 
@@ -84,7 +84,7 @@ function s:register() abort
         \   [s:root_dir, 'denops', 'ddx', 'app.ts']->join(s:sep)
         \ )
 
-  autocmd ddx User DenopsClosed call s:stopped()
+  autocmd ddx User DenopsClosed ++nested call s:stopped()
 endfunction
 
 function s:stopped() abort
