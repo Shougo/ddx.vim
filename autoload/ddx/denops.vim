@@ -57,14 +57,24 @@ function s:init() abort
 
   " Note: ddx.vim must be registered manually.
 
-  " Note: denops load may be started
-  if 'g:loaded_denops'->exists() &&
-        \ ('<amatch>'->expand() ==# 'DenopsReady' ||
-        \  denops#server#status() ==# 'running')
-    call s:register()
-  else
-    autocmd ddx User DenopsReady ++nested call s:register()
+  " NOTE: denops load may be started
+  if 'g:loaded_denops'->exists()
+    if denops#server#status() ==# 'running'
+      call s:register()
+      return
+    endif
+
+    try
+      if '<amatch>'->expand() ==# 'DenopsReady'
+        call s:register()
+        return
+      endif
+    catch /^Vim\%((\a\+)\)\=:E497:/
+      " NOTE: E497 is occured when it is not in autocmd.
+    endtry
   endif
+
+  autocmd ddx User DenopsReady ++nested call s:register()
 endfunction
 
 function ddx#denops#_load(name, path) abort
