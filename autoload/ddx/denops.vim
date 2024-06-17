@@ -77,19 +77,10 @@ function s:init() abort
   autocmd ddx User DenopsReady ++nested call s:register()
 endfunction
 
-function ddx#denops#_load(name, path) abort
-  try
-    call denops#plugin#load(a:name, a:path)
-  catch /^Vim\%((\a\+)\)\=:E117:/
-    " Fallback to `register` for backward compatibility
-    silent! call denops#plugin#register(a:name, a:path, #{ mode: 'skip' })
-  endtry
-endfunction
-
 const s:root_dir = '<sfile>'->expand()->fnamemodify(':h:h:h')
 const s:sep = has('win32') ? '\' : '/'
 function s:register() abort
-  call dpp#denops#_load(
+  call denops#plugin#load(
         \   'ddx',
         \   [s:root_dir, 'denops', 'ddx', 'app.ts']->join(s:sep)
         \ )
