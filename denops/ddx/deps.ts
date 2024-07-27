@@ -1,13 +1,13 @@
 export type {
   Denops,
   Entrypoint,
-} from "https://deno.land/x/denops_std@v6.5.1/mod.ts";
-export { execute } from "https://deno.land/x/denops_std@v6.5.1/helper/mod.ts";
-export { batch } from "https://deno.land/x/denops_std@v6.5.1/batch/mod.ts";
-export * as op from "https://deno.land/x/denops_std@v6.5.1/option/mod.ts";
-export * as fn from "https://deno.land/x/denops_std@v6.5.1/function/mod.ts";
-export * as vars from "https://deno.land/x/denops_std@v6.5.1/variable/mod.ts";
-export * as autocmd from "https://deno.land/x/denops_std@v6.5.1/autocmd/mod.ts";
+} from "jsr:@denops/std@7.0.0";
+export { execute } from "jsr:@denops/std@7.0.0/helper";
+export { batch } from "jsr:@denops/std@7.0.0/batch";
+export * as op from "jsr:@denops/std@7.0.0/option";
+export * as fn from "jsr:@denops/std@7.0.0/function";
+export * as vars from "jsr:@denops/std@7.0.0/variable";
+export * as autocmd from "jsr:@denops/std@7.0.0/autocmd";
 
 export { assertEquals } from "jsr:@std/assert@1.0.0";
 export { basename, parse, toFileUrl } from "jsr:@std/path@1.0.1";
