@@ -9,6 +9,7 @@ import {
   parse,
   toFileUrl,
 } from "./deps.ts";
+import { isDenoCacheIssueError } from "./utils.ts";
 
 export class Loader {
   #uis: Record<UiName, BaseUi<BaseUiParams>> = {};
@@ -53,7 +54,21 @@ export class Loader {
 
   async registerPath(type: DdxExtType, path: string) {
     await this.#registerLock.lock(async () => {
-      await this.#register(type, path);
+      try {
+        await this.#register(type, path);
+      } catch (e) {
+        if (isDenoCacheIssueError(e)) {
+          console.warn("*".repeat(80));
+          console.warn(`Deno module cache issue is detected.`);
+          console.warn(
+            `Execute '!deno cache --reload "${path}"' and restart Vim/Neovim.`,
+          );
+          console.warn("*".repeat(80));
+        }
+
+        console.error(`Failed to load file '${path}': ${e}`);
+        throw e;
+      }
     });
   }
 
