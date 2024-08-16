@@ -1,6 +1,6 @@
 import { assertEquals } from "./deps.ts";
-import { ByteSliceStream } from "jsr:@std/streams@1.0.0/byte-slice-stream";
-import { toArrayBuffer } from "jsr:@std/streams@1.0.0/to-array-buffer";
+import { ByteSliceStream } from "jsr:@std/streams@1.0.1/byte-slice-stream";
+import { toArrayBuffer } from "jsr:@std/streams@1.0.1/to-array-buffer";
 
 type FileBuffer = {
   file: Deno.FsFile;

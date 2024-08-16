@@ -11,4 +11,4 @@ export { basename, parse, toFileUrl } from "jsr:@std/path@~1.0.1";
 export { deadline } from "jsr:@std/async@~1.0.0";
 
 export { Lock } from "jsr:@lambdalisue/async@~2.1.1";
-export { ensure, is } from "jsr:@core/unknownutil@~4.0.0";
+export { ensure, is } from "jsr:@core/unknownutil@~4.2.0";
