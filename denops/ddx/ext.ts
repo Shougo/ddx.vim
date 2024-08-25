@@ -1,4 +1,3 @@
-import { Denops } from "./deps.ts";
 import {
   ActionFlags,
   Context,
@@ -15,6 +14,8 @@ import {
 import { foldMerge, mergeUiOptions, mergeUiParams } from "./context.ts";
 import { Loader } from "./loader.ts";
 import { printError } from "./utils.ts";
+
+import type { Denops } from "jsr:@denops/std@~7.0.0";
 
 export async function uiAction(
   denops: Denops,

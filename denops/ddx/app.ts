@@ -1,4 +1,3 @@
-import { Denops, ensure, Entrypoint, is } from "./deps.ts";
 import { Ddx } from "./ddx.ts";
 import { DdxExtType, DdxOptions } from "./types.ts";
 import {
@@ -8,6 +7,11 @@ import {
 } from "./context.ts";
 import { Loader } from "./loader.ts";
 import { uiAction } from "./ext.ts";
+
+import type { Denops, Entrypoint } from "jsr:@denops/std@~7.0.0";
+
+import { ensure } from "jsr:@core/unknownutil@~4.2.0/ensure";
+import { is } from "jsr:@core/unknownutil@~4.2.0/is";
 
 export const main: Entrypoint = (denops: Denops) => {
   const loader = new Loader();

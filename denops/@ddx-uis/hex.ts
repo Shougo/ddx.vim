@@ -6,8 +6,12 @@ import {
   UiOptions,
 } from "../ddx/types.ts";
 import { BaseUi, UiActions } from "../ddx/base/ui.ts";
-import { batch, Denops, fn, op } from "../ddx/deps.ts";
 import { printError } from "../ddx/utils.ts";
+
+import type { Denops } from "jsr:@denops/std@~7.0.0";
+import * as op from "jsr:@denops/std@~7.0.0/option";
+import * as fn from "jsr:@denops/std@~7.0.0/function";
+import { batch } from "jsr:@denops/std@~7.0.0/batch";
 
 type FloatingBorder =
   | "none"

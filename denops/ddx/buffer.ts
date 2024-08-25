@@ -1,4 +1,4 @@
-import { assertEquals } from "./deps.ts";
+import { assertEquals } from "jsr:@std/assert@~1.0.0";
 import { ByteSliceStream } from "jsr:@std/streams@1.0.1/byte-slice-stream";
 import { toArrayBuffer } from "jsr:@std/streams@1.0.1/to-array-buffer";
 
