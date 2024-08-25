@@ -1,12 +1,11 @@
 import {
   ActionFlags,
-  BaseUi,
   Context,
   DdxBuffer,
   DdxOptions,
-  UiActions,
   UiOptions,
 } from "../ddx/types.ts";
+import { BaseUi, UiActions } from "../ddx/base/ui.ts";
 import { batch, Denops, fn, op } from "../ddx/deps.ts";
 import { printError } from "../ddx/utils.ts";
 

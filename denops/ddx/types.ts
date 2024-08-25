@@ -1,9 +1,8 @@
-import { Denops } from "./deps.ts";
 import type { BaseUiParams } from "./base/ui.ts";
 import { DdxBuffer } from "./buffer.ts";
 
-export { BaseUi } from "./base/ui.ts";
-export type { BaseUiParams, UiActions } from "./base/ui.ts";
+import type { Denops } from "jsr:@denops/std@~7.0.0";
+
 export { DdxBuffer } from "./buffer.ts";
 
 export type DdxExtType = "ui";

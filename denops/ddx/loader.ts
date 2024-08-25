@@ -1,4 +1,5 @@
-import { BaseUi, BaseUiParams, DdxExtType, UiName } from "./types.ts";
+import { DdxExtType, UiName } from "./types.ts";
+import { BaseUi, BaseUiParams } from "./base/ui.ts";
 import {
   basename,
   Denops,

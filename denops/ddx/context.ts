@@ -1,11 +1,6 @@
 import { assertEquals, Denops, fn } from "./deps.ts";
-import {
-  BaseUiParams,
-  Context,
-  DdxOptions,
-  UiOptions,
-  UserOptions,
-} from "./types.ts";
+import { BaseUiParams } from "./base/ui.ts";
+import { Context, DdxOptions, UiOptions, UserOptions } from "./types.ts";
 
 // where
 // T: Object

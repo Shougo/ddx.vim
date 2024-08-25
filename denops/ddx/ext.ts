@@ -1,14 +1,17 @@
 import { Denops } from "./deps.ts";
 import {
   ActionFlags,
-  BaseUi,
-  BaseUiParams,
   Context,
   DdxBuffer,
   DdxOptions,
   UiOptions,
 } from "./types.ts";
-import { defaultUiOptions, defaultUiParams } from "./base/ui.ts";
+import {
+  BaseUi,
+  BaseUiParams,
+  defaultUiOptions,
+  defaultUiParams,
+} from "./base/ui.ts";
 import { foldMerge, mergeUiOptions, mergeUiParams } from "./context.ts";
 import { Loader } from "./loader.ts";
 import { printError } from "./utils.ts";
