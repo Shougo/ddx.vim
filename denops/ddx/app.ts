@@ -10,8 +10,8 @@ import { uiAction } from "./ext.ts";
 
 import type { Denops, Entrypoint } from "jsr:@denops/std@~7.0.0";
 
-import { ensure } from "jsr:@core/unknownutil@~4.2.0/ensure";
-import { is } from "jsr:@core/unknownutil@~4.2.0/is";
+import { ensure } from "jsr:@core/unknownutil@~4.3.0/ensure";
+import { is } from "jsr:@core/unknownutil@~4.3.0/is";
 
 export const main: Entrypoint = (denops: Denops) => {
   const loader = new Loader();

@@ -9,7 +9,7 @@ import { Lock } from "jsr:@lambdalisue/async@~2.1.1";
 import { basename } from "jsr:@std/path@~1.0.1/basename";
 import { parse } from "jsr:@std/path@~1.0.1/parse";
 import { toFileUrl } from "jsr:@std/path@~1.0.1/to-file-url";
-import { is } from "jsr:@core/unknownutil@~4.2.0/is";
+import { is } from "jsr:@core/unknownutil@~4.3.0/is";
 
 export class Loader {
   #uis: Record<UiName, BaseUi<BaseUiParams>> = {};
