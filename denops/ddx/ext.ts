@@ -1,19 +1,15 @@
 import {
   ActionFlags,
+  BaseParams,
   Context,
-  DdxBuffer,
   DdxOptions,
   UiOptions,
 } from "./types.ts";
-import {
-  BaseUi,
-  BaseUiParams,
-  defaultUiOptions,
-  defaultUiParams,
-} from "./base/ui.ts";
+import { BaseUi, defaultUiOptions, defaultUiParams } from "./base/ui.ts";
 import { foldMerge, mergeUiOptions, mergeUiParams } from "./context.ts";
 import { Loader } from "./loader.ts";
 import { printError } from "./utils.ts";
+import { DdxBuffer } from "./buffer.ts";
 
 import type { Denops } from "jsr:@denops/std@~7.0.0";
 
@@ -74,9 +70,9 @@ export async function getUi(
   name: string,
 ): Promise<
   [
-    BaseUi<BaseUiParams> | undefined,
+    BaseUi<BaseParams> | undefined,
     UiOptions,
-    BaseUiParams,
+    BaseParams,
   ]
 > {
   await loader.autoload(denops, "ui", name);
@@ -101,11 +97,11 @@ export async function getUi(
 }
 
 function uiArgs<
-  Params extends BaseUiParams,
+  Params extends BaseParams,
 >(
   options: DdxOptions,
   ui: BaseUi<Params>,
-): [UiOptions, BaseUiParams] {
+): [UiOptions, BaseParams] {
   const o = foldMerge(
     mergeUiOptions,
     defaultUiOptions,
@@ -123,10 +119,10 @@ function uiArgs<
 }
 
 async function checkUiOnInit(
-  ui: BaseUi<BaseUiParams>,
+  ui: BaseUi<BaseParams>,
   denops: Denops,
   uiOptions: UiOptions,
-  uiParams: BaseUiParams,
+  uiParams: BaseParams,
 ) {
   if (ui.isInitialized) {
     return;

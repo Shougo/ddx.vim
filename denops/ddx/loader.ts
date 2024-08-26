@@ -1,5 +1,5 @@
-import { DdxExtType, UiName } from "./types.ts";
-import { BaseUi, BaseUiParams } from "./base/ui.ts";
+import { BaseParams, DdxExtType, UiName } from "./types.ts";
+import { BaseUi } from "./base/ui.ts";
 import { isDenoCacheIssueError } from "./utils.ts";
 
 import type { Denops } from "jsr:@denops/std@~7.0.0";
@@ -12,7 +12,7 @@ import { toFileUrl } from "jsr:@std/path@~1.0.1/to-file-url";
 import { is } from "jsr:@core/unknownutil@~4.3.0/is";
 
 export class Loader {
-  #uis: Record<UiName, BaseUi<BaseUiParams>> = {};
+  #uis: Record<UiName, BaseUi<BaseParams>> = {};
   #aliases: Record<DdxExtType, Record<string, string>> = {
     ui: {},
   };

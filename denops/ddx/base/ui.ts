@@ -1,27 +1,26 @@
 import {
+  BaseParams,
   Context,
-  DdxBuffer,
   DdxOptions,
   UiActionCallback,
   UiOptions,
 } from "../types.ts";
+import { DdxBuffer } from "../buffer.ts";
 
 import type { Denops } from "jsr:@denops/std@~7.0.0";
 
-export type BaseUiParams = Record<string, unknown>;
-
-export type UiActions<Params extends BaseUiParams> = Record<
+export type UiActions<Params extends BaseParams> = Record<
   string,
   UiActionCallback<Params>
 >;
 
-export type OnInitArguments<Params extends BaseUiParams> = {
+export type OnInitArguments<Params extends BaseParams> = {
   denops: Denops;
   uiOptions: UiOptions;
   uiParams: Params;
 };
 
-export type RedrawArguments<Params extends BaseUiParams> = {
+export type RedrawArguments<Params extends BaseParams> = {
   denops: Denops;
   context: Context;
   options: DdxOptions;
@@ -30,7 +29,7 @@ export type RedrawArguments<Params extends BaseUiParams> = {
   uiParams: Params;
 };
 
-export type QuitArguments<Params extends BaseUiParams> = {
+export type QuitArguments<Params extends BaseParams> = {
   denops: Denops;
   context: Context;
   options: DdxOptions;
@@ -38,7 +37,7 @@ export type QuitArguments<Params extends BaseUiParams> = {
   uiParams: Params;
 };
 
-export abstract class BaseUi<Params extends BaseUiParams> {
+export abstract class BaseUi<Params extends BaseParams> {
   name = "";
   isInitialized = false;
 
@@ -59,6 +58,6 @@ export function defaultUiOptions(): UiOptions {
   return {};
 }
 
-export function defaultUiParams(): BaseUiParams {
+export function defaultUiParams(): BaseParams {
   return {};
 }

@@ -1,5 +1,10 @@
-import { BaseUiParams } from "./base/ui.ts";
-import { Context, DdxOptions, UiOptions, UserOptions } from "./types.ts";
+import {
+  BaseParams,
+  Context,
+  DdxOptions,
+  UiOptions,
+  UserOptions,
+} from "./types.ts";
 
 import { assertEquals } from "jsr:@std/assert@~1.0.0";
 import type { Denops } from "jsr:@denops/std@~7.0.0";
@@ -23,7 +28,7 @@ function overwrite<T>(a: T, b: Partial<T>): T {
 
 export const mergeUiOptions: Merge<UiOptions> = overwrite;
 
-export const mergeUiParams: Merge<BaseUiParams> = overwrite;
+export const mergeUiParams: Merge<BaseParams> = overwrite;
 
 export function foldMerge<T>(
   merge: Merge<T>,

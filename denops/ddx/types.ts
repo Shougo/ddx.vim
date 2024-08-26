@@ -1,9 +1,6 @@
-import type { BaseUiParams } from "./base/ui.ts";
 import { DdxBuffer } from "./buffer.ts";
 
 import type { Denops } from "jsr:@denops/std@~7.0.0";
-
-export { DdxBuffer } from "./buffer.ts";
 
 export type DdxExtType = "ui";
 
@@ -19,7 +16,7 @@ export type DdxOptions = {
   path: string;
   ui: string;
   uiOptions: Record<string, Partial<UiOptions>>;
-  uiParams: Record<string, Partial<BaseUiParams>>;
+  uiParams: Record<string, Partial<BaseParams>>;
 };
 
 export type UserOptions = Record<string, unknown>;
@@ -29,11 +26,13 @@ export type UiOptions = {
   placeholder?: unknown;
 };
 
-export type UiActionCallback<Params extends BaseUiParams> = (
+export type BaseParams = Record<string, unknown>;
+
+export type UiActionCallback<Params extends BaseParams> = (
   args: ActionArguments<Params>,
 ) => ActionFlags | Promise<ActionFlags>;
 
-export type ActionArguments<Params extends BaseUiParams> = {
+export type ActionArguments<Params extends BaseParams> = {
   denops: Denops;
   context: Context;
   options: DdxOptions;

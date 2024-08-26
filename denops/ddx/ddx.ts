@@ -1,8 +1,9 @@
-import { DdxBuffer, DdxOptions, UserOptions } from "./types.ts";
+import { DdxOptions, UserOptions } from "./types.ts";
 import { defaultContext, defaultDdxOptions } from "./context.ts";
 import { Loader } from "./loader.ts";
 import { getUi } from "./ext.ts";
 import { printError } from "./utils.ts";
+import { DdxBuffer } from "./buffer.ts";
 
 import type { Denops } from "jsr:@denops/std@~7.0.0";
 
