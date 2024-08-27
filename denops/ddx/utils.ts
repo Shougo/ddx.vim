@@ -1,4 +1,4 @@
-import type { Denops } from "jsr:@denops/std@~7.0.0";
+import type { Denops } from "jsr:@denops/std@~7.1.0";
 
 export async function printError(
   denops: Denops,

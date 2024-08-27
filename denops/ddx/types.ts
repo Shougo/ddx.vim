@@ -1,6 +1,6 @@
 import { DdxBuffer } from "./buffer.ts";
 
-import type { Denops } from "jsr:@denops/std@~7.0.0";
+import type { Denops } from "jsr:@denops/std@~7.1.0";
 
 export type DdxExtType = "ui";
 
