@@ -5,7 +5,7 @@ import { getUi } from "./ext.ts";
 import { printError } from "./utils.ts";
 import { DdxBuffer } from "./buffer.ts";
 
-import type { Denops } from "jsr:@denops/std@~7.1.0";
+import type { Denops } from "jsr:@denops/std@~7.2.0";
 
 export class Ddx {
   #loader: Loader;

@@ -2,11 +2,11 @@ import { BaseParams, DdxExtType, UiName } from "./types.ts";
 import { BaseUi } from "./base/ui.ts";
 import { isDenoCacheIssueError } from "./utils.ts";
 
-import type { Denops } from "jsr:@denops/std@~7.1.0";
-import * as op from "jsr:@denops/std@~7.1.0/option";
-import * as fn from "jsr:@denops/std@~7.1.0/function";
+import type { Denops } from "jsr:@denops/std@~7.2.0";
+import * as op from "jsr:@denops/std@~7.2.0/option";
+import * as fn from "jsr:@denops/std@~7.2.0/function";
 
-import { Lock } from "jsr:@core/asyncutil@~1.1.1/lock";
+import { Lock } from "jsr:@core/asyncutil@~1.2.0/lock";
 import { basename } from "jsr:@std/path@~1.0.1/basename";
 import { parse } from "jsr:@std/path@~1.0.1/parse";
 import { toFileUrl } from "jsr:@std/path@~1.0.1/to-file-url";

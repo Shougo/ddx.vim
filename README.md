@@ -1,6 +1,6 @@
 # ddx.vim
 
-> Dark deno-powered hexadecimal plugin for neovim/Vim
+> Dark deno-powered hexadecimal plugin for NeoVim/Vim
 
 If you don't want to configure plugins, you don't have to use the plugin. It
 does not work with zero configuration. You can use other plugins.
@@ -25,19 +25,19 @@ The development is supported by
 ## Introduction
 
 I have chosen denops.vim framework to create new plugin. Because denops.vim is
-better than neovim Python interface.
+better than NeoVim Python interface.
 
 - Easy to setup
 - Minimal dependency
 - Stability
-- neovim/Vim compatibility
+- NeoVim/Vim compatibility
 - Speed
 - Library
 - Easy to hack
 
 ## Install
 
-**Note:** Ddx.vim requires Neovim (0.8.0+ and of course, **latest** is
+**Note:** Ddx.vim requires NeoVim (0.8.0+ and of course, **latest** is
 recommended) or Vim 9.0.1499+. See [requirements](#requirements) if you aren't
 sure whether you have this.
 

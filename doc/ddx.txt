@@ -1,4 +1,4 @@
-*ddx.txt*	Dark deno-powered hexadecimal plugin for neovim/Vim
+*ddx.txt*	Dark deno-powered hexadecimal plugin for NeoVim/Vim
 
 Author: Shougo <Shougo.Matsu at gmail.com>
 License: MIT license
@@ -34,7 +34,7 @@ It does not work with zero configuration.  You can use other plugins.
 ==============================================================================
 INSTALL                                                          *ddx-install*
 
-Note: ddx.vim requires Neovim (0.8.0+) or Vim 9.0.1499+ (latest is
+Note: ddx.vim requires NeoVim (0.8.0+) or Vim 9.0.1499+ (latest is
 recommended).
 
 Please install both Deno 1.45+ and "denops.vim" v7.0+.
@@ -222,7 +222,7 @@ FAQ 2:                                                             |ddx-faq-2|
                                                                    *ddx-faq-1*
 Q: How to donate money to you?
 
-A: I have started github sponsorship to spend more time for Vim/neovim
+A: I have started github sponsorship to spend more time for Vim/NeoVim
 plugins.  You can donate money to help me!
 
    https://github.com/sponsors/Shougo
