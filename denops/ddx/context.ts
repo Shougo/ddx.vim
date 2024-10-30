@@ -7,8 +7,8 @@ import {
 } from "./types.ts";
 
 import { assertEquals } from "jsr:@std/assert@~1.0.0";
-import type { Denops } from "jsr:@denops/std@~7.2.0";
-import * as fn from "jsr:@denops/std@~7.2.0/function";
+import type { Denops } from "jsr:@denops/std@~7.3.0";
+import * as fn from "jsr:@denops/std@~7.3.0/function";
 
 // where
 // T: Object
