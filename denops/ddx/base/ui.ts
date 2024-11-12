@@ -20,22 +20,21 @@ export type OnInitArguments<Params extends BaseParams> = {
   uiParams: Params;
 };
 
-export type RedrawArguments<Params extends BaseParams> = {
+type BaseUiArguments<Params extends BaseParams> = {
   denops: Denops;
   context: Context;
   options: DdxOptions;
-  buffer: DdxBuffer;
   uiOptions: UiOptions;
   uiParams: Params;
 };
 
-export type QuitArguments<Params extends BaseParams> = {
-  denops: Denops;
-  context: Context;
-  options: DdxOptions;
-  uiOptions: UiOptions;
-  uiParams: Params;
-};
+export type RedrawArguments<Params extends BaseParams> =
+  & BaseUiArguments<Params>
+  & {
+    buffer: DdxBuffer;
+  };
+
+export type QuitArguments<Params extends BaseParams> = BaseUiArguments<Params>;
 
 export abstract class BaseUi<Params extends BaseParams> {
   name = "";
