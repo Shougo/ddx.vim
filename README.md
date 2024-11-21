@@ -1,6 +1,6 @@
 # ddx.vim
 
-> Dark deno-powered hexadecimal plugin for Neovim/Vim
+> Dark deno-powered hexadecimal plugin for Vim/Neovim
 
 If you don't want to configure plugins, you don't have to use the plugin. It
 does not work with zero configuration. You can use other plugins.
@@ -30,7 +30,7 @@ better than Neovim Python interface.
 - Easy to setup
 - Minimal dependency
 - Stability
-- Neovim/Vim compatibility
+- Vim/Neovim compatibility
 - Speed
 - Library
 - Easy to hack
