@@ -44,9 +44,9 @@ function s:init() abort
     return
   endif
 
-  if !has('patch-9.0.1499') && !has('nvim-0.8')
+  if !has('patch-9.1.0448') && !has('nvim-0.10')
     call ddx#util#print_error(
-          \ 'ddx requires Vim 9.0.1499+ or neovim 0.8.0+.')
+          \ 'ddx requires Vim 9.1.0448+ or neovim 0.10.0+.')
     return 1
   endif
 

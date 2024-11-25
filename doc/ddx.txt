@@ -34,8 +34,7 @@ It does not work with zero configuration.  You can use other plugins.
 ==============================================================================
 INSTALL                                                          *ddx-install*
 
-Note: ddx.vim requires Neovim (0.8.0+) or Vim 9.0.1499+ (latest is
-recommended).
+Note: ddx.vim requires Vim 9.1.0448+ or Neovim (0.10.0+).
 
 Please install both Deno 1.45+ and "denops.vim" v7.0+.
 
