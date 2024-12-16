@@ -11,7 +11,7 @@ import { Loader } from "./loader.ts";
 import { printError } from "./utils.ts";
 import { DdxBuffer } from "./buffer.ts";
 
-import type { Denops } from "jsr:@denops/std@~7.3.0";
+import type { Denops } from "jsr:@denops/std@~7.4.0";
 
 export async function uiAction(
   denops: Denops,

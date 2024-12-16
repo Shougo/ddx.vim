@@ -199,7 +199,7 @@ params			(function)			(Required)
 
 ==============================================================================
 EXAMPLES                                                        *ddx-examples*
->
+>vim
 	" You must set the default ui.
 	" Note: hex ui
 	call ddx#custom#patch_global({
