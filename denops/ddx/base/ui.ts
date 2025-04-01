@@ -7,7 +7,7 @@ import {
 } from "../types.ts";
 import { DdxBuffer } from "../buffer.ts";
 
-import type { Denops } from "jsr:@denops/std@~7.4.0";
+import type { Denops } from "jsr:@denops/std@~7.5.0";
 
 export type UiActions<Params extends BaseParams> = Record<
   string,
