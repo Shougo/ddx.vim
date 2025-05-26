@@ -163,8 +163,11 @@ export class Ui extends BaseUi<Params> {
       await fn.bufwinid(args.denops, bufnr),
     );
 
-    const winnr = await fn.winnr(args.denops, "$");
-    if (args.uiParams.split == "no" || winnr == 1) {
+    const prevWinnr = await fn.winnr(args.denops, "#");
+    if (
+      args.uiParams.split == "no" ||
+      !(prevWinnr > 0 && prevWinnr !== await fn.winnr(args.denops))
+    ) {
       await args.denops.cmd(
         args.context.bufNr == this.#buffers[args.options.name]
           ? "enew"
