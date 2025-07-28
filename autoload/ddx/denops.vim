@@ -77,7 +77,7 @@ function s:init() abort
   autocmd ddx User DenopsReady ++nested call s:register()
 endfunction
 
-const s:root_dir = '<sfile>:h:h:h'->expand()
+const s:root_dir = '<script>:h:h:h'->expand()
 const s:sep = has('win32') ? '\' : '/'
 function s:register() abort
   call denops#plugin#load(
