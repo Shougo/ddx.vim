@@ -1,0 +1,5 @@
+{
+  "imports": {
+    "@denops/std": "jsr:@denops/std@~7.6.0"
+  }
+}

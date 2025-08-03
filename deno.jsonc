@@ -1,6 +1,7 @@
 {
   "name": "@shougo/ddx-vim",
   "version": "0.0.0",
+  "lock": false,
   "exports": {
     "./ui": "./denops/ddx/base/ui.ts",
     "./types": "./denops/ddx/types.ts",
@@ -11,15 +12,18 @@
       "denops/ddx/**/*.ts"
     ]
   },
-  "imports": {
-  },
-  "lock": false,
   "tasks": {
+    "cache": "deno cache --reload denops/**/*.ts",
     "check": "deno check denops/**/*.ts",
     "lint": "deno lint denops",
     "lint-fix": "deno lint --fix denops",
     "fmt": "deno fmt denops",
     "test": "deno test -A --doc --parallel --shuffle denops/**/*.ts",
-    "upgrade": "deno run -A jsr:@molt/cli **/*.ts --write"
-  }
+    "update": "deno outdated --recursive",
+    "upgrade": "deno outdated --recursive --update"
+  },
+  "workspace": [
+    "./denops/@ddx-uis",
+    "./denops/ddx"
+  ]
 }
