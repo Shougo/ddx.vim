@@ -1,6 +1,8 @@
-export type { DdxBuffer } from "./buffer.ts";
+import type { DdxBuffer } from "./buffer.ts";
 
 import type { Denops } from "@denops/std";
+
+export type { DdxBuffer } from "./buffer.ts";
 
 export type DdxExtType = "ui";
 
