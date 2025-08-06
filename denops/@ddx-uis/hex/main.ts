@@ -4,14 +4,14 @@ import {
   DdxBuffer,
   DdxOptions,
   UiOptions,
-} from "../ddx/types.ts";
-import { BaseUi, UiActions } from "../ddx/base/ui.ts";
-import { printError } from "../ddx/utils.ts";
+} from "../../ddx/types.ts";
+import { BaseUi, UiActions } from "../../ddx/base/ui.ts";
+import { printError } from "../../ddx/utils.ts";
 
-import type { Denops } from "jsr:@denops/std@~7.6.0";
-import * as op from "jsr:@denops/std@~7.6.0/option";
-import * as fn from "jsr:@denops/std@~7.6.0/function";
-import { batch } from "jsr:@denops/std@~7.6.0/batch";
+import type { Denops } from "@denops/std";
+import * as op from "@denops/std/option";
+import * as fn from "@denops/std/function";
+import { batch } from "@denops/std/batch";
 
 type FloatingBorder =
   | "none"

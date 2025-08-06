@@ -1,0 +1,6 @@
+{
+  "imports": {
+    "@denops/std": "jsr:@denops/std@~7.6.0",
+    "@lambdalisue/import-map-importer": "jsr:@lambdalisue/import-map-importer@~0.4.0"
+  }
+}
