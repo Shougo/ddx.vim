@@ -1,0 +1,45 @@
+name: deno
+
+env:
+  DENO_VERSION: 1.x
+  DENOPS_PATH: "./"
+
+on:
+  schedule:
+    - cron: "0 7 * * 0"
+  push:
+    branches:
+      - main
+  pull_request:
+    branches:
+      - main
+
+jobs:
+  deno-lint:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: denoland/setup-deno@main
+        with:
+          deno-version: ${{ env.DENO_VERSION }}
+
+      - name: Check Type
+        run: deno task check
+
+      - name: Check Lint
+        run: deno task lint
+
+      - name: Check Format
+        run: deno task fmt --check
+
+  deno-test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: denoland/setup-deno@main
+        with:
+          deno-version: ${{ env.DENO_VERSION }}
+
+      - name: Test
+        run: deno task test
+        timeout-minutes: 5

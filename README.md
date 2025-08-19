@@ -42,7 +42,7 @@ better than Neovim Python interface.
 
 ### Requirements
 
-Please install both Deno 1.45+ and "denops.vim" v7.0+.
+Please install both Deno 1.45+ and "denops.vim" v8.0+.
 
 - <https://deno.land/>
 - <https://github.com/vim-denops/denops.vim>
