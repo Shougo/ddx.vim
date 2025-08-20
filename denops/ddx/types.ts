@@ -13,6 +13,16 @@ export type Context = {
   winId: number;
 };
 
+export interface ContextBuilder {
+  get(denops: Denops, options: UserOptions): Promise<[Context, DdxOptions]>;
+  getGlobal(): Partial<DdxOptions>;
+  getLocal(): Record<string, Partial<DdxOptions>>;
+  setGlobal(options: Partial<DdxOptions>): void;
+  setLocal(name: string, options: Partial<DdxOptions>): void;
+  patchGlobal(options: Partial<DdxOptions>): void;
+  patchLocal(name: string, options: Partial<DdxOptions>): void;
+}
+
 export type DdxOptions = {
   name: string;
   path: string;

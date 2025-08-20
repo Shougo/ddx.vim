@@ -7,28 +7,58 @@ import {
 } from "./context.ts";
 import { Loader } from "./loader.ts";
 import { uiAction } from "./ext.ts";
+import { importPlugin, isDenoCacheIssueError } from "./utils.ts";
 
 import type { Denops, Entrypoint } from "@denops/std";
 
+import { Lock } from "@core/asyncutil/lock";
 import { ensure } from "@core/unknownutil/ensure";
 import { is } from "@core/unknownutil/is";
 
 export const main: Entrypoint = (denops: Denops) => {
-  const loader = new Loader();
+  const loaders: Record<string, Loader> = {};
   const ddxs: Record<string, Ddx[]> = {};
   const contextBuilder = new ContextBuilder();
-  const aliases: Record<DdxExtType, Record<string, string>> = {
+  const globalAliases: Record<DdxExtType, Record<string, string>> = {
     ui: {},
   };
+  const lock = new Lock(0);
 
   const getDdx = (name: string) => {
     if (!ddxs[name]) {
       ddxs[name] = [];
     }
     if (ddxs[name].length == 0) {
-      ddxs[name].push(new Ddx(loader));
+      ddxs[name].push(new Ddx(getLoader(name)));
     }
     return ddxs[name].slice(-1)[0];
+  };
+  const getLoader = (name: string) => {
+    if (!loaders[name]) {
+      loaders[name] = new Loader();
+
+      // Set global aliases
+      for (const [type, val] of Object.entries(globalAliases)) {
+        for (const [alias, base] of Object.entries(val)) {
+          loaders[name].registerAlias(type as DdxExtType, alias, base);
+        }
+      }
+    }
+
+    return loaders[name];
+  };
+  const setAlias = (
+    name: string,
+    type: DdxExtType,
+    alias: string,
+    base: string,
+  ) => {
+    if (name === "_") {
+      globalAliases[type][alias] = base;
+    } else {
+      const loader = getLoader(name);
+      loader.registerAlias(type, alias, base);
+    }
   };
 
   denops.dispatcher = {
@@ -73,7 +103,34 @@ export const main: Entrypoint = (denops: Denops) => {
       const alias = ensure(arg2, is.String) as string;
       const base = ensure(arg3, is.String) as string;
 
-      aliases[extType][alias] = base;
+      globalAliases[extType][alias] = base;
+      return Promise.resolve();
+    },
+    async loadConfig(arg1: unknown): Promise<void> {
+      //const startTime = Date.now();
+      await lock.lock(async () => {
+        const path = ensure(arg1, is.String) as string;
+
+        try {
+          const mod = await importPlugin(path);
+          // deno-lint-ignore no-explicit-any
+          const obj = new (mod as any).Config();
+          await obj.config({ denops, contextBuilder, setAlias });
+        } catch (e) {
+          if (isDenoCacheIssueError(e)) {
+            console.warn("*".repeat(80));
+            console.warn(`Deno module cache issue is detected.`);
+            console.warn(
+              `Execute '!deno cache --reload "${path}"' and restart Vim/Neovim.`,
+            );
+            console.warn("*".repeat(80));
+          }
+
+          console.error(`Failed to load file '${path}': ${e}`);
+          throw e;
+        }
+      });
+      //console.log(`${Date.now() - startTime} ms`);
       return Promise.resolve();
     },
     async start(arg1: unknown): Promise<void> {
@@ -97,7 +154,7 @@ export const main: Entrypoint = (denops: Denops) => {
       const ddx = getDdx(name);
       await uiAction(
         denops,
-        loader,
+        getLoader(name),
         defaultContext(),
         ddx.getOptions(),
         ddx.getBuffer(),

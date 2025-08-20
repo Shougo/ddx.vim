@@ -130,6 +130,14 @@ ddx#custom#get_global()
 ddx#custom#get_local()
 		Get current buffer specific options.
 
+                                                    *ddx#custom#load_config()*
+ddx#custom#load_config({path})
+		Load TypeScript configuration from {path} file.
+		NOTE: {path} must be full path.
+		NOTE: The loading is asynchronous.
+		NOTE: Import maps from "deno.json[c]" or "import_map.json[c]"
+		file in the same directory will also be loaded.
+
                                                    *ddx#custom#patch_global()*
 ddx#custom#patch_global({option-name}, {value})
 ddx#custom#patch_global({dict})

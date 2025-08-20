@@ -45,6 +45,15 @@ function ddx#custom#get_default_options() abort
   return ddx#denops#_request('getDefaultOptions', [])
 endfunction
 
+function ddx#custom#load_config(path) abort
+  if !a:path->filereadable()
+    call ddx#util#print_error(printf('"%s" is not found.', a:path))
+    return
+  endif
+
+  return s:notify('loadConfig', [a:path])
+endfunction
+
 function s:normalize_key_or_dict(key_or_dict, value) abort
   if a:key_or_dict->type() == v:t_dict
     return a:key_or_dict
