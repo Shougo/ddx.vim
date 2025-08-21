@@ -1,11 +1,11 @@
 import {
   ActionFlags,
-  Context,
-  DdxBuffer,
-  DdxOptions,
-  UiOptions,
+  type Context,
+  type DdxBuffer,
+  type DdxOptions,
+  type UiOptions,
 } from "../../ddx/types.ts";
-import { BaseUi, UiActions } from "../../ddx/base/ui.ts";
+import { BaseUi, type UiActions } from "../../ddx/base/ui.ts";
 import { printError } from "../../ddx/utils.ts";
 
 import type { Denops } from "@denops/std";

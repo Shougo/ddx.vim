@@ -1,5 +1,5 @@
 import { Ddx } from "./ddx.ts";
-import { DdxExtType, DdxOptions } from "./types.ts";
+import type { DdxExtType, DdxOptions } from "./types.ts";
 import {
   ContextBuilder,
   defaultContext,

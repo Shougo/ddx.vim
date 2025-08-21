@@ -1,15 +1,15 @@
 import {
   ActionFlags,
-  BaseParams,
-  Context,
-  DdxOptions,
-  UiOptions,
+  type BaseParams,
+  type Context,
+  type DdxOptions,
+  type UiOptions,
 } from "./types.ts";
-import { BaseUi, defaultUiOptions, defaultUiParams } from "./base/ui.ts";
+import { type BaseUi, defaultUiOptions, defaultUiParams } from "./base/ui.ts";
 import { foldMerge, mergeUiOptions, mergeUiParams } from "./context.ts";
-import { Loader } from "./loader.ts";
+import type { Loader } from "./loader.ts";
 import { printError } from "./utils.ts";
-import { DdxBuffer } from "./buffer.ts";
+import type { DdxBuffer } from "./buffer.ts";
 
 import type { Denops } from "@denops/std";
 

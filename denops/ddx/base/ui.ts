@@ -1,11 +1,11 @@
-import {
+import type {
   BaseParams,
   Context,
   DdxOptions,
   UiActionCallback,
   UiOptions,
 } from "../types.ts";
-import { DdxBuffer } from "../buffer.ts";
+import type { DdxBuffer } from "../buffer.ts";
 
 import type { Denops } from "@denops/std";
 

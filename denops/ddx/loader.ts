@@ -1,5 +1,5 @@
-import { BaseParams, DdxExtType, UiName } from "./types.ts";
-import { BaseUi } from "./base/ui.ts";
+import type { BaseParams, DdxExtType, UiName } from "./types.ts";
+import type { BaseUi } from "./base/ui.ts";
 import { importPlugin, isDenoCacheIssueError } from "./utils.ts";
 
 import type { Denops } from "@denops/std";

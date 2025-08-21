@@ -1,6 +1,6 @@
-import { DdxOptions, UserOptions } from "./types.ts";
+import type { DdxOptions, UserOptions } from "./types.ts";
 import { defaultContext, defaultDdxOptions } from "./context.ts";
-import { Loader } from "./loader.ts";
+import type { Loader } from "./loader.ts";
 import { getUi } from "./ext.ts";
 import { printError } from "./utils.ts";
 import { DdxBuffer } from "./buffer.ts";
