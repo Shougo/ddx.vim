@@ -1,4 +1,16 @@
 {
+  "name": "@shougo/ddx-vim",
+  "version": "0.0.0",
+  "exports": {
+    "./ui": "./base/ui.ts",
+    "./types": "./types.ts",
+    "./utils": "./utils.ts"
+  },
+  "publish": {
+    "include": [
+      "**/*.ts"
+    ]
+  },
   "imports": {
     "@core/asyncutil": "jsr:@core/asyncutil@~1.2.0",
     "@core/unknownutil": "jsr:@core/unknownutil@~4.3.0",
