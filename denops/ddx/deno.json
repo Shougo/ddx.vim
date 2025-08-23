@@ -1,6 +1,5 @@
 {
   "name": "@shougo/ddx-vim",
-  "version": "0.2.4",
   "exports": {
     "./ui": "./base/ui.ts",
     "./types": "./types.ts",
