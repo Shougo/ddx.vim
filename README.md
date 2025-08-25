@@ -37,7 +37,7 @@ better than Neovim Python interface.
 
 ## Install
 
-**Note:** Ddx.vim requires Vim 9.1.1646+ or Neovim 0.11.0+. See
+**Note:** It requires Vim 9.1.1646+ or Neovim 0.11.0+. See
 [requirements](#requirements) if you aren't sure whether you have this.
 
 ### Requirements
