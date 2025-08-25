@@ -37,12 +37,12 @@ better than Neovim Python interface.
 
 ## Install
 
-**Note:** Ddx.vim requires Vim 9.0.1499+ or Neovim 0.10.0+. See
+**Note:** Ddx.vim requires Vim 9.1.1646+ or Neovim 0.11.0+. See
 [requirements](#requirements) if you aren't sure whether you have this.
 
 ### Requirements
 
-Please install both Deno 1.45+ and "denops.vim" v8.0+.
+Please install both Deno 2.3.0+ and "denops.vim" v8.0+.
 
 - <https://deno.land/>
 - <https://github.com/vim-denops/denops.vim>
