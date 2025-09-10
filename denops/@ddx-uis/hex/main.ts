@@ -40,6 +40,7 @@ export type Params = {
 
 export class Ui extends BaseUi<Params> {
   #buffers: Record<string, number> = {};
+  #namespace: number = 0;
 
   override async redraw(args: {
     denops: Denops;
@@ -134,14 +135,46 @@ export class Ui extends BaseUi<Params> {
         ".",
       );
 
+      const addressString = ("00000000" + address).slice(-8);
+
       await fn.setbufline(
         args.denops,
         bufnr,
         lnum,
-        `${("00000000" + address).slice(-8)}: ${
-          arrayBufferToHex(bytes)
-        }${padding} |   ${ascii}`,
+        `${addressString}: ${arrayBufferToHex(bytes)}${padding} |   ${ascii}`,
       );
+
+      let row = 1;
+      for (const byte of bytes) {
+        let highlight = "";
+        if (byte == 0x00) {
+          highlight = "Null";
+        } else if (0x20 <= byte && 0x3f) {
+          highlight = "Ascii1";
+        } else if (0x40 <= byte && 0x5f) {
+          highlight = "Ascii2";
+        } else if (0x60 <= byte && 0x6f) {
+          highlight = "Ascii3";
+        } else if (0x70 <= byte && 0x7f) {
+          highlight = "Ascii4";
+        }
+
+        if (highlight.length > 0) {
+          await args.denops.call(
+            "ddx#util#highlight",
+            `ddx_${highlight}`,
+            "ddx-byte-highlights",
+            1,
+            this.#namespace,
+            bufnr,
+            lnum,
+            addressString.length + 3 * row,
+            2,
+          );
+        }
+
+        row += 1;
+      }
 
       start += length;
       lnum += 1;
@@ -273,6 +306,63 @@ export class Ui extends BaseUi<Params> {
   ): Promise<number> {
     const bufnr = await fn.bufadd(denops, bufferName);
     await fn.bufload(denops, bufnr);
+
+    if (denops.meta.host === "nvim") {
+      this.#namespace = await denops.call(
+        "nvim_create_namespace",
+        "ddx-ui-hex",
+      ) as number;
+    }
+
+    await denops.cmd(
+      "highlight ddx_Cntrl1 guifg=#00a000 ctermfg=darkgreen",
+    );
+    await denops.cmd(
+      "highlight ddx_Cntrl2 guifg=#00c000 ctermfg=darkgreen",
+    );
+    await denops.cmd(
+      "highlight ddx_Cntrl3 guifg=#00e000 ctermfg=green",
+    );
+    await denops.cmd(
+      "highlight ddx_Cntrl4 guifg=#00f000 ctermfg=green",
+    );
+    await denops.cmd(
+      "highlight ddx_Ascii1 guifg=#800000 ctermfg=darkred",
+    );
+    await denops.cmd(
+      "highlight ddx_Ascii2 guifg=#a00000 ctermfg=darkred",
+    );
+    await denops.cmd(
+      "highlight ddx_Ascii3 guifg=#c00000 ctermfg=red",
+    );
+    await denops.cmd(
+      "highlight ddx_Ascii4 guifg=#e00000 ctermfg=red",
+    );
+    await denops.cmd(
+      "highlight ddx_Escape1 guifg=#00a0a0 ctermfg=darkcyan",
+    );
+    await denops.cmd(
+      "highlight ddx_Escape2 guifg=#00c0c0 ctermfg=darkcyan",
+    );
+    await denops.cmd(
+      "highlight ddx_Escape3 guifg=#00e0e0 ctermfg=cyan",
+    );
+    await denops.cmd(
+      "highlight ddx_Escape4 guifg=#00f0f0 ctermfg=cyan",
+    );
+
+    await denops.cmd(
+      "highlight ddx_NewLine guifg=#000080 ctermfg=darkblue",
+    );
+    await denops.cmd(
+      "highlight ddx_Tab guifg=#0000f0 ctermfg=blue",
+    );
+    await denops.cmd(
+      "highlight ddx_Null guifg=#000000 ctermfg=black",
+    );
+    await denops.cmd(
+      "highlight ddx_FF guifg=#f0f0f0 ctermfg=white",
+    );
 
     return bufnr;
   }
