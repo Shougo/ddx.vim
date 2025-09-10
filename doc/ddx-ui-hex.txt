@@ -76,6 +76,30 @@ highlights	(dictionary)
 		It specifies ddx-ui-hex buffer highlights.
 		It can contain following keys
 
+		ascii			(string)
+		Specify ASCII code highlight.
+		Default: "String"
+
+		control			(string)
+		Specify control code highlight.
+		Default: "Special"
+
+		escape			(string)
+		Specify escape code highlight.
+		Default: "Statement"
+
+		newLine			(string)
+		Specify new line code highlight.
+		Default: "Comment"
+
+		null			(string)
+		Specify null byte code highlight.
+		Default: "Ignore"
+
+		tab			(string)
+		Specify tab code highlight.
+		Default: "Special"
+
 		floating			(string)
 		Specify floating window background highlight.
 		Default: "NormalFloat"

@@ -23,7 +23,14 @@ type FloatingBorder =
   | string[];
 
 type HighlightGroup = {
+  ascii?: string;
+  control?: string;
+  escape?: string;
+  ff?: string;
   floating?: string;
+  newLine?: string;
+  null?: string;
+  tab?: string;
 };
 
 export type Params = {
@@ -148,29 +155,36 @@ export class Ui extends BaseUi<Params> {
       for (const byte of bytes) {
         let highlight = "";
         if (byte == 0x00) {
-          highlight = "Null";
-        } else if (0x20 <= byte && 0x3f) {
-          highlight = "Ascii1";
-        } else if (0x40 <= byte && 0x5f) {
-          highlight = "Ascii2";
-        } else if (0x60 <= byte && 0x6f) {
-          highlight = "Ascii3";
-        } else if (0x70 <= byte && 0x7f) {
-          highlight = "Ascii4";
+          highlight = args.uiParams.highlights.null ?? "Ignore";
+        } else if (byte == 0x09) {
+          highlight = args.uiParams.highlights.tab ?? "Special";
+        } else if (byte == 0x0a) {
+          highlight = args.uiParams.highlights.newLine ?? "Comment";
+        } else if (0x01 <= byte && byte <= 0x1f) {
+          highlight = args.uiParams.highlights.null ?? "Special";
+        } else if (0x20 <= byte && byte <= 0x7f) {
+          highlight = args.uiParams.highlights.ascii ?? "String";
+        } else if (0x80 <= byte && byte <= 0xfe) {
+          highlight = args.uiParams.highlights.escape ?? "Statement";
         }
 
         if (highlight.length > 0) {
-          await args.denops.call(
-            "ddx#util#highlight",
-            `ddx_${highlight}`,
-            "ddx-byte-highlights",
-            1,
-            this.#namespace,
-            bufnr,
-            lnum,
-            addressString.length + 3 * row,
-            2,
-          );
+          try {
+            await args.denops.call(
+              "ddx#util#highlight",
+              highlight,
+              "ddx-byte-highlights",
+              1,
+              this.#namespace,
+              bufnr,
+              lnum,
+              addressString.length + 3 * row,
+              2,
+            );
+          } catch (_e: unknown) {
+            // may be failed
+            break;
+          }
         }
 
         row += 1;
@@ -191,10 +205,12 @@ export class Ui extends BaseUi<Params> {
   }): Promise<void> {
     // Move to the UI window.
     const bufnr = this.#buffers[args.options.name];
-    await fn.win_gotoid(
-      args.denops,
-      await fn.bufwinid(args.denops, bufnr),
-    );
+    if (bufnr > 0) {
+      await fn.win_gotoid(
+        args.denops,
+        await fn.bufwinid(args.denops, bufnr),
+      );
+    }
 
     const prevWinnr = await fn.winnr(args.denops, "#");
     if (
@@ -227,7 +243,7 @@ export class Ui extends BaseUi<Params> {
         currentLine,
         await fn.col(args.denops, "."),
       );
-      const [type, addressString] = await args.denops.call(
+      const [_type, addressString] = await args.denops.call(
         "ddx#ui#hex#parse_address",
         currentLine,
         curText,
@@ -242,8 +258,6 @@ export class Ui extends BaseUi<Params> {
         );
         return ActionFlags.Persist;
       }
-
-      console.log([addressString, address, type]);
 
       const currentValue = await args.buffer.getByte(address);
       const input = await args.denops.call(
@@ -313,56 +327,6 @@ export class Ui extends BaseUi<Params> {
         "ddx-ui-hex",
       ) as number;
     }
-
-    await denops.cmd(
-      "highlight ddx_Cntrl1 guifg=#00a000 ctermfg=darkgreen",
-    );
-    await denops.cmd(
-      "highlight ddx_Cntrl2 guifg=#00c000 ctermfg=darkgreen",
-    );
-    await denops.cmd(
-      "highlight ddx_Cntrl3 guifg=#00e000 ctermfg=green",
-    );
-    await denops.cmd(
-      "highlight ddx_Cntrl4 guifg=#00f000 ctermfg=green",
-    );
-    await denops.cmd(
-      "highlight ddx_Ascii1 guifg=#800000 ctermfg=darkred",
-    );
-    await denops.cmd(
-      "highlight ddx_Ascii2 guifg=#a00000 ctermfg=darkred",
-    );
-    await denops.cmd(
-      "highlight ddx_Ascii3 guifg=#c00000 ctermfg=red",
-    );
-    await denops.cmd(
-      "highlight ddx_Ascii4 guifg=#e00000 ctermfg=red",
-    );
-    await denops.cmd(
-      "highlight ddx_Escape1 guifg=#00a0a0 ctermfg=darkcyan",
-    );
-    await denops.cmd(
-      "highlight ddx_Escape2 guifg=#00c0c0 ctermfg=darkcyan",
-    );
-    await denops.cmd(
-      "highlight ddx_Escape3 guifg=#00e0e0 ctermfg=cyan",
-    );
-    await denops.cmd(
-      "highlight ddx_Escape4 guifg=#00f0f0 ctermfg=cyan",
-    );
-
-    await denops.cmd(
-      "highlight ddx_NewLine guifg=#000080 ctermfg=darkblue",
-    );
-    await denops.cmd(
-      "highlight ddx_Tab guifg=#0000f0 ctermfg=blue",
-    );
-    await denops.cmd(
-      "highlight ddx_Null guifg=#000000 ctermfg=black",
-    );
-    await denops.cmd(
-      "highlight ddx_FF guifg=#f0f0f0 ctermfg=white",
-    );
 
     return bufnr;
   }
