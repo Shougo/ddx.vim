@@ -1,193 +1,83 @@
 import { assertEquals } from "@std/assert";
-import { ByteSliceStream } from "@std/streams/byte-slice-stream";
-import { toArrayBuffer } from "@std/streams/to-array-buffer";
-
-type FileBuffer = {
-  file: Deno.FsFile;
-  start: number;
-  length: number;
-  path: string;
-};
-
-type BytesBuffer = {
-  bytes: Uint8Array;
-};
-
-// deno-lint-ignore no-explicit-any
-function isFileBuffer(arg: any): arg is FileBuffer {
-  return arg.file !== undefined;
-}
-
-type Buffer = FileBuffer | BytesBuffer;
 
 export class DdxBuffer {
-  #buffers: Buffer[] = [];
+  file: Deno.FsFile | undefined = undefined;
+  start: number = 0;
+  path: string = "";
+  bytes: Uint8Array = new Uint8Array();
 
-  async open(path: string) {
+  async open(path: string, length: number = 0) {
     if (!(await exists(path))) {
       return;
     }
 
+    this.file = await Deno.open(path, { read: true });
+    this.start = 0;
+    this.path = path;
+
     const stat = await Deno.stat(path);
+    const fileLength = stat.size;
 
-    this.#buffers.push({
-      file: await Deno.open(path, { read: true }),
-      start: 0,
-      length: stat.size,
-      path,
-    });
-  }
-
-  getIndex(pos: number): [number, number] {
-    let bytesPos = 0;
-    let index = 0;
-    let offset = pos;
-
-    for (const buffer of this.#buffers) {
-      if (pos < bytesPos) {
-        break;
-      }
-
-      const bufLength = isFileBuffer(buffer)
-        ? buffer.length
-        : buffer.bytes.length;
-
-      bytesPos += bufLength;
-      offset -= bufLength;
-      index++;
+    if (length === 0) {
+      length = fileLength;
     }
 
-    return [index, offset];
+    const buf = new Uint8Array(length);
+    const bytesRead = await this.file.read(buf);
+    this.bytes = buf.subarray(0, bytesRead ?? 0);
   }
 
   insert(pos: number, bytes: Uint8Array) {
-    if (this.#buffers.length == 0) {
-      this.#buffers.push({
-        bytes,
-      });
-      return;
+    if (pos < 0 || pos > this.bytes.length) {
+      throw new RangeError("Position out of range");
     }
 
-    const [index, offset] = this.getIndex(pos);
+    const before = this.bytes.subarray(0, pos);
+    const after = this.bytes.subarray(pos);
 
-    this.#buffers.splice(index, 0, {
-      bytes,
-    });
+    const newBytes = new Uint8Array(
+      before.length + bytes.length + after.length,
+    );
+    newBytes.set(before, 0);
+    newBytes.set(bytes, before.length);
+    newBytes.set(after, before.length + bytes.length);
 
-    // Split is not needed
-    if (offset == 0) {
-      return;
-    }
-
-    const prevBuffer = this.#buffers[index];
-    this.#buffers.splice(index, 0, prevBuffer);
-
-    if (isFileBuffer(prevBuffer)) {
-      prevBuffer.length = offset;
-    } else {
-      prevBuffer.bytes = prevBuffer.bytes.slice(offset);
-    }
-
-    const nextBuffer = this.#buffers[index + 2];
-    if (nextBuffer) {
-      if (isFileBuffer(nextBuffer)) {
-        nextBuffer.start = offset + 1;
-        nextBuffer.length -= offset + 1;
-      } else {
-        nextBuffer.bytes = nextBuffer.bytes.slice(offset + 1);
-      }
-    }
+    this.bytes = newBytes;
   }
 
   async write(path: string) {
-    const bytes = await this.getBytes(0, this.getSize());
-    await Deno.writeFile(path, bytes);
+    await Deno.writeFile(path, this.bytes);
   }
 
   close() {
-    for (const buffer of this.#buffers) {
-      if (isFileBuffer(buffer)) {
-        buffer.file.close();
-        buffer.path = "";
-      }
+    if (!this.file) {
+      return;
     }
+
+    this.file.close();
+    this.file = undefined;
+    this.start = 0;
+    this.path = "";
   }
 
   getSize(): number {
-    let size = 0;
-
-    for (const buffer of this.#buffers) {
-      if (isFileBuffer(buffer)) {
-        size += buffer.length;
-      } else {
-        size += buffer.bytes.length;
-      }
-    }
-
-    return size;
+    return this.bytes.length;
   }
 
-  async getByte(pos: number): Promise<number | undefined> {
-    let bytesPos = 0;
-
-    for (const buffer of this.#buffers) {
-      // Skip until "start".
-      const bufLength = isFileBuffer(buffer)
-        ? buffer.length
-        : buffer.bytes.length;
-
-      if (bytesPos + bufLength < pos) {
-        bytesPos += bufLength;
-        continue;
-      }
-
-      if (isFileBuffer(buffer)) {
-        const file = await Deno.open(buffer.path, { read: true });
-        const rangedStream = file.readable
-          .pipeThrough(
-            new ByteSliceStream(buffer.start + pos, buffer.start + pos),
-          );
-        const range = await toArrayBuffer(rangedStream);
-        return new Uint8Array(range).at(0);
-      } else {
-        return buffer.bytes.at(pos);
-      }
+  getByte(pos: number): number | undefined {
+    if (pos < 0 || pos >= this.bytes.length) {
+      return undefined;
     }
 
-    return undefined;
+    return this.bytes[pos];
   }
 
-  async getBytes(start: number, length: number): Promise<Uint8Array> {
-    const maxSize = this.getSize() - start;
-
-    const bytes = new Uint8Array(maxSize < length ? maxSize : length);
-    let bytesPos = 0;
-
-    for (const buffer of this.#buffers) {
-      // Skip until "start".
-      const bufLength = isFileBuffer(buffer)
-        ? buffer.length
-        : buffer.bytes.length;
-
-      if (isFileBuffer(buffer)) {
-        const file = await Deno.open(buffer.path, { read: true });
-        const rangedStream = file.readable
-          .pipeThrough(
-            new ByteSliceStream(
-              buffer.start + start,
-              buffer.start + start + length - 1,
-            ),
-          );
-        const range = await toArrayBuffer(rangedStream);
-        bytes.set(new Uint8Array(range), bytesPos);
-      } else {
-        bytes.set(buffer.bytes.slice(start, length), bytesPos);
-      }
-
-      bytesPos += bufLength;
+  getBytes(start: number, length: number): Uint8Array {
+    if (start < 0 || length < 0 || start + length > this.bytes.length) {
+      return Uint8Array.from([]);
     }
 
-    return bytes;
+    return this.bytes.subarray(start, start + length);
   }
 
   getInt8() {
@@ -225,12 +115,12 @@ Deno.test("buffer", async () => {
 
   // Check empty
   assertEquals(0, buffer.getSize());
-  assertEquals(Uint8Array.from([]), await buffer.getBytes(0, 10));
+  assertEquals(Uint8Array.from([]), buffer.getBytes(0, 10));
 
   // Invalid path
   await buffer.open("foo-bar-baz");
   assertEquals(0, buffer.getSize());
-  assertEquals(Uint8Array.from([]), await buffer.getBytes(0, 655535));
+  assertEquals(Uint8Array.from([]), buffer.getBytes(0, 655535));
 
   // Valid path
   const tempFilePath = await Deno.makeTempFile();
@@ -242,7 +132,7 @@ Deno.test("buffer", async () => {
 
   assertEquals(
     Uint8Array.from([72, 101, 108, 108, 111]),
-    await buffer.getBytes(0, 5),
+    buffer.getBytes(0, 5),
   );
 
   buffer.close();
@@ -263,7 +153,7 @@ Deno.test("bytes insertion", async () => {
 
   assertEquals(
     bytes3,
-    await buffer.getBytes(0, 5),
+    buffer.getBytes(0, 5),
   );
 
   // Save
