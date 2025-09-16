@@ -59,6 +59,7 @@ PARAMS                                                     *ddx-ui-hex-params*
                                                    *ddx-ui-hex-param-encoding*
 encoding	(string)
 		Specify encoding.
+		NOTE: It is not implemented yet.
 
 		Default: "utf-8"
 

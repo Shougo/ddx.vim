@@ -140,7 +140,12 @@ export const main: Entrypoint = (denops: Denops) => {
 
       const ddx = getDdx(options.name);
 
-      await ddx.start(denops, userOptions.path);
+      await ddx.start(
+        denops,
+        options.path,
+        Number(options.offset),
+        Number(options.length),
+      );
     },
     async uiAction(
       arg1: unknown,

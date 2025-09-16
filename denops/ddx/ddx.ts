@@ -21,6 +21,8 @@ export class Ddx {
   async start(
     denops: Denops,
     path: string,
+    offset: number = 0,
+    length: number = 0,
   ): Promise<void> {
     if (!path) {
       await denops.call(
@@ -31,7 +33,7 @@ export class Ddx {
     }
 
     try {
-      await this.#buffer.open(path);
+      await this.#buffer.open(path, offset, length);
     } catch (e: unknown) {
       await printError(
         denops,

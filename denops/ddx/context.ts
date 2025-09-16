@@ -47,7 +47,9 @@ export function defaultContext(): Context {
 
 export function defaultDdxOptions(): DdxOptions {
   return {
+    length: 0,
     name: "default",
+    offset: 0,
     path: "",
     ui: "",
     uiOptions: {},
@@ -249,7 +251,9 @@ Deno.test("mergeDdxOptions", () => {
       name: "foo",
     }),
     {
+      length: 0,
       name: "foo",
+      offset: 0,
       path: "bar",
       ui: "",
       uiOptions: {},

@@ -24,7 +24,9 @@ export interface ContextBuilder {
 }
 
 export type DdxOptions = {
+  length: number;
   name: string;
+  offset: number;
   path: string;
   ui: string;
   uiOptions: Record<string, Partial<UiOptions>>;

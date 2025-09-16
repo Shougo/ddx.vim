@@ -128,7 +128,7 @@ export class Ui extends BaseUi<Params> {
     const length = 16;
 
     while (start < size) {
-      const bytes = await args.buffer.getBytes(
+      const bytes = args.buffer.getBytes(
         start,
         Math.min(length, size - start),
       );
@@ -218,7 +218,8 @@ export class Ui extends BaseUi<Params> {
       !(prevWinnr > 0 && prevWinnr !== await fn.winnr(args.denops))
     ) {
       await args.denops.cmd(
-        args.context.bufNr == this.#buffers[args.options.name]
+        args.context.bufNr == this.#buffers[args.options.name] ||
+          args.context.bufNr <= 0
           ? "enew"
           : `buffer ${args.context.bufNr}`,
       );
@@ -259,7 +260,7 @@ export class Ui extends BaseUi<Params> {
         return ActionFlags.Persist;
       }
 
-      const currentValue = await args.buffer.getByte(address);
+      const currentValue = args.buffer.getByte(address);
       const input = await args.denops.call(
         "ddx#ui#hex#input",
         "New value: ",

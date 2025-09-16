@@ -2,28 +2,36 @@ import { assertEquals } from "@std/assert";
 
 export class DdxBuffer {
   file: Deno.FsFile | undefined = undefined;
-  start: number = 0;
+  offset: number = 0;
   path: string = "";
   bytes: Uint8Array = new Uint8Array();
 
-  async open(path: string, length: number = 0) {
+  async open(path: string, offset: number = 0, length: number = 0) {
     if (!(await exists(path))) {
       return;
     }
 
     this.file = await Deno.open(path, { read: true });
-    this.start = 0;
+    this.offset = offset;
     this.path = path;
 
     const stat = await Deno.stat(path);
     const fileLength = stat.size;
 
-    if (length === 0) {
-      length = fileLength;
+    if (length === 0 || offset + length > fileLength) {
+      length = fileLength - offset;
     }
+
+    if (length <= 0 || offset >= fileLength) {
+      this.bytes = new Uint8Array();
+      return;
+    }
+
+    await this.file.seek(offset, Deno.SeekMode.Start);
 
     const buf = new Uint8Array(length);
     const bytesRead = await this.file.read(buf);
+
     this.bytes = buf.subarray(0, bytesRead ?? 0);
   }
 
@@ -56,7 +64,7 @@ export class DdxBuffer {
 
     this.file.close();
     this.file = undefined;
-    this.start = 0;
+    this.offset = 0;
     this.path = "";
   }
 
@@ -72,12 +80,12 @@ export class DdxBuffer {
     return this.bytes[pos];
   }
 
-  getBytes(start: number, length: number): Uint8Array {
-    if (start < 0 || length < 0 || start + length > this.bytes.length) {
+  getBytes(offset: number, length: number): Uint8Array {
+    if (offset < 0 || length < 0 || offset + length > this.bytes.length) {
       return Uint8Array.from([]);
     }
 
-    return this.bytes.subarray(start, start + length);
+    return this.bytes.subarray(offset, offset + length);
   }
 
   getInt8() {

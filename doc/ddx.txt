@@ -49,11 +49,24 @@ INTERFACE                                                      *ddx-interface*
 ------------------------------------------------------------------------------
 OPTIONS                                                          *ddx-options*
 
+                                                           *ddx-option-length*
+length
+		Specify the file length.
+		If it is 0, it means full file size.
+
+		Default: 0
+
                                                              *ddx-option-name*
 name
 		Specify the name.
 
 		Default: "default"
+
+                                                           *ddx-option-offset*
+offset
+		Specify the file offset.
+
+		Default: 0
 
                                                              *ddx-option-path*
 path
