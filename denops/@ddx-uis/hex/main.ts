@@ -172,7 +172,7 @@ export class Ui extends BaseUi<Params> {
         } else if (0x01 <= byte && byte <= 0x1f) {
           highlight = args.uiParams.highlights.null ?? "Special";
         } else if (0x20 <= byte && byte <= 0x7f) {
-          highlight = args.uiParams.highlights.ascii ?? "String";
+          highlight = args.uiParams.highlights.ascii ?? "";
         } else if (0x80 <= byte && byte <= 0xfe) {
           highlight = args.uiParams.highlights.escape ?? "Statement";
         }

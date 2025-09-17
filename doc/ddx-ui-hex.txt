@@ -87,7 +87,7 @@ highlights	(dictionary)
 
 		ascii			(string)
 		Specify ASCII code highlight.
-		Default: "String"
+		Default: ""
 
 		control			(string)
 		Specify control code highlight.
