@@ -1,5 +1,6 @@
 import {
   ActionFlags,
+  type BaseParams,
   type Context,
   type DdxBuffer,
   type DdxOptions,
@@ -13,7 +14,7 @@ import * as op from "@denops/std/option";
 import * as fn from "@denops/std/function";
 import { batch } from "@denops/std/batch";
 
-type FloatingBorder =
+export type FloatingBorder =
   | "none"
   | "single"
   | "double"
@@ -22,7 +23,7 @@ type FloatingBorder =
   | "shadow"
   | string[];
 
-type HighlightGroup = {
+export type HighlightGroup = {
   ascii?: string;
   control?: string;
   escape?: string;
@@ -31,6 +32,10 @@ type HighlightGroup = {
   newLine?: string;
   null?: string;
   tab?: string;
+};
+
+export type SaveParams = {
+  path?: string;
 };
 
 export type Params = {
@@ -122,10 +127,14 @@ export class Ui extends BaseUi<Params> {
       await this.#initOptions(args.denops, args.options, args.uiParams, bufnr);
     }
 
+    this.#buffers[args.options.name] = bufnr;
+
     let lnum = 1;
     let start = 0;
     const size = args.buffer.getSize();
     const length = 16;
+
+    const modified = await fn.getbufvar(args.denops, bufnr, "&modified");
 
     while (start < size) {
       const bytes = args.buffer.getBytes(
@@ -194,7 +203,7 @@ export class Ui extends BaseUi<Params> {
       lnum += 1;
     }
 
-    this.#buffers[args.options.name] = bufnr;
+    await fn.setbufvar(args.denops, bufnr, "&modified", modified);
   }
 
   override async quit(args: {
@@ -205,27 +214,40 @@ export class Ui extends BaseUi<Params> {
   }): Promise<void> {
     // Move to the UI window.
     const bufnr = this.#buffers[args.options.name];
-    if (bufnr > 0) {
-      await fn.win_gotoid(
-        args.denops,
-        await fn.bufwinid(args.denops, bufnr),
-      );
+    if (!bufnr) {
+      return;
     }
 
+    await fn.win_gotoid(
+      args.denops,
+      await fn.bufwinid(args.denops, bufnr),
+    );
+
     const prevWinnr = await fn.winnr(args.denops, "#");
-    if (
-      args.uiParams.split == "no" ||
-      !(prevWinnr > 0 && prevWinnr !== await fn.winnr(args.denops))
+
+    for (
+      const winid of (await fn.win_findbuf(args.denops, bufnr) as number[])
     ) {
-      await args.denops.cmd(
-        args.context.bufNr == this.#buffers[args.options.name] ||
-          args.context.bufNr <= 0
-          ? "enew"
-          : `buffer ${args.context.bufNr}`,
-      );
-    } else {
-      await args.denops.cmd("silent! close!");
-      await fn.win_gotoid(args.denops, args.context.winId);
+      if (winid <= 0) {
+        continue;
+      }
+
+      if (
+        args.uiParams.split == "no" ||
+        !(prevWinnr > 0 && prevWinnr !== await fn.winnr(args.denops))
+      ) {
+        await fn.setwinvar(args.denops, winid, "&winfixbuf", false);
+
+        await args.denops.cmd(
+          args.context.bufNr == this.#buffers[args.options.name] ||
+            args.context.bufNr <= 0
+            ? "enew"
+            : `buffer ${args.context.bufNr}`,
+        );
+      } else {
+        await args.denops.cmd("silent! close!");
+        await fn.win_gotoid(args.denops, args.context.winId);
+      }
     }
   }
 
@@ -260,7 +282,6 @@ export class Ui extends BaseUi<Params> {
         return ActionFlags.Persist;
       }
 
-      const currentValue = args.buffer.getByte(address);
       const input = await args.denops.call(
         "ddx#ui#hex#input",
         "New value: ",
@@ -278,11 +299,33 @@ export class Ui extends BaseUi<Params> {
         return ActionFlags.Persist;
       }
 
-      console.log([currentValue, value]);
+      args.buffer.change(address, value);
 
-      args.buffer.insert(address, Uint8Array.from([value]));
+      const bufnr = this.#buffers[args.options.name];
+      await fn.setbufvar(args.denops, bufnr, "&modified", true);
 
       return ActionFlags.Redraw;
+    },
+    save: async (args: {
+      denops: Denops;
+      context: Context;
+      options: DdxOptions;
+      buffer: DdxBuffer;
+      actionParams: BaseParams;
+    }) => {
+      const params = args.actionParams as SaveParams;
+
+      await args.buffer.write(params.path ?? "");
+
+      await args.denops.call(
+        "ddx#util#print",
+        `Saved to "${params.path ?? args.buffer.getPath()}"`,
+      );
+
+      const bufnr = this.#buffers[args.options.name];
+      await fn.setbufvar(args.denops, bufnr, "&modified", false);
+
+      return ActionFlags.None;
     },
     quit: async (args: {
       denops: Denops;
@@ -361,9 +404,10 @@ export class Ui extends BaseUi<Params> {
       }
 
       await fn.setbufvar(denops, bufnr, "&bufhidden", "unload");
-      await fn.setbufvar(denops, bufnr, "&buftype", "nofile");
+      await fn.setbufvar(denops, bufnr, "&buftype", "acwrite");
       await fn.setbufvar(denops, bufnr, "&filetype", "ddx-hex");
       await fn.setbufvar(denops, bufnr, "&swapfile", 0);
+      await fn.setbufvar(denops, bufnr, "&modified", false);
 
       if (uiParams.split == "horizontal") {
         await fn.setbufvar(denops, bufnr, "&winfixheight", 1);

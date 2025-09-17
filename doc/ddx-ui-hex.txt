@@ -49,9 +49,17 @@ ddx#ui#hex#do_action({action-name}[, {params}])
 ------------------------------------------------------------------------------
 ACTIONS                                                   *ddx-ui-hex-actions*
 
+                                                    *ddx-ui-hex-action-change*
+change
+		Change the address value.
+
                                                       *ddx-ui-hex-action-quit*
 quit
 		Quit the UI window.
+
+                                                      *ddx-ui-hex-action-save*
+save
+		Save the file.
 
 ==============================================================================
 PARAMS                                                     *ddx-ui-hex-params*

@@ -53,8 +53,26 @@ export class DdxBuffer {
     this.bytes = newBytes;
   }
 
-  async write(path: string) {
-    await Deno.writeFile(path, this.bytes);
+  change(pos: number, value: number) {
+    if (pos < 0 || pos > this.bytes.length) {
+      throw new RangeError("Position out of range");
+    }
+
+    this.bytes[pos] = value;
+  }
+
+  async write(path: string = "") {
+    if (path.length === 0) {
+      path = this.path;
+    }
+
+    const file = await Deno.open(path, { write: true, create: true });
+
+    await file.seek(this.offset ?? 0, Deno.SeekMode.Start);
+
+    await file.write(this.bytes);
+
+    file.close();
   }
 
   close() {
@@ -70,6 +88,10 @@ export class DdxBuffer {
 
   getSize(): number {
     return this.bytes.length;
+  }
+
+  getPath(): string {
+    return this.path;
   }
 
   getByte(pos: number): number | undefined {
