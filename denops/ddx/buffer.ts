@@ -61,6 +61,18 @@ export class DdxBuffer {
     this.bytes[pos] = value;
   }
 
+  remove(pos: number) {
+    if (pos < 0 || pos > this.bytes.length) {
+      throw new RangeError("Position out of range");
+    }
+
+    const newBytes = new Uint8Array(this.bytes.length - 1);
+    newBytes.set(this.bytes.subarray(0, pos));
+    newBytes.set(this.bytes.subarray(pos + 1), pos);
+
+    this.bytes = newBytes;
+  }
+
   async write(path: string = "") {
     if (path.length === 0) {
       path = this.path;

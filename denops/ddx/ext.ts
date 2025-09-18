@@ -20,7 +20,7 @@ export async function uiAction(
   options: DdxOptions,
   buffer: DdxBuffer,
   actionName: string,
-  params: unknown,
+  params: BaseParams,
 ): Promise<void> {
   const uiName = "hex";
   const [ui, uiOptions, uiParams] = await getUi(

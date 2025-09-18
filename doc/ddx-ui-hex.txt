@@ -51,15 +51,27 @@ ACTIONS                                                   *ddx-ui-hex-actions*
 
                                                     *ddx-ui-hex-action-change*
 change
-		Change the address value.
+		Change the value in current address.
+
+                                                    *ddx-ui-hex-action-insert*
+insert
+		Insert the value in current address.
 
                                                       *ddx-ui-hex-action-quit*
 quit
 		Quit the UI window.
 
+                                                    *ddx-ui-hex-action-remove*
+remove
+		Remove current value.
+
                                                       *ddx-ui-hex-action-save*
 save
-		Save the file.
+		params:
+			{path}: Save filename path.
+
+		Save current buffer to {path}.
+		If {path} is empty, opened path will be used.
 
 ==============================================================================
 PARAMS                                                     *ddx-ui-hex-params*

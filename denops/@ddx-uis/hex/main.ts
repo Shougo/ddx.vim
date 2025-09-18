@@ -260,20 +260,7 @@ export class Ui extends BaseUi<Params> {
       uiParams: Params;
     }) => {
       // Get address
-      const currentLine = await fn.getline(args.denops, ".");
-      const curText = await args.denops.call(
-        "ddx#ui#hex#get_cur_text",
-        currentLine,
-        await fn.col(args.denops, "."),
-      );
-      const [_type, addressString] = await args.denops.call(
-        "ddx#ui#hex#parse_address",
-        currentLine,
-        curText,
-        args.uiParams.encoding,
-      ) as string[];
-
-      const address = parseInt(addressString, 16);
+      const address = await this.#getAddress(args.denops, args.uiParams);
       if (Number.isNaN(address)) {
         await printError(
           args.denops,
@@ -290,7 +277,7 @@ export class Ui extends BaseUi<Params> {
         return ActionFlags.Persist;
       }
 
-      const value = parseInt(input, 16);
+      const value = parseStrictInt(input, 16);
       if (Number.isNaN(value)) {
         await printError(
           args.denops,
@@ -300,6 +287,71 @@ export class Ui extends BaseUi<Params> {
       }
 
       args.buffer.change(address, value);
+
+      const bufnr = this.#buffers[args.options.name];
+      await fn.setbufvar(args.denops, bufnr, "&modified", true);
+
+      return ActionFlags.Redraw;
+    },
+    insert: async (args: {
+      denops: Denops;
+      context: Context;
+      options: DdxOptions;
+      buffer: DdxBuffer;
+      uiParams: Params;
+    }) => {
+      // Get address
+      const address = await this.#getAddress(args.denops, args.uiParams);
+      if (Number.isNaN(address)) {
+        await printError(
+          args.denops,
+          "Invalid address",
+        );
+        return ActionFlags.Persist;
+      }
+
+      const input = await args.denops.call(
+        "ddx#ui#hex#input",
+        "New value: ",
+      ) as string;
+      if (input == "") {
+        return ActionFlags.Persist;
+      }
+
+      const value = parseStrictInt(input, 16);
+      if (Number.isNaN(value)) {
+        await printError(
+          args.denops,
+          "Invalid value",
+        );
+        return ActionFlags.Persist;
+      }
+
+      args.buffer.insert(address, new Uint8Array([value]));
+
+      const bufnr = this.#buffers[args.options.name];
+      await fn.setbufvar(args.denops, bufnr, "&modified", true);
+
+      return ActionFlags.Redraw;
+    },
+    remove: async (args: {
+      denops: Denops;
+      context: Context;
+      options: DdxOptions;
+      buffer: DdxBuffer;
+      uiParams: Params;
+    }) => {
+      // Get address
+      const address = await this.#getAddress(args.denops, args.uiParams);
+      if (Number.isNaN(address)) {
+        await printError(
+          args.denops,
+          "Invalid address",
+        );
+        return ActionFlags.Persist;
+      }
+
+      args.buffer.remove(address);
 
       const bufnr = this.#buffers[args.options.name];
       await fn.setbufvar(args.denops, bufnr, "&modified", true);
@@ -432,4 +484,55 @@ export class Ui extends BaseUi<Params> {
       uiParams.winWidth = Math.trunc((await op.columns.getGlobal(denops)) / 2);
     }
   }
+
+  async #getAddress(denops: Denops, uiParams: Params) {
+    const currentLine = await fn.getline(denops, ".");
+    const curText = await denops.call(
+      "ddx#ui#hex#get_cur_text",
+      currentLine,
+      await fn.col(denops, "."),
+    );
+    const [_type, addressString] = await denops.call(
+      "ddx#ui#hex#parse_address",
+      currentLine,
+      curText,
+      uiParams.encoding,
+    ) as string[];
+
+    return parseStrictInt(String(addressString), 16);
+  }
+}
+
+function parseStrictInt(str: string, radix: number = 10): number {
+  if (typeof str !== "string" || str.trim() === "") {
+    return NaN;
+  }
+
+  if (!/^-?\d+$/.test(str.trim())) {
+    return NaN;
+  }
+
+  let pattern: RegExp;
+  switch (radix) {
+    case 2:
+      pattern = /^-?[01]+$/;
+      break;
+    case 8:
+      pattern = /^-?[0-7]+$/;
+      break;
+    case 10:
+      pattern = /^-?\d+$/;
+      break;
+    case 16:
+      pattern = /^-?[0-9a-fA-F]+$/;
+      break;
+    default:
+      return NaN;
+  }
+
+  if (!pattern.test(str.trim())) {
+    return NaN;
+  }
+  const n = parseInt(str, radix);
+  return Number.isNaN(n) ? NaN : n;
 }
