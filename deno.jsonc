@@ -12,7 +12,6 @@
     "upgrade": "deno outdated --recursive --update"
   },
   "workspace": [
-    "./denops/@ddx-uis/hex",
     "./denops/ddx"
   ]
 }
