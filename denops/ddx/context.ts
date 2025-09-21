@@ -47,6 +47,9 @@ export function defaultContext(): Context {
 
 export function defaultDdxOptions(): DdxOptions {
   return {
+    analyzers: [],
+    analyzerOptions: {},
+    analyzerParams: {},
     length: 0,
     name: "default",
     offset: 0,
@@ -251,6 +254,9 @@ Deno.test("mergeDdxOptions", () => {
       name: "foo",
     }),
     {
+      analyzers: [],
+      analyzerOptions: {},
+      analyzerParams: {},
       length: 0,
       name: "foo",
       offset: 0,

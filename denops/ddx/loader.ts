@@ -1,4 +1,4 @@
-import type { BaseParams, DdxExtType, UiName } from "./types.ts";
+import type { AnalyzerName, BaseParams, DdxExtType, UiName } from "./types.ts";
 import type { BaseUi } from "./base/ui.ts";
 import { importPlugin, isDenoCacheIssueError } from "./utils.ts";
 
@@ -27,8 +27,10 @@ const TYPE_DIR_PATTERN = `denops/${PLUGIN_PREFIX}-*s`;
 const EXT_ENTRY_POINT_FILE = "main.ts";
 
 export class Loader {
+  #analyzers: Record<AnalyzerName, BaseUi<BaseParams>> = {};
   #uis: Record<UiName, BaseUi<BaseParams>> = {};
   #aliases: Record<DdxExtType, Record<string, string>> = {
+    analyzer: {},
     ui: {},
   };
   #checkPaths: Record<string, boolean> = {};
@@ -130,6 +132,13 @@ export class Loader {
           const ui = new mod.mod.Ui();
           ui.name = name;
           this.#uis[ui.name] = ui;
+        };
+        break;
+      case "analyzer":
+        add = (name: string) => {
+          const analyzer = new mod.mod.Analyzer();
+          analyzer.name = name;
+          this.#analyzers[analyzer.name] = analyzer;
         };
         break;
     }

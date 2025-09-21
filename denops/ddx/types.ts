@@ -4,9 +4,10 @@ import type { Denops } from "@denops/std";
 
 export type { DdxBuffer } from "./buffer.ts";
 
-export type DdxExtType = "ui";
+export type DdxExtType = "ui" | "analyzer";
 
 export type UiName = string;
+export type AnalyzerName = string;
 
 export type Context = {
   bufNr: number;
@@ -24,11 +25,14 @@ export interface ContextBuilder {
 }
 
 export type DdxOptions = {
+  analyzerOptions: Record<string, Partial<AnalyzerOptions>>;
+  analyzerParams: Record<string, Partial<BaseParams>>;
+  analyzers: AnalyzerName[];
   length: number;
   name: string;
   offset: number;
   path: string;
-  ui: string;
+  ui: UiName;
   uiOptions: Record<string, Partial<UiOptions>>;
   uiParams: Record<string, Partial<BaseParams>>;
 };
@@ -36,6 +40,11 @@ export type DdxOptions = {
 export type UserOptions = Record<string, unknown>;
 
 export type UiOptions = {
+  // TODO: add options and remove placeholder
+  placeholder?: unknown;
+};
+
+export type AnalyzerOptions = {
   // TODO: add options and remove placeholder
   placeholder?: unknown;
 };

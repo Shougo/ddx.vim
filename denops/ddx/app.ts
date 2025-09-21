@@ -20,6 +20,7 @@ export const main: Entrypoint = (denops: Denops) => {
   const ddxs: Record<string, Ddx[]> = {};
   const contextBuilder = new ContextBuilder();
   const globalAliases: Record<DdxExtType, Record<string, string>> = {
+    analyzer: {},
     ui: {},
   };
   const lock = new Lock(0);
