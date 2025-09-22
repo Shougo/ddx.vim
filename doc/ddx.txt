@@ -14,8 +14,13 @@ Interface		|ddx-interface|
 UIs			|ddx-uis|
   UI option	          |ddx-ui-options|
   UI params	          |ddx-ui-params|
+Analyzers		|ddx-analyzers|
+  Analyzer option	  |ddx-analyzer-options|
+  Analyzer params	  |ddx-analyzer-params|
 Create UI		|ddx-create-ui|
   UI attributes		  |ddx-ui-attributes|
+Create Analyzer		|ddx-create-analyzer|
+  Analyzer attributes	  |ddx-analyzer-attributes|
 Examples		|ddx-examples|
 FAQ			|ddx-faq|
 Compatibility		|ddx-compatibility|
@@ -48,6 +53,22 @@ INTERFACE                                                      *ddx-interface*
 
 ------------------------------------------------------------------------------
 OPTIONS                                                          *ddx-options*
+
+                                                  *ddx-option-analyzerOptions*
+analyzerOptions
+		It is a dictionary that maps analyzer names to its options.
+		The options with the name "_" is used as the options for all
+		analyzers.
+		See also |ddx-analyzer-options|.
+
+		Default: {}
+
+                                                   *ddx-option-analyzerParams*
+analyzerParams
+		It is a dictionary that maps analyzer names to its parameters.
+		See also |ddx-analyzer-params|.
+
+		Default: {}
 
                                                            *ddx-option-length*
 length
@@ -175,9 +196,8 @@ to use ddx.vim.  Please search them by https://github.com/topics/ddx-ui
 ------------------------------------------------------------------------------
 UI OPTIONS                                                    *ddx-ui-options*
 
-Note: The UIs cannot set default options for UI.  If the UI need
-to specify the recommended configuration, you should write it in the
-documentation instead.
+Note: The UIs cannot set default options.  If the UI need to specify the
+recommended configuration, you should write it in the documentation instead.
 
 
 ------------------------------------------------------------------------------
@@ -188,9 +208,31 @@ documentation.
 
 
 ==============================================================================
+ANALYZERS                                                      *ddx-analyzers*
+
+Note: The analyzers are not bundled in ddx.vim.  Please search them by
+https://github.com/topics/ddx-analyzer
+
+
+------------------------------------------------------------------------------
+ANALYZER OPTIONS                                        *ddx-analyzer-options*
+
+Note: The analyzers cannot set default options.  If the analyzer need to
+specify the recommended configuration, you should write it in the
+documentation instead.
+
+
+------------------------------------------------------------------------------
+ANALYZER PARAMS                                          *ddx-analyzer-params*
+
+These are the parameters that each analyzer can have.  Please read the
+analyzer documentation.
+
+
+==============================================================================
 CREATE UI                                                      *ddx-create-ui*
 
-To create UI, you should read other UIs implementation.
+To create UI, you should read other implementation.
 
 The UIs must put under "denops/@ddx-uis/*.ts".
 
@@ -216,6 +258,40 @@ onInit			(function)			(Optional)
                                                      *ddx-ui-attribute-params*
 params			(function)			(Required)
 		Called to get UI params.
+
+
+==============================================================================
+CREATE ANALYZER                                          *ddx-create-analyzer*
+
+To create analyzer, you should read other implementation.
+
+The analyzers must put under "denops/@ddx-analyzers/*.ts".
+
+Analyzer class must extend the BaseAnalyzer class.
+
+Note: It must be written in TypeScript language.
+
+Note: If you call Vim functions, it is not asynchronous.
+
+
+------------------------------------------------------------------------------
+ANALYZER ATTRIBUTES                                  *ddx-analyzer-attributes*
+
+                                               *ddx-analyzer-attribute-detect*
+detect			(function)			(Required)
+		Called to detect binary type.
+
+                                               *ddx-analyzer-attribute-onInit*
+onInit			(function)			(Optional)
+		Called before call analyzer functions.
+
+                                               *ddx-analyzer-attribute-params*
+params			(function)			(Required)
+		Called to get analyzer params.
+
+                                                *ddx-analyzer-attribute-parse*
+parse			(function)			(Required)
+		Called to parse binary value.
 
 
 ==============================================================================
