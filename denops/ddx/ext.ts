@@ -1,12 +1,23 @@
 import {
   ActionFlags,
+  type AnalyzerOptions,
   type BaseParams,
   type Context,
   type DdxOptions,
   type UiOptions,
 } from "./types.ts";
 import { type BaseUi, defaultUiOptions, defaultUiParams } from "./base/ui.ts";
-import { foldMerge, mergeUiOptions, mergeUiParams } from "./context.ts";
+import {
+  type BaseAnalyzer,
+  defaultAnalyzerOptions,
+  defaultAnalyzerParams,
+} from "./base/analyzer.ts";
+import {
+  foldMerge,
+  mergeAnalyzerOptions,
+  mergeParams,
+  mergeUiOptions,
+} from "./context.ts";
 import type { Loader } from "./loader.ts";
 import { printError } from "./utils.ts";
 import type { DdxBuffer } from "./buffer.ts";
@@ -110,7 +121,7 @@ function uiArgs<
       options.uiOptions[ui.name],
     ],
   );
-  const p = foldMerge(mergeUiParams, defaultUiParams, [
+  const p = foldMerge(mergeParams, defaultUiParams, [
     ui.params(),
     options.uiParams["_"],
     options.uiParams[ui.name],
@@ -141,6 +152,88 @@ async function checkUiOnInit(
       denops,
       e,
       `[ddx.vim] ui: ${ui.name} "onInit()" failed`,
+    );
+  }
+}
+
+export async function getAnalyzer(
+  denops: Denops,
+  loader: Loader,
+  options: DdxOptions,
+  name: string,
+): Promise<
+  [
+    BaseAnalyzer<BaseParams> | undefined,
+    AnalyzerOptions,
+    BaseParams,
+  ]
+> {
+  await loader.autoload(denops, "analyzer", name);
+  const analyzer = loader.getAnalyzer(name);
+  if (!analyzer) {
+    const message = `Invalid analyzer: "${name}"`;
+    await denops.call(
+      "ddx#util#print_error",
+      message,
+    );
+    return [
+      undefined,
+      defaultAnalyzerOptions(),
+      defaultAnalyzerParams(),
+    ];
+  }
+
+  const [analyzerOptions, analyzerParams] = analyzerArgs(options, analyzer);
+  await checkAnalyzerOnInit(analyzer, denops, analyzerOptions, analyzerParams);
+
+  return [analyzer, analyzerOptions, analyzerParams];
+}
+
+function analyzerArgs<
+  Params extends BaseParams,
+>(
+  options: DdxOptions,
+  analyzer: BaseAnalyzer<Params>,
+): [AnalyzerOptions, BaseParams] {
+  const o = foldMerge(
+    mergeAnalyzerOptions,
+    defaultAnalyzerOptions,
+    [
+      options.analyzerOptions["_"],
+      options.analyzerOptions[analyzer.name],
+    ],
+  );
+  const p = foldMerge(mergeParams, defaultAnalyzerParams, [
+    analyzer.params(),
+    options.analyzerParams["_"],
+    options.analyzerParams[analyzer.name],
+  ]);
+  return [o, p];
+}
+
+async function checkAnalyzerOnInit(
+  analyzer: BaseAnalyzer<BaseParams>,
+  denops: Denops,
+  analyzerOptions: AnalyzerOptions,
+  analyzerParams: BaseParams,
+) {
+  if (analyzer.isInitialized) {
+    return;
+  }
+
+  try {
+    await analyzer.onInit({
+      denops,
+      analyzerOptions,
+      analyzerParams,
+    });
+
+    analyzer.isInitialized = true;
+  } catch (e: unknown) {
+    await printError(
+      denops,
+      e,
+      `[ddx.vim] analyzer: ${analyzer.name} "onInit()" failed`,
     );
   }
 }

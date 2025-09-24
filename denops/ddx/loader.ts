@@ -11,6 +11,7 @@ import { dirname } from "@std/path/dirname";
 import { join } from "@std/path/join";
 import { parse } from "@std/path/parse";
 import { Lock } from "@core/asyncutil/lock";
+import { getAnalyzer } from "./ext.ts";
 
 type Mod = {
   // deno-lint-ignore no-explicit-any
@@ -99,6 +100,9 @@ export class Loader {
   }
   getUi(name: UiName) {
     return this.#uis[name];
+  }
+  getAnalyzer(name: AnalyzerName) {
+    return this.#analyzers[name];
   }
 
   async #register(type: DdxExtType, path: string) {

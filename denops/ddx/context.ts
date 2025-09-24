@@ -1,4 +1,5 @@
 import type {
+  AnalyzerOptions,
   BaseParams,
   Context,
   DdxOptions,
@@ -27,8 +28,9 @@ function overwrite<T>(a: T, b: Partial<T>): T {
 }
 
 export const mergeUiOptions: Merge<UiOptions> = overwrite;
+export const mergeAnalyzerOptions: Merge<AnalyzerOptions> = overwrite;
 
-export const mergeUiParams: Merge<BaseParams> = overwrite;
+export const mergeParams: Merge<BaseParams> = overwrite;
 
 export function foldMerge<T>(
   merge: Merge<T>,
