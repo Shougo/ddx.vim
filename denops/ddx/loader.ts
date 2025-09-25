@@ -1,5 +1,6 @@
 import type { AnalyzerName, BaseParams, DdxExtType, UiName } from "./types.ts";
 import type { BaseUi } from "./base/ui.ts";
+import type { BaseAnalyzer } from "./base/analyzer.ts";
 import { importPlugin, isDenoCacheIssueError } from "./utils.ts";
 
 import type { Denops } from "@denops/std";
@@ -11,7 +12,6 @@ import { dirname } from "@std/path/dirname";
 import { join } from "@std/path/join";
 import { parse } from "@std/path/parse";
 import { Lock } from "@core/asyncutil/lock";
-import { getAnalyzer } from "./ext.ts";
 
 type Mod = {
   // deno-lint-ignore no-explicit-any
@@ -28,7 +28,7 @@ const TYPE_DIR_PATTERN = `denops/${PLUGIN_PREFIX}-*s`;
 const EXT_ENTRY_POINT_FILE = "main.ts";
 
 export class Loader {
-  #analyzers: Record<AnalyzerName, BaseUi<BaseParams>> = {};
+  #analyzers: Record<AnalyzerName, BaseAnalyzer<BaseParams>> = {};
   #uis: Record<UiName, BaseUi<BaseParams>> = {};
   #aliases: Record<DdxExtType, Record<string, string>> = {
     analyzer: {},
