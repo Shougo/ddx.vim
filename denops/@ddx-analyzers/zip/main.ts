@@ -1,8 +1,8 @@
-import { type DdxBuffer } from "../../ddx/types.ts";
+import type { DdxBuffer } from "../../ddx/types.ts";
 import {
-  AnalyzeResult,
-  AnalyzeValueNumber,
-  AnalyzeValueString,
+  type AnalyzeResult,
+  type AnalyzeValueNumber,
+  type AnalyzeValueString,
   BaseAnalyzer,
 } from "../../ddx/base/analyzer.ts";
 import { arrayEquals, parseOneLine } from "../../ddx/utils.ts";
