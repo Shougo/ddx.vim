@@ -1,9 +1,11 @@
 import type { DdxOptions, UserOptions } from "./types.ts";
 import { defaultContext, defaultDdxOptions } from "./context.ts";
 import type { Loader } from "./loader.ts";
-import { getUi } from "./ext.ts";
+import { getAnalyzer, getUi } from "./ext.ts";
 import { printError } from "./utils.ts";
 import { DdxBuffer } from "./buffer.ts";
+import type { AnalyzeResult } from "./base/analyzer.ts";
+import { foldMerge, mergeDdxOptions } from "./context.ts";
 
 import type { Denops } from "@denops/std";
 
@@ -20,11 +22,11 @@ export class Ddx {
 
   async start(
     denops: Denops,
-    path: string,
-    offset: number = 0,
-    length: number = 0,
+    userOptions: DdxOptions,
   ): Promise<void> {
-    if (!path) {
+    this.updateOptions(userOptions);
+
+    if (this.#options.path.length === 0) {
       await denops.call(
         "ddx#util#print_error",
         `You must specify path option`,
@@ -33,22 +35,25 @@ export class Ddx {
     }
 
     try {
-      await this.#buffer.open(path, offset, length);
+      await this.#buffer.open(
+        this.#options.path,
+        Number(this.#options.offset),
+        Number(this.#options.length),
+      );
     } catch (e: unknown) {
       await printError(
         denops,
         e,
-        `open: ${path} failed`,
+        `open: ${this.#options.path.length} failed`,
       );
       return;
     }
 
-    const uiName = "hex";
     const [ui, uiOptions, uiParams] = await getUi(
       denops,
       this.#loader,
       this.#options,
-      uiName,
+      this.#options.ui,
     );
     if (!ui) {
       return;
@@ -74,5 +79,38 @@ export class Ddx {
 
   getUserOptions() {
     return this.#userOptions;
+  }
+
+  updateOptions(userOptions: UserOptions) {
+    this.#options = foldMerge(mergeDdxOptions, defaultDdxOptions, [
+      this.#options,
+      userOptions,
+    ]);
+  }
+
+  async parse(denops: Denops): Promise<AnalyzeResult[]> {
+    for (const name of this.#options.analyzers) {
+      const [analyzer, analyzerOptions, analyzerParams] = await getAnalyzer(
+        denops,
+        this.#loader,
+        this.#options,
+        name,
+      );
+
+      if (!analyzer) {
+        continue;
+      }
+
+      console.log(analyzer.detect({
+        denops,
+        context: defaultContext(),
+        options: this.#options,
+        buffer: this.#buffer,
+        analyzerOptions,
+        analyzerParams,
+      }));
+    }
+
+    return [];
   }
 }
