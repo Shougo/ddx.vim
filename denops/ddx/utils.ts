@@ -1,3 +1,6 @@
+import type { DdxBuffer } from "./types.ts";
+import type { AnalyzeValueNumber } from "./base/analyzer.ts";
+
 import type { Denops } from "@denops/std";
 
 import {
@@ -84,4 +87,64 @@ export async function importPlugin(path: string): Promise<unknown> {
   } else {
     return await import(`${url}#${suffix}`);
   }
+}
+
+export function arrayEquals(
+  a: Uint8Array | number[],
+  b: Uint8Array | number[],
+): boolean {
+  if (a.length !== b.length) return false;
+  for (let i = 0; i < a.length; ++i) {
+    if (a[i] !== b[i]) return false;
+  }
+  return true;
+}
+
+export function parseOneLine(
+  line: string,
+  buffer: DdxBuffer,
+  offset: number,
+  isLittle = true,
+): [AnalyzeValueNumber, number] {
+  // Parse: 'type name;'
+  const match = line.match(/^\s*(\S+)\s+(\S+)\s*;\s*$/);
+  if (!match) {
+    throw new Error(`Parse error in "${line}"`);
+  }
+  const [, type, name] = match;
+
+  let value: number;
+  let size: number;
+  const rawType: "number" | "string" = "number";
+
+  if (type === "uint8_t") {
+    const byte = buffer.getByte(offset);
+    if (!byte) {
+      throw new Error(`Cannot get byte : "${offset}"`);
+    }
+    value = byte;
+    size = 1;
+  } else if (type === "uint16_t") {
+    const bytes = buffer.getBytes(offset, 2);
+    value = isLittle ? bytes[0] + (bytes[1] << 8) : (bytes[0] << 8) + bytes[1];
+    size = 2;
+  } else if (type === "uint32_t") {
+    const bytes = buffer.getBytes(offset, 4);
+    value = isLittle
+      ? bytes[0] + (bytes[1] << 8) + (bytes[2] << 16) + (bytes[3] << 24)
+      : (bytes[0] << 24) + (bytes[1] << 16) + (bytes[2] << 8) + bytes[3];
+    size = 4;
+  } else {
+    throw new Error(`Not supported type : "${type}" in "${line}"`);
+  }
+
+  const result: AnalyzeValueNumber = {
+    name,
+    rawType,
+    value,
+    size,
+    address: offset,
+  };
+
+  return [result, offset + size];
 }

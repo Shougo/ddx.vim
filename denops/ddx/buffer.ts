@@ -122,7 +122,23 @@ export class DdxBuffer {
     return this.bytes.subarray(offset, offset + length);
   }
 
-  getInt8() {
+  getInt8(pos: number): number {
+    const byte = this.getByte(pos);
+    return byte !== undefined ? byte : -1;
+  }
+
+  getChars(pos: number, length: number, encoding: string = "utf-8"): string {
+    const bytes = this.getBytes(pos, length);
+
+    try {
+      return new TextDecoder(encoding).decode(bytes);
+    } catch (_e) {
+      // Invalid encoding.
+      // ASCII Fallback
+      return Array.from(bytes)
+        .map((b) => String.fromCharCode(b))
+        .join("");
+    }
   }
 
   getInt16_le() {
