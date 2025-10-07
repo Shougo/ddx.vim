@@ -147,7 +147,7 @@ export const main: Entrypoint = (denops: Denops) => {
         options,
       );
 
-      await ddx.parse(denops);
+      console.log(await ddx.parse(denops));
     },
     async uiAction(
       arg1: unknown,

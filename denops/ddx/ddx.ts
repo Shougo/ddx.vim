@@ -101,14 +101,24 @@ export class Ddx {
         continue;
       }
 
-      console.log(analyzer.detect({
+      const detect = analyzer.detect({
         denops,
         context: defaultContext(),
         options: this.#options,
         buffer: this.#buffer,
         analyzerOptions,
         analyzerParams,
-      }));
+      });
+      if (detect) {
+        return analyzer.parse({
+          denops,
+          context: defaultContext(),
+          options: this.#options,
+          buffer: this.#buffer,
+          analyzerOptions,
+          analyzerParams,
+        });
+      }
     }
 
     return [];
