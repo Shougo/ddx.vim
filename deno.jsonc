@@ -12,6 +12,7 @@
     "upgrade": "deno outdated --recursive --update"
   },
   "workspace": [
+    "./denops/@ddu-sources/ddx_analyze",
     "./denops/@ddx-analyzers/zip",
     "./denops/ddx"
   ]

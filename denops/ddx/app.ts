@@ -146,8 +146,6 @@ export const main: Entrypoint = (denops: Denops) => {
         denops,
         options,
       );
-
-      console.log(await ddx.parse(denops));
     },
     async uiAction(
       arg1: unknown,
@@ -173,6 +171,9 @@ export const main: Entrypoint = (denops: Denops) => {
       arg1: unknown,
     ): Promise<AnalyzeResult[]> {
       const name = ensure(arg1, is.String) as string;
+      if (name.length === 0) {
+        return [];
+      }
 
       const ddx = getDdx(name);
 
