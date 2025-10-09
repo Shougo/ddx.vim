@@ -24,11 +24,18 @@ export class Source extends BaseSource<Params> {
           name,
         ) as AnalyzeResult[];
 
-        controller.enqueue(results.map((result) => {
-          return {
+        for (const result of results) {
+          controller.enqueue([{
             word: result.name,
-          };
-        }));
+          }]);
+
+          for (const value of result.values) {
+            controller.enqueue([{
+              word: `  ${value.name}: ${value.value}`,
+            }]);
+          }
+        }
+
         controller.close();
       },
     });

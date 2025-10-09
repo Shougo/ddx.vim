@@ -22,6 +22,7 @@ Create UI		|ddx-create-ui|
 Create Analyzer		|ddx-create-analyzer|
   Analyzer attributes	  |ddx-analyzer-attributes|
 Examples		|ddx-examples|
+Ddu sources		|ddx-ddu-sources|
 FAQ			|ddx-faq|
 Compatibility		|ddx-compatibility|
 
@@ -303,6 +304,13 @@ EXAMPLES                                                        *ddx-examples*
 	    \ 'ui': 'hex',
 	    \ })
 <
+
+==============================================================================
+DDU SOURCES                                                  *ddx-ddu-sources*
+
+ddx_analyze                                       *ddx-ddu-source-ddx_analyze*
+		Nominates ddx analyzed items.
+
 
 ==============================================================================
 FREQUENTLY ASKED QUESTIONS (FAQ)			*ddx-faq*

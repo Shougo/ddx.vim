@@ -1,13 +1,4 @@
 {
-  "name": "@shougo/ddu-source-ddx_analyze",
-  "exports": {
-    ".": "./main.ts"
-  },
-  "publish": {
-    "include": [
-      "**/*.ts"
-    ]
-  },
   "imports": {
     "@core/unknownutil": "jsr:@core/unknownutil@~4.3.0",
     "@denops/std": "jsr:@denops/std@~8.0.0",
