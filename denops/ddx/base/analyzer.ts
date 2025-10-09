@@ -4,6 +4,7 @@ import type {
   Context,
   DdxOptions,
 } from "../types.ts";
+import type { DdxBuffer } from "../buffer.ts";
 
 import type { Denops } from "@denops/std";
 
@@ -44,13 +45,21 @@ export type AnalyzeValueString = {
   address: number;
 };
 
-export type DetectArguments<Params extends BaseParams> = BaseAnalyzerArguments<
-  Params
->;
+export type DetectArguments<Params extends BaseParams> =
+  & BaseAnalyzerArguments<
+    Params
+  >
+  & {
+    buffer: DdxBuffer;
+  };
 
-export type ParseArguments<Params extends BaseParams> = BaseAnalyzerArguments<
-  Params
->;
+export type ParseArguments<Params extends BaseParams> =
+  & BaseAnalyzerArguments<
+    Params
+  >
+  & {
+    buffer: DdxBuffer;
+  };
 
 export abstract class BaseAnalyzer<Params extends BaseParams> {
   name = "";
@@ -64,7 +73,7 @@ export abstract class BaseAnalyzer<Params extends BaseParams> {
 
   abstract parse(
     _args: ParseArguments<Params>,
-  ): AnalyzeValue[] | Promise<AnalyzeValue>;
+  ): AnalyzeResult[] | Promise<AnalyzeResult[]>;
 
   abstract params(): Params;
 }

@@ -1,5 +1,6 @@
 import { Ddx } from "./ddx.ts";
 import type { DdxExtType, DdxOptions } from "./types.ts";
+import type { AnalyzeResult } from "./base/analyzer.ts";
 import {
   ContextBuilder,
   defaultContext,
@@ -143,9 +144,7 @@ export const main: Entrypoint = (denops: Denops) => {
 
       await ddx.start(
         denops,
-        options.path,
-        Number(options.offset),
-        Number(options.length),
+        options,
       );
     },
     async uiAction(
@@ -167,6 +166,18 @@ export const main: Entrypoint = (denops: Denops) => {
         actionName,
         params,
       );
+    },
+    async parse(
+      arg1: unknown,
+    ): Promise<AnalyzeResult[]> {
+      const name = ensure(arg1, is.String) as string;
+      if (name.length === 0) {
+        return [];
+      }
+
+      const ddx = getDdx(name);
+
+      return await ddx.parse(denops);
     },
   };
 };

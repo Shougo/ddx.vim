@@ -33,12 +33,11 @@ export async function uiAction(
   actionName: string,
   params: BaseParams,
 ): Promise<void> {
-  const uiName = "hex";
   const [ui, uiOptions, uiParams] = await getUi(
     denops,
     loader,
     options,
-    uiName,
+    options.ui,
   );
   if (!ui) {
     return;
