@@ -10,6 +10,8 @@ import * as vars from "@denops/std/variable";
 type Params = Record<string, never>;
 
 export class Source extends BaseSource<Params> {
+  override kind = "ddx";
+
   override gather(args: {
     denops: Denops;
     context: Context;
@@ -32,6 +34,9 @@ export class Source extends BaseSource<Params> {
           for (const value of result.values) {
             controller.enqueue([{
               word: `  ${value.name}: ${value.value}`,
+              action: {
+                address: value.address,
+              },
             }]);
           }
         }

@@ -252,6 +252,10 @@ actions			(Record<string, function>)	(Optional)
 		Defines UI actions.
 		The actions are called from |ddx#ui_action()|.
 
+                                                       *ddx-ui-attribute-jump*
+jump			(function)			(Optional)
+		Called to jump address.
+
                                                      *ddx-ui-attribute-onInit*
 onInit			(function)			(Optional)
 		Called before call UI functions.
@@ -259,6 +263,10 @@ onInit			(function)			(Optional)
                                                      *ddx-ui-attribute-params*
 params			(function)			(Required)
 		Called to get UI params.
+
+                                                     *ddx-ui-attribute-redraw*
+redraw			(function)			(Optional)
+		Called to redraw UI.
 
 
 ==============================================================================

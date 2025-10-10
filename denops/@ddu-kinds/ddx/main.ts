@@ -3,7 +3,9 @@ import { BaseKind } from "@shougo/ddu-vim/kind";
 
 import type { Denops } from "@denops/std";
 
-export type ActionData = Record<string, never>;
+export type ActionData = {
+  address: number;
+};
 
 type Params = Record<string, never>;
 

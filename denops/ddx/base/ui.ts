@@ -34,6 +34,12 @@ export type RedrawArguments<Params extends BaseParams> =
     buffer: DdxBuffer;
   };
 
+export type JumpArguments<Params extends BaseParams> =
+  & BaseUiArguments<Params>
+  & {
+    address: number;
+  };
+
 export type QuitArguments<Params extends BaseParams> = BaseUiArguments<Params>;
 
 export abstract class BaseUi<Params extends BaseParams> {
@@ -45,6 +51,8 @@ export abstract class BaseUi<Params extends BaseParams> {
   onInit(_args: OnInitArguments<Params>): void | Promise<void> {}
 
   redraw(_args: RedrawArguments<Params>): void | Promise<void> {}
+
+  jump(_args: JumpArguments<Params>): void | Promise<void> {}
 
   quit(_args: QuitArguments<Params>): void | Promise<void> {}
 
