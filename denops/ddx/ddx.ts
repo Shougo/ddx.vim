@@ -123,4 +123,25 @@ export class Ddx {
 
     return [];
   }
+
+  async jump(denops: Denops, address: number): Promise<void> {
+    const [ui, uiOptions, uiParams] = await getUi(
+      denops,
+      this.#loader,
+      this.#options,
+      this.#options.ui,
+    );
+    if (!ui) {
+      return;
+    }
+
+    await ui.jump({
+      denops,
+      context: defaultContext(),
+      options: this.#options,
+      uiOptions,
+      uiParams,
+      address,
+    });
+  }
 }

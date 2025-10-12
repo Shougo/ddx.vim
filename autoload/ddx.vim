@@ -7,3 +7,6 @@ endfunction
 function ddx#parse(name) abort
   return ddx#denops#_request('parse', [a:name])
 endfunction
+function ddx#jump(address) abort
+  return ddx#denops#_request('jump', [a:name])
+endfunction

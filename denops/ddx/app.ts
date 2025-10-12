@@ -71,7 +71,7 @@ export const main: Entrypoint = (denops: Denops) => {
     },
     setLocal(arg1: unknown, arg2: unknown): Promise<void> {
       const options = ensure(arg1, is.Record) as Partial<DdxOptions>;
-      const name = ensure(arg2, is.String) as string;
+      const name = ensure(arg2, is.String);
       contextBuilder.setLocal(name, options);
       return Promise.resolve();
     },
@@ -82,7 +82,7 @@ export const main: Entrypoint = (denops: Denops) => {
     },
     patchLocal(arg1: unknown, arg2: unknown): Promise<void> {
       const options = ensure(arg1, is.Record) as Partial<DdxOptions>;
-      const name = ensure(arg2, is.String) as string;
+      const name = ensure(arg2, is.String);
       contextBuilder.patchLocal(name, options);
       return Promise.resolve();
     },
@@ -93,7 +93,7 @@ export const main: Entrypoint = (denops: Denops) => {
       return Promise.resolve(contextBuilder.getLocal());
     },
     getCurrent(arg1: unknown): Promise<Partial<DdxOptions>> {
-      const name = ensure(arg1, is.String) as string;
+      const name = ensure(arg1, is.String);
       const ddx = getDdx(name);
       return Promise.resolve(ddx.getOptions());
     },
@@ -102,8 +102,8 @@ export const main: Entrypoint = (denops: Denops) => {
     },
     alias(arg1: unknown, arg2: unknown, arg3: unknown): Promise<void> {
       const extType = ensure(arg1, is.String) as DdxExtType;
-      const alias = ensure(arg2, is.String) as string;
-      const base = ensure(arg3, is.String) as string;
+      const alias = ensure(arg2, is.String);
+      const base = ensure(arg3, is.String);
 
       globalAliases[extType][alias] = base;
       return Promise.resolve();
@@ -111,7 +111,7 @@ export const main: Entrypoint = (denops: Denops) => {
     async loadConfig(arg1: unknown): Promise<void> {
       //const startTime = Date.now();
       await lock.lock(async () => {
-        const path = ensure(arg1, is.String) as string;
+        const path = ensure(arg1, is.String);
 
         try {
           const mod = await importPlugin(path);
@@ -152,8 +152,8 @@ export const main: Entrypoint = (denops: Denops) => {
       arg2: unknown,
       arg3: unknown,
     ): Promise<void> {
-      const name = ensure(arg1, is.String) as string;
-      const actionName = ensure(arg2, is.String) as string;
+      const name = ensure(arg1, is.String);
+      const actionName = ensure(arg2, is.String);
       const params = ensure(arg3, is.Record);
 
       const ddx = getDdx(name);
@@ -170,7 +170,7 @@ export const main: Entrypoint = (denops: Denops) => {
     async parse(
       arg1: unknown,
     ): Promise<AnalyzeResult[]> {
-      const name = ensure(arg1, is.String) as string;
+      const name = ensure(arg1, is.String);
       if (name.length === 0) {
         return [];
       }
@@ -178,6 +178,19 @@ export const main: Entrypoint = (denops: Denops) => {
       const ddx = getDdx(name);
 
       return await ddx.parse(denops);
+    },
+    async jump(
+      arg1: unknown,
+    ): Promise<void> {
+      const name = ensure(arg1, is.String);
+      const address = ensure(arg1, is.Number);
+      if (name.length === 0) {
+        return;
+      }
+
+      const ddx = getDdx(name);
+
+      await ddx.jump(denops, address);
     },
   };
 };
