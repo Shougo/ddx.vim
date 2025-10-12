@@ -4,7 +4,6 @@ import type { AnalyzeResult } from "../../ddx/base/analyzer.ts";
 import type { ActionData } from "../../@ddu-kinds/ddx/main.ts";
 
 import type { Denops } from "@denops/std";
-
 import * as vars from "@denops/std/variable";
 
 type Params = Record<string, never>;
