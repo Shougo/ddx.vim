@@ -23,7 +23,7 @@ export class Kind extends BaseKind<Params> {
         const name = await vars.b.get(args.denops, "ddx_ui_name", "");
         for (const item of args.items) {
           const action = item.action as ActionData;
-          await args.denops.call("denops#jump", name, action.address);
+          await args.denops.call("ddx#jump", name, action.address);
         }
 
         return Promise.resolve(ActionFlags.None);

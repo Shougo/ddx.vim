@@ -123,6 +123,18 @@ uiParams
 ------------------------------------------------------------------------------
 FUNCTIONS                                                      *ddx-functions*
 
+                                                                  *ddx#jump()*
+ddx#jump({name}, {address})
+		Jump to {address} in current UI.
+
+		{name} is specified ddx name(|ddx-option-name|).
+
+                                                                 *ddx#parse()*
+ddx#parse({name})
+		Return parsed result in current UI.
+
+		{name} is specified ddx name(|ddx-option-name|).
+
                                                                  *ddx#start()*
 ddx#start({options})
 		Creates a new ddx.

@@ -181,9 +181,10 @@ export const main: Entrypoint = (denops: Denops) => {
     },
     async jump(
       arg1: unknown,
+      arg2: unknown,
     ): Promise<void> {
       const name = ensure(arg1, is.String);
-      const address = ensure(arg1, is.Number);
+      const address = ensure(arg2, is.Number);
       if (name.length === 0) {
         return;
       }
