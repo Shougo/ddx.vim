@@ -61,14 +61,14 @@ export class DdxBuffer {
     this.bytes[pos] = value;
   }
 
-  remove(pos: number) {
-    if (pos < 0 || pos > this.bytes.length) {
+  remove(pos: number, length: number = 1) {
+    if (pos < 0 || pos + length > this.bytes.length) {
       throw new RangeError("Position out of range");
     }
 
-    const newBytes = new Uint8Array(this.bytes.length - 1);
+    const newBytes = new Uint8Array(this.bytes.length - length);
     newBytes.set(this.bytes.subarray(0, pos));
-    newBytes.set(this.bytes.subarray(pos + 1), pos);
+    newBytes.set(this.bytes.subarray(pos + length), pos);
 
     this.bytes = newBytes;
   }
