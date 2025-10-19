@@ -88,7 +88,7 @@ export class Ddx {
     ]);
   }
 
-  async parse(denops: Denops): Promise<AnalyzeResult[]> {
+  async analyze(denops: Denops): Promise<AnalyzeResult[]> {
     for (const name of this.#options.analyzers) {
       const [analyzer, analyzerOptions, analyzerParams] = await getAnalyzer(
         denops,

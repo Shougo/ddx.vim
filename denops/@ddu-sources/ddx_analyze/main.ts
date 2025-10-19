@@ -21,7 +21,7 @@ export class Source extends BaseSource<Params> {
       async start(controller) {
         const name = await vars.b.get(args.denops, "ddx_ui_name", "");
         const results = await args.denops.call(
-          "ddx#parse",
+          "ddx#analyze",
           name,
         ) as AnalyzeResult[];
 

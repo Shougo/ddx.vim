@@ -6,8 +6,8 @@ function ddx#ui_action(name, action, params) abort
   call ddx#denops#_request('uiAction', [a:name, a:action, a:params])
 endfunction
 
-function ddx#parse(name) abort
-  return ddx#denops#_request('parse', [a:name])
+function ddx#analyze(name) abort
+  return ddx#denops#_request('analyze', [a:name])
 endfunction
 
 function ddx#jump(name, address) abort

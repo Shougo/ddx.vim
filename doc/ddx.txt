@@ -123,15 +123,15 @@ uiParams
 ------------------------------------------------------------------------------
 FUNCTIONS                                                      *ddx-functions*
 
-                                                                  *ddx#jump()*
-ddx#jump({name}, {address})
-		Jump to {address} in current UI.
+                                                                 *ddx#analyze*
+ddx#analyze{name})
+		Return analyzed result in current UI.
 
 		{name} is specified ddx name(|ddx-option-name|).
 
-                                                                 *ddx#parse()*
-ddx#parse({name})
-		Return parsed result in current UI.
+                                                                  *ddx#jump()*
+ddx#jump({name}, {address})
+		Jump to {address} in current UI.
 
 		{name} is specified ddx name(|ddx-option-name|).
 

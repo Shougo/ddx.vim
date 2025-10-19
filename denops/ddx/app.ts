@@ -167,7 +167,7 @@ export const main: Entrypoint = (denops: Denops) => {
         params,
       );
     },
-    async parse(
+    async analyze(
       arg1: unknown,
     ): Promise<AnalyzeResult[]> {
       const name = ensure(arg1, is.String);
@@ -177,7 +177,7 @@ export const main: Entrypoint = (denops: Denops) => {
 
       const ddx = getDdx(name);
 
-      return await ddx.parse(denops);
+      return await ddx.analyze(denops);
     },
     async jump(
       arg1: unknown,
