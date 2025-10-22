@@ -321,7 +321,7 @@ EXAMPLES                                                        *ddx-examples*
 	" You must set the default ui.
 	" Note: hex ui
 	call ddx#custom#patch_global({
-	    \ 'ui': 'hex',
+	    \   'ui': 'hex',
 	    \ })
 <
 

@@ -52,11 +52,11 @@ Please install both Deno 2.3.0+ and "denops.vim" v8.0+.
 ## Plans
 
 - [x] View binary file
-- [ ] Edit binary file(especially, insert bytes and delete bytes)
+- [x] Edit binary file(especially, insert bytes and delete bytes)
 - [ ] Japanese encodings support
 - [ ] GB data support
-- [ ] Undo support
-- [ ] ddx-commands
-- [ ] ddx-ui-hex
-- [ ] UI support
+- [x] Undo support
+- [x] ddx-commands
+- [x] ddx-ui-hex
+- [x] UI support
 - [ ] Bitmap analysis
