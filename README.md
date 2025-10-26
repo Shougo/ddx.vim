@@ -51,8 +51,8 @@ Please install both Deno 2.3.0+ and "denops.vim" v8.0+.
 
 Please see: https://github.com/Shougo/ddx.vim/issues/4
 
-![ddx-ui-hex](https://private-user-images.githubusercontent.com/41495/504473009-aba36a7d-bce8-4461-aa11-58c5f0a45521.png)
-![:Ddu ddx_analyze](https://private-user-images.githubusercontent.com/41495/504473202-4d0f0131-c089-4e95-a931-d6abb31f749e.png)
+![ddx-ui-hex](https://github.com/user-attachments/assets/aba36a7d-bce8-4461-aa11-58c5f0a45521)
+![:Ddu ddx_analyze](https://github.com/user-attachments/assets/4d0f0131-c089-4e95-a931-d6abb31f749e)
 
 ## Plans
 
