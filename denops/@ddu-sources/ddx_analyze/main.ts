@@ -34,7 +34,7 @@ export class Source extends BaseSource<Params> {
             controller.enqueue([{
               word: `  ${value.name}: ${value.value}`,
               action: {
-                address: value.address,
+                value,
               },
             }]);
           }

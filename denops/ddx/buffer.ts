@@ -61,6 +61,29 @@ export class DdxBuffer {
     this.bytes[pos] = value;
   }
 
+  changeBytes(pos: number, bytes: Uint8Array) {
+    if (pos < 0 || pos > this.bytes.length) {
+      throw new RangeError("Position out of range");
+    }
+    if (bytes.length === 0) {
+      return;
+    }
+
+    const end = pos + bytes.length;
+    if (end <= this.bytes.length) {
+      // Fits in existing buffer: overwrite in-place.
+      this.bytes.set(bytes, pos);
+    } else {
+      // Need to extend the buffer.
+      const newBuf = new Uint8Array(end);
+      if (pos > 0) {
+        newBuf.set(this.bytes.subarray(0, pos), 0);
+      }
+      newBuf.set(bytes, pos);
+      this.bytes = newBuf;
+    }
+  }
+
   remove(pos: number, length: number = 1) {
     if (pos < 0 || pos + length > this.bytes.length) {
       throw new RangeError("Position out of range");
