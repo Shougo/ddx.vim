@@ -69,3 +69,14 @@ function ddx#util#highlight(
           \ })
   endif
 endfunction
+
+function ddx#util#input(prompt, text='') abort
+  redraw
+
+  try
+    return a:prompt->input(a:text)
+  catch /^Vim:Interrupt/
+  endtry
+
+  return ''
+endfunction
