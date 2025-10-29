@@ -27,13 +27,14 @@ export type AnalyzeResult = {
   values: AnalyzeValue[];
 };
 
-export type AnalyzeValue = AnalyzeValueNumber | AnalyzeValueString;
+export type AnalyzeValue = AnalyzeValueInteger | AnalyzeValueString;
 
-export type AnalyzeValueNumber = {
+export type AnalyzeValueInteger = {
   name: string;
-  rawType: "number";
+  rawType: "integer";
   value: number;
   size?: number;
+  isLittle?: boolean;
   address: number;
 };
 
@@ -43,6 +44,7 @@ export type AnalyzeValueString = {
   value: string;
   size?: number;
   address: number;
+  encoding?: "utf-8" | "utf-16le" | "utf-16be" | "ascii" | "latin1";
 };
 
 export type DetectArguments<Params extends BaseParams> =
