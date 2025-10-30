@@ -135,6 +135,12 @@ ddx#jump({name}, {address})
 
 		{name} is specified ddx name(|ddx-option-name|).
 
+                                                                *ddx#redraw()*
+ddx#redraw{name})
+		Redraw current UI.
+
+		{name} is specified ddx name(|ddx-option-name|).
+
                                                                  *ddx#start()*
 ddx#start({options})
 		Creates a new ddx.

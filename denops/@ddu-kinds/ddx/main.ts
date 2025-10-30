@@ -52,6 +52,7 @@ export class Kind extends BaseKind<Params> {
             const input = await args.denops.call(
               "ddx#util#input",
               `New value: ${action.value.value} -> `,
+              action.value.value,
             ) as string;
             if (input == "") {
               return ActionFlags.Persist;
@@ -60,6 +61,8 @@ export class Kind extends BaseKind<Params> {
             await args.denops.call("ddx#change", name, action.value, input);
           }
         }
+
+        await args.denops.call("ddx#redraw", name);
 
         return ActionFlags.Redraw;
       },
