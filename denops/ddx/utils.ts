@@ -1,5 +1,5 @@
 import type { DdxBuffer } from "./types.ts";
-import type { AnalyzeValueNumber } from "./base/analyzer.ts";
+import type { AnalyzeValueInteger } from "./base/analyzer.ts";
 
 import type { Denops } from "@denops/std";
 
@@ -105,7 +105,7 @@ export function parseOneLine(
   buffer: DdxBuffer,
   offset: number,
   isLittle = true,
-): [AnalyzeValueNumber, number] {
+): [AnalyzeValueInteger, number] {
   // Parse: 'type name;'
   const match = line.match(/^\s*(\S+)\s+(\S+)\s*;\s*$/);
   if (!match) {
@@ -138,7 +138,7 @@ export function parseOneLine(
     throw new Error(`Not supported type : "${type}" in "${line}"`);
   }
 
-  const result: AnalyzeValueNumber = {
+  const result: AnalyzeValueInteger = {
     name,
     rawType,
     value,
@@ -224,8 +224,6 @@ export function stringToUint8Array(
     // Use TextEncoder when available (browser/Deno/modern Node)
     if (typeof TextEncoder !== "undefined") {
       encoded = new TextEncoder().encode(input);
-    } else if (typeof Buffer !== "undefined") {
-      encoded = Uint8Array.from(Buffer.from(input, "utf8"));
     } else {
       // fallback: basic utf-8 encoder (rare path)
       const codePoints = Array.from(input).map((ch) => ch.codePointAt(0) ?? 0);
