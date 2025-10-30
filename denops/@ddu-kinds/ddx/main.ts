@@ -64,7 +64,7 @@ export class Kind extends BaseKind<Params> {
 
         await args.denops.call("ddx#redraw", name);
 
-        return ActionFlags.Redraw;
+        return ActionFlags.RefreshItems;
       },
     },
     open: {

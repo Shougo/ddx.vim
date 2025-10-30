@@ -150,17 +150,26 @@ export class DdxBuffer {
     return byte !== undefined ? byte : -1;
   }
 
-  getChars(pos: number, length: number, encoding: string = "utf-8"): string {
+  getChars(
+    pos: number,
+    length: number,
+    encoding: string = "utf-8",
+    nulReplacement: string = ""
+  ): string {
     const bytes = this.getBytes(pos, length);
 
     try {
-      return new TextDecoder(encoding).decode(bytes);
+      // TextDecoder may throw if the encoding label is invalid.
+      const decoded = new TextDecoder(encoding).decode(bytes);
+      // deno-lint-ignore no-control-regex
+      return decoded.replace(/\u0000/g, nulReplacement);
     } catch (_e) {
-      // Invalid encoding.
-      // ASCII Fallback
-      return Array.from(bytes)
+      // Fallback to ASCII-like conversion.
+      const decoded = Array.from(bytes)
         .map((b) => String.fromCharCode(b))
         .join("");
+        // deno-lint-ignore no-control-regex
+      return decoded.replace(/\u0000/g, nulReplacement);
     }
   }
 
