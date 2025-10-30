@@ -2,23 +2,43 @@ import type { DdxOptions, UserOptions } from "./types.ts";
 import { defaultContext, defaultDdxOptions } from "./context.ts";
 import type { Loader } from "./loader.ts";
 import { getAnalyzer, getUi } from "./ext.ts";
-import { printError } from "./utils.ts";
+import { numberToUint8Array, printError, stringToUint8Array } from "./utils.ts";
 import { DdxBuffer } from "./buffer.ts";
-import type { AnalyzeResult } from "./base/analyzer.ts";
+import type { AnalyzeResult, AnalyzeValue } from "./base/analyzer.ts";
 import { foldMerge, mergeDdxOptions } from "./context.ts";
 
 import type { Denops } from "@denops/std";
+import { is } from "@core/unknownutil/is";
+import { ensure } from "@core/unknownutil/ensure";
 
 export class Ddx {
   #loader: Loader;
+  #options: DdxOptions = defaultDdxOptions();
+  #userOptions: UserOptions = {};
+  #buffer: DdxBuffer = new DdxBuffer();
 
   constructor(loader: Loader) {
     this.#loader = loader;
   }
 
-  #options: DdxOptions = defaultDdxOptions();
-  #userOptions: UserOptions = {};
-  #buffer: DdxBuffer = new DdxBuffer();
+  getBuffer() {
+    return this.#buffer;
+  }
+
+  getOptions() {
+    return this.#options;
+  }
+
+  getUserOptions() {
+    return this.#userOptions;
+  }
+
+  updateOptions(userOptions: UserOptions) {
+    this.#options = foldMerge(mergeDdxOptions, defaultDdxOptions, [
+      this.#options,
+      userOptions,
+    ]);
+  }
 
   async start(
     denops: Denops,
@@ -49,6 +69,12 @@ export class Ddx {
       return;
     }
 
+    await this.redraw(denops);
+  }
+
+  async redraw(
+    denops: Denops,
+  ) {
     const [ui, uiOptions, uiParams] = await getUi(
       denops,
       this.#loader,
@@ -67,25 +93,6 @@ export class Ddx {
       uiOptions,
       uiParams,
     });
-  }
-
-  getBuffer() {
-    return this.#buffer;
-  }
-
-  getOptions() {
-    return this.#options;
-  }
-
-  getUserOptions() {
-    return this.#userOptions;
-  }
-
-  updateOptions(userOptions: UserOptions) {
-    this.#options = foldMerge(mergeDdxOptions, defaultDdxOptions, [
-      this.#options,
-      userOptions,
-    ]);
   }
 
   async analyze(denops: Denops): Promise<AnalyzeResult[]> {
@@ -122,6 +129,40 @@ export class Ddx {
     }
 
     return [];
+  }
+
+  change(value: AnalyzeValue, newValue: string | number) {
+    if (value.rawType === "integer") {
+      const bytes = numberToUint8Array(
+        ensure(newValue, is.Number),
+        value.size ?? 4,
+        value.isLittle ?? true,
+        false, // unsigned
+      );
+
+      this.#buffer.changeBytes(
+        value.address,
+        bytes,
+      );
+    } else {
+      // string
+      const bytes = stringToUint8Array(
+        ensure(newValue, is.String),
+        value.size,
+        value.encoding ?? "utf-8",
+        {
+          pad: true,
+          padWith: 0x00,
+          truncate: true,
+          nullTerminate: false,
+        },
+      );
+
+      this.#buffer.changeBytes(
+        value.address,
+        bytes,
+      );
+    }
   }
 
   async jump(denops: Denops, address: number): Promise<void> {

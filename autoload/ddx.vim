@@ -13,3 +13,8 @@ endfunction
 function ddx#jump(name, address) abort
   return ddx#denops#_request('jump', [a:name, a:address])
 endfunction
+
+function ddx#change(name, address, value) abort
+  echomsg a:value
+  "return ddx#denops#_request('jump', [a:name, a:address])
+endfunction

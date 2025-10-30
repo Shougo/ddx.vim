@@ -1,6 +1,6 @@
 import { Ddx } from "./ddx.ts";
 import type { DdxExtType, DdxOptions } from "./types.ts";
-import type { AnalyzeResult } from "./base/analyzer.ts";
+import type { AnalyzeResult, AnalyzeValue } from "./base/analyzer.ts";
 import {
   ContextBuilder,
   defaultContext,
@@ -147,6 +147,15 @@ export const main: Entrypoint = (denops: Denops) => {
         options,
       );
     },
+    async redraw(
+      arg1: unknown,
+    ): Promise<void> {
+      const name = ensure(arg1, is.String);
+
+      const ddx = getDdx(name);
+
+      await ddx.redraw(denops);
+    },
     async uiAction(
       arg1: unknown,
       arg2: unknown,
@@ -157,6 +166,7 @@ export const main: Entrypoint = (denops: Denops) => {
       const params = ensure(arg3, is.Record);
 
       const ddx = getDdx(name);
+
       await uiAction(
         denops,
         getLoader(name),
@@ -178,6 +188,29 @@ export const main: Entrypoint = (denops: Denops) => {
       const ddx = getDdx(name);
 
       return await ddx.analyze(denops);
+    },
+    change(
+      arg1: unknown,
+      arg2: unknown,
+      arg3: unknown,
+    ) {
+      const name = ensure(arg1, is.String);
+      const value = ensure(
+        arg2,
+        is.ObjectOf({
+          name: is.String,
+          rawType: is.String,
+        }),
+      ) as AnalyzeValue;
+      const newValue = ensure(arg3, is.UnionOf([is.Number, is.String]));
+
+      if (name.length === 0) {
+        return;
+      }
+
+      const ddx = getDdx(name);
+
+      ddx.change(value, newValue);
     },
     async jump(
       arg1: unknown,

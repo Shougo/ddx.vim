@@ -1,7 +1,7 @@
 import { ActionFlags, type Actions, type DduItem } from "@shougo/ddu-vim/types";
 import { BaseKind } from "@shougo/ddu-vim/kind";
 import type { AnalyzeValue } from "../../ddx/base/analyzer.ts";
-import { numberToUint8Array, printError, stringToUint8Array } from "../../ddx/utils.ts";
+import { printError } from "../../ddx/utils.ts";
 
 import type { Denops } from "@denops/std";
 import * as vars from "@denops/std/variable";
@@ -24,12 +24,11 @@ export class Kind extends BaseKind<Params> {
       }) => {
         const name = await vars.b.get(args.denops, "ddx_ui_name", "");
 
-        console.log(name);
         for (const item of args.items) {
           const action = item.action as ActionData;
 
           if (action.value.rawType === "integer") {
-            // number
+            // integer
             const input = await args.denops.call(
               "ddx#util#input",
               `New value: ${action.value.value} -> `,
@@ -47,14 +46,7 @@ export class Kind extends BaseKind<Params> {
               return ActionFlags.Persist;
             }
 
-            const bytes = numberToUint8Array(
-              value,
-              action.value.size ?? 4,
-              action.value.isLittle ?? true,
-              false // unsigned
-            );
-
-            console.log(bytes);
+            await args.denops.call("ddx#change", name, action.value, value);
           } else {
             // string
             const input = await args.denops.call(
@@ -65,25 +57,11 @@ export class Kind extends BaseKind<Params> {
               return ActionFlags.Persist;
             }
 
-            console.log(input);
-
-            const bytes = stringToUint8Array(
-              input,
-              action.value.size,
-              action.value.encoding ?? "utf-8",
-              {
-                pad: true,
-                padWith: 0x00,
-                truncate: true,
-                nullTerminate: false,
-              }
-            );
-
-            console.log(bytes);
+            await args.denops.call("ddx#change", name, action.value, input);
           }
         }
 
-        return ActionFlags.None;
+        return ActionFlags.Redraw;
       },
     },
     open: {

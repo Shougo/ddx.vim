@@ -204,7 +204,7 @@ export function stringToUint8Array(
     padWith?: number;
     truncate?: boolean;
     nullTerminate?: boolean;
-  }
+  },
 ): Uint8Array {
   const opt = {
     pad: true,
@@ -234,13 +234,17 @@ export function stringToUint8Array(
         } else if (cp <= 0x7ff) {
           bytes.push(0xc0 | (cp >> 6), 0x80 | (cp & 0x3f));
         } else if (cp <= 0xffff) {
-          bytes.push(0xe0 | (cp >> 12), 0x80 | ((cp >> 6) & 0x3f), 0x80 | (cp & 0x3f));
+          bytes.push(
+            0xe0 | (cp >> 12),
+            0x80 | ((cp >> 6) & 0x3f),
+            0x80 | (cp & 0x3f),
+          );
         } else {
           bytes.push(
             0xf0 | (cp >> 18),
             0x80 | ((cp >> 12) & 0x3f),
             0x80 | ((cp >> 6) & 0x3f),
-            0x80 | (cp & 0x3f)
+            0x80 | (cp & 0x3f),
           );
         }
       }
@@ -300,7 +304,9 @@ export function stringToUint8Array(
       }
       return encoded.subarray(0, size);
     } else {
-      throw new RangeError(`encoded byte length (${encoded.length}) exceeds requested size (${size})`);
+      throw new RangeError(
+        `encoded byte length (${encoded.length}) exceeds requested size (${size})`,
+      );
     }
   }
 
