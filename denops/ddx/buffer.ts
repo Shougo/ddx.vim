@@ -154,7 +154,7 @@ export class DdxBuffer {
     pos: number,
     length: number,
     encoding: string = "utf-8",
-    nulReplacement: string = ""
+    nulReplacement: string = "",
   ): string {
     const bytes = this.getBytes(pos, length);
 
@@ -168,7 +168,7 @@ export class DdxBuffer {
       const decoded = Array.from(bytes)
         .map((b) => String.fromCharCode(b))
         .join("");
-        // deno-lint-ignore no-control-regex
+      // deno-lint-ignore no-control-regex
       return decoded.replace(/\u0000/g, nulReplacement);
     }
   }
