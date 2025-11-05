@@ -1,19 +1,54 @@
 import { assertEquals } from "@std/assert";
 
+type OperationHistory =
+  | ChangeHistory
+  | ChangeBytesHistory
+  | InsertHistory
+  | RemoveHistory;
+
+type ChangeHistory = {
+  operation: "change";
+  address: number;
+  oldValue: number;
+  newValue: number;
+};
+
+type ChangeBytesHistory = {
+  operation: "changeBytes";
+  address: number;
+  oldValue: Uint8Array;
+  newValue: Uint8Array;
+};
+
+type InsertHistory = {
+  operation: "insert";
+  address: number;
+  newValue: Uint8Array;
+};
+
+type RemoveHistory = {
+  operation: "remove";
+  address: number;
+  oldValue: number;
+};
+
 export class DdxBuffer {
-  file: Deno.FsFile | undefined = undefined;
-  offset: number = 0;
-  path: string = "";
-  bytes: Uint8Array = new Uint8Array();
+  #file: Deno.FsFile | undefined = undefined;
+  #offset: number = 0;
+  #path: string = "";
+  #bytes: Uint8Array = new Uint8Array();
+
+  #histories: OperationHistory[] = [];
+  #undoHistories: OperationHistory[] = [];
 
   async open(path: string, offset: number = 0, length: number = 0) {
     if (!(await exists(path))) {
       return;
     }
 
-    this.file = await Deno.open(path, { read: true });
-    this.offset = offset;
-    this.path = path;
+    this.#file = await Deno.open(path, { read: true });
+    this.#offset = offset;
+    this.#path = path;
 
     const stat = await Deno.stat(path);
     const fileLength = stat.size;
@@ -23,25 +58,35 @@ export class DdxBuffer {
     }
 
     if (length <= 0 || offset >= fileLength) {
-      this.bytes = new Uint8Array();
+      this.#bytes = new Uint8Array();
       return;
     }
 
-    await this.file.seek(offset, Deno.SeekMode.Start);
+    await this.#file.seek(offset, Deno.SeekMode.Start);
 
     const buf = new Uint8Array(length);
-    const bytesRead = await this.file.read(buf);
+    const bytesRead = await this.#file.read(buf);
 
-    this.bytes = buf.subarray(0, bytesRead ?? 0);
+    this.#bytes = buf.subarray(0, bytesRead ?? 0);
   }
 
   insert(pos: number, bytes: Uint8Array) {
-    if (pos < 0 || pos > this.bytes.length) {
+    this.#histories.push({
+      operation: "insert",
+      address: pos,
+      newValue: bytes,
+    });
+    this.#undoHistories = [];
+
+    this.#insert(pos, bytes);
+  }
+  #insert(pos: number, bytes: Uint8Array) {
+    if (pos < 0 || pos > this.#bytes.length) {
       throw new RangeError("Position out of range");
     }
 
-    const before = this.bytes.subarray(0, pos);
-    const after = this.bytes.subarray(pos);
+    const before = this.#bytes.subarray(0, pos);
+    const after = this.#bytes.subarray(pos);
 
     const newBytes = new Uint8Array(
       before.length + bytes.length + after.length,
@@ -50,19 +95,41 @@ export class DdxBuffer {
     newBytes.set(bytes, before.length);
     newBytes.set(after, before.length + bytes.length);
 
-    this.bytes = newBytes;
+    this.#bytes = newBytes;
   }
 
   change(pos: number, value: number) {
-    if (pos < 0 || pos > this.bytes.length) {
+    this.#histories.push({
+      operation: "change",
+      address: pos,
+      oldValue: this.getByte(pos) ?? -1,
+      newValue: value,
+    });
+    this.#undoHistories = [];
+
+    this.#change(pos, value);
+  }
+  #change(pos: number, value: number) {
+    if (pos < 0 || pos > this.#bytes.length) {
       throw new RangeError("Position out of range");
     }
 
-    this.bytes[pos] = value;
+    this.#bytes[pos] = value;
   }
 
   changeBytes(pos: number, bytes: Uint8Array) {
-    if (pos < 0 || pos > this.bytes.length) {
+    this.#histories.push({
+      operation: "changeBytes",
+      address: pos,
+      oldValue: this.getBytes(pos, bytes.length),
+      newValue: bytes,
+    });
+    this.#undoHistories = [];
+
+    this.#changeBytes(pos, bytes);
+  }
+  #changeBytes(pos: number, bytes: Uint8Array) {
+    if (pos < 0 || pos > this.#bytes.length) {
       throw new RangeError("Position out of range");
     }
     if (bytes.length === 0) {
@@ -70,79 +137,170 @@ export class DdxBuffer {
     }
 
     const end = pos + bytes.length;
-    if (end <= this.bytes.length) {
+    if (end <= this.#bytes.length) {
       // Fits in existing buffer: overwrite in-place.
-      this.bytes.set(bytes, pos);
+      this.#bytes.set(bytes, pos);
     } else {
       // Need to extend the buffer.
       const newBuf = new Uint8Array(end);
       if (pos > 0) {
-        newBuf.set(this.bytes.subarray(0, pos), 0);
+        newBuf.set(this.#bytes.subarray(0, pos), 0);
       }
       newBuf.set(bytes, pos);
-      this.bytes = newBuf;
+      this.#bytes = newBuf;
     }
   }
 
   remove(pos: number, length: number = 1) {
-    if (pos < 0 || pos + length > this.bytes.length) {
+    this.#histories.push({
+      operation: "remove",
+      address: pos,
+      oldValue: this.getByte(pos) ?? -1,
+    });
+    this.#undoHistories = [];
+
+    this.#remove(pos, length);
+  }
+  #remove(pos: number, length: number = 1) {
+    if (pos < 0 || pos + length > this.#bytes.length) {
       throw new RangeError("Position out of range");
     }
 
-    const newBytes = new Uint8Array(this.bytes.length - length);
-    newBytes.set(this.bytes.subarray(0, pos));
-    newBytes.set(this.bytes.subarray(pos + length), pos);
+    const newBytes = new Uint8Array(this.#bytes.length - length);
+    newBytes.set(this.#bytes.subarray(0, pos));
+    newBytes.set(this.#bytes.subarray(pos + length), pos);
 
-    this.bytes = newBytes;
+    this.#bytes = newBytes;
   }
 
   async write(path: string = "") {
     if (path.length === 0) {
-      path = this.path;
+      path = this.#path;
     }
 
     const file = await Deno.open(path, { write: true, create: true });
 
-    await file.seek(this.offset ?? 0, Deno.SeekMode.Start);
+    await file.seek(this.#offset ?? 0, Deno.SeekMode.Start);
 
-    await file.write(this.bytes);
+    await file.write(this.#bytes);
 
     file.close();
   }
 
+  redo(): number {
+    const history = this.#undoHistories.pop();
+    if (!history) {
+      return this.#undoHistories.length;
+    }
+
+    this.#undoOperation(
+      this.#histories,
+      history,
+    );
+
+    return this.#undoHistories.length;
+  }
+
+  undo(): number {
+    const history = this.#histories.pop();
+    if (!history) {
+      return this.#histories.length;
+    }
+
+    this.#undoOperation(
+      this.#undoHistories,
+      history,
+    );
+
+    return this.#histories.length;
+  }
+
+  #undoOperation(
+    histories: OperationHistory[],
+    history: OperationHistory,
+  ) {
+    switch (history.operation) {
+      case "change":
+        histories.push({
+          operation: "change",
+          address: history.address,
+          oldValue: this.getByte(history.address) ?? -1,
+          newValue: history.oldValue,
+        });
+
+        this.#change(history.address, history.oldValue);
+
+        break;
+      case "changeBytes":
+        histories.push({
+          operation: "changeBytes",
+          address: history.address,
+          oldValue: history.newValue,
+          newValue: history.oldValue,
+        });
+
+        this.#changeBytes(history.address, history.oldValue);
+
+        break;
+      case "insert":
+        histories.push({
+          operation: "remove",
+          address: history.address,
+          oldValue: this.getByte(history.address) ?? -1,
+        });
+
+        this.remove(history.address, history.newValue.length);
+
+        break;
+      case "remove":
+        histories.push({
+          operation: "insert",
+          address: history.address,
+          newValue: Uint8Array.from([history.oldValue]),
+        });
+
+        this.insert(
+          history.address,
+          Uint8Array.from([history.oldValue]),
+        );
+
+        break;
+    }
+  }
+
   close() {
-    if (!this.file) {
+    if (!this.#file) {
       return;
     }
 
-    this.file.close();
-    this.file = undefined;
-    this.offset = 0;
-    this.path = "";
+    this.#file.close();
+    this.#file = undefined;
+    this.#offset = 0;
+    this.#path = "";
   }
 
   getSize(): number {
-    return this.bytes.length;
+    return this.#bytes.length;
   }
 
   getPath(): string {
-    return this.path;
+    return this.#path;
   }
 
   getByte(pos: number): number | undefined {
-    if (pos < 0 || pos >= this.bytes.length) {
+    if (pos < 0 || pos >= this.#bytes.length) {
       return undefined;
     }
 
-    return this.bytes[pos];
+    return this.#bytes[pos];
   }
 
   getBytes(offset: number, length: number): Uint8Array {
-    if (offset < 0 || length < 0 || offset + length > this.bytes.length) {
+    if (offset < 0 || length < 0 || offset + length > this.#bytes.length) {
       return Uint8Array.from([]);
     }
 
-    return this.bytes.subarray(offset, offset + length);
+    return this.#bytes.subarray(offset, offset + length);
   }
 
   getInt8(pos: number): number {
