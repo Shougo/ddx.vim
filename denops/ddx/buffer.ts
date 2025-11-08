@@ -38,6 +38,7 @@ export class DdxBuffer {
   #path: string = "";
   #bytes: Uint8Array = new Uint8Array();
 
+  #changedAdresses: Set<number> = new Set<number>;
   #histories: OperationHistory[] = [];
   #undoHistories: OperationHistory[] = [];
 
@@ -68,6 +69,10 @@ export class DdxBuffer {
     const bytesRead = await this.#file.read(buf);
 
     this.#bytes = buf.subarray(0, bytesRead ?? 0);
+
+    this.#changedAdresses.clear();
+    this.#histories = [];
+    this.#undoHistories = [];
   }
 
   insert(pos: number, bytes: Uint8Array) {
@@ -77,6 +82,11 @@ export class DdxBuffer {
       newValue: bytes,
     });
     this.#undoHistories = [];
+
+    // NOTE: mark all addresses from pos .. pos + bytes.length - 1 as changed
+    for (let i = 0; i < bytes.length; i++) {
+      this.#changedAdresses.add(pos + i);
+    }
 
     this.#insert(pos, bytes);
   }
@@ -107,6 +117,8 @@ export class DdxBuffer {
     });
     this.#undoHistories = [];
 
+    this.#changedAdresses.add(pos);
+
     this.#change(pos, value);
   }
   #change(pos: number, value: number) {
@@ -125,6 +137,11 @@ export class DdxBuffer {
       newValue: bytes,
     });
     this.#undoHistories = [];
+
+    // NOTE: mark all addresses from pos .. pos + bytes.length - 1 as changed
+    for (let i = 0; i < bytes.length; i++) {
+      this.#changedAdresses.add(pos + i);
+    }
 
     this.#changeBytes(pos, bytes);
   }
@@ -228,6 +245,8 @@ export class DdxBuffer {
           newValue: history.oldValue,
         });
 
+        this.#changedAdresses.delete(history.address);
+
         this.#change(history.address, history.oldValue);
 
         break;
@@ -239,6 +258,10 @@ export class DdxBuffer {
           newValue: history.oldValue,
         });
 
+        for (let i = 0; i < history.oldValue.length; i++) {
+          this.#changedAdresses.delete(history.address + i);
+        }
+
         this.#changeBytes(history.address, history.oldValue);
 
         break;
@@ -248,6 +271,10 @@ export class DdxBuffer {
           address: history.address,
           oldValue: this.getByte(history.address) ?? -1,
         });
+
+        for (let i = 0; i < history.newValue.length; i++) {
+          this.#changedAdresses.delete(history.address + i);
+        }
 
         this.remove(history.address, history.newValue.length);
 
@@ -285,6 +312,10 @@ export class DdxBuffer {
 
   getPath(): string {
     return this.#path;
+  }
+
+  getChangedAddresses(): Set<number> {
+    return this.#changedAdresses;
   }
 
   getByte(pos: number): number | undefined {
