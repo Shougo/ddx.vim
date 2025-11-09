@@ -82,6 +82,7 @@ export class DdxBuffer {
       newValue: bytes,
     });
     this.#undoHistories = [];
+    this.#changedAdresses.clear();
 
     // NOTE: mark all addresses from pos .. pos + bytes.length - 1 as changed
     for (let i = 0; i < bytes.length; i++) {
@@ -175,6 +176,7 @@ export class DdxBuffer {
       oldValue: this.getByte(pos) ?? -1,
     });
     this.#undoHistories = [];
+    this.#changedAdresses.clear();
 
     this.#remove(pos, length);
   }
@@ -271,10 +273,6 @@ export class DdxBuffer {
           address: history.address,
           oldValue: this.getByte(history.address) ?? -1,
         });
-
-        for (let i = 0; i < history.newValue.length; i++) {
-          this.#changedAdresses.delete(history.address + i);
-        }
 
         this.remove(history.address, history.newValue.length);
 
