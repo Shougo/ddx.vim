@@ -38,7 +38,7 @@ export class DdxBuffer {
   #path: string = "";
   #bytes: Uint8Array = new Uint8Array();
 
-  #changedAdresses: Set<number> = new Set<number>;
+  #changedAdresses: Set<number> = new Set<number>();
   #histories: OperationHistory[] = [];
   #undoHistories: OperationHistory[] = [];
 
