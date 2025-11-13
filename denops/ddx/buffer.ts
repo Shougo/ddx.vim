@@ -293,6 +293,62 @@ export class DdxBuffer {
     }
   }
 
+  search(pos: number, bytes: Uint8Array): number {
+    // Empty pattern -> treat as found at pos if within buffer range
+    if (bytes.length === 0) {
+      if (pos < this.#offset) return this.#offset;
+      if (pos >= this.#offset + this.#bytes.length) return -1;
+      return pos;
+    }
+
+    const hay = this.#bytes;
+    const pat = bytes;
+    const n = hay.length;
+    const m = pat.length;
+
+    if (n === 0 || pos >= this.#offset + n) {
+      return -1;
+    }
+
+    // start index inside buffer (clamp to 0)
+    let startIndex = pos - this.#offset;
+    if (startIndex < 0) startIndex = 0;
+
+    // If pattern is single byte, use a simple loop (fast path)
+    if (m === 1) {
+      const v = pat[0];
+      for (let i = startIndex; i < n; i++) {
+        if (hay[i] === v) return this.#offset + i;
+      }
+      return -1;
+    }
+
+    // Boyer-Moore-Horspool preprocessing
+    const skip = new Uint32Array(256);
+    skip.fill(m);
+    for (let i = 0; i < m - 1; i++) {
+      skip[pat[i]] = m - i - 1;
+    }
+
+    let i = startIndex;
+    const last = m - 1;
+    while (i <= n - m) {
+      let j = last;
+      // compare from end of pattern
+      while (j >= 0 && hay[i + j] === pat[j]) {
+        j--;
+      }
+      if (j < 0) {
+        return this.#offset + i; // match found
+      }
+      const skipVal = skip[hay[i + last]];
+      // ensure at least one step forward
+      i += skipVal > 0 ? skipVal : 1;
+    }
+
+    return -1;
+  }
+
   close() {
     if (!this.#file) {
       return;
@@ -310,6 +366,10 @@ export class DdxBuffer {
 
   getPath(): string {
     return this.#path;
+  }
+
+  getOffset(): number {
+    return this.#offset;
   }
 
   getChangedAddresses(): Set<number> {
