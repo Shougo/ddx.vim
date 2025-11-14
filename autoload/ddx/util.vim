@@ -70,6 +70,26 @@ function ddx#util#highlight(
   endif
 endfunction
 
+function! ddx#util#apply_highlights(bufnr, prop_type, ops, ns) abort
+  if a:ns ==# v:null
+    let ns = 0
+  else
+    let ns = a:ns
+  endif
+
+  for op in a:ops->filter({ _, val -> val->len() >= 4 })
+    let lnum = op[0]
+    let col = op[1]
+    let len = op[2]
+    let hl = op[3]
+    if hl !=# ''
+      call ddx#util#highlight(
+            \   hl, a:prop_type, 1, ns, a:bufnr, lnum, col + 1, len
+            \ )
+    endif
+  endfor
+endfunction
+
 function ddx#util#input(prompt, text='') abort
   redraw
 
