@@ -274,7 +274,7 @@ export class DdxBuffer {
           oldValue: this.getByte(history.address) ?? -1,
         });
 
-        this.remove(history.address, history.newValue.length);
+        this.#remove(history.address, history.newValue.length);
 
         break;
       case "remove":
@@ -284,7 +284,7 @@ export class DdxBuffer {
           newValue: Uint8Array.from([history.oldValue]),
         });
 
-        this.insert(
+        this.#insert(
           history.address,
           Uint8Array.from([history.oldValue]),
         );
