@@ -1,7 +1,7 @@
 import { assertEquals } from "@std/assert";
 
 const CP932_LABELS = [
-  "windows-31j", // recommended label
+  "windows-31j",
   "cp932",
   "shift_jis",
   "shift-jis",
@@ -11,21 +11,23 @@ const CP932_LABELS = [
 function getCp932Decoder(): TextDecoder {
   for (const label of CP932_LABELS) {
     try {
-      // Per WHATWG Encoding specification, TextDecoder will throw for unknown labels.
-      // Use non-fatal (default) mode so invalid sequences become U+FFFD.
+      // Per WHATWG Encoding specification, TextDecoder will throw for unknown
+      // labels. Use non-fatal (default) mode so invalid sequences become
+      // U+FFFD.
       return new TextDecoder(label);
     } catch (_e) {
       // try next label
     }
   }
   // Fallback to default decoder (UTF-8) if none available.
-  // This will likely produce incorrect results for CP932 input, but avoids throwing.
+  // This will likely produce incorrect results for CP932 input, but avoids
+  // throwing.
   return new TextDecoder();
 }
 
 export function bytesToCP932(buf: Uint8Array): string {
   const decoder = getCp932Decoder();
-  const decoded = decoder.decode(buf); // decode whole buffer; invalid sequences -> U+FFFD
+  const decoded = decoder.decode(buf);
 
   const out: string[] = [];
 

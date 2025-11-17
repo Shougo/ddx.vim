@@ -409,7 +409,7 @@ export class DdxBuffer {
     } else if (encoding === "cp932") {
       return bytesToCP932(bytes);
     } else {
-      throw new RangeError("Position out of range");
+      throw new RangeError(`Invalid encoding: ${encoding}`);
     }
   }
 
