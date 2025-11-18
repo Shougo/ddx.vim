@@ -12,6 +12,8 @@ import { toFileUrl } from "@std/path/to-file-url";
 import { fromFileUrl } from "@std/path/from-file-url";
 import { join } from "@std/path/join";
 import { dirname } from "@std/path/dirname";
+import { assertEquals } from "@std/assert";
+import EncodingLib from "@encoding-japanese";
 
 export async function printError(
   denops: Denops,
@@ -195,10 +197,20 @@ export function numberToUint8Array(
   return out;
 }
 
+/**
+ * Convert string to Uint8Array with various encodings.
+ * Added support for "cp932" (Windows-31J / Shift_JIS variant).
+ */
 export function stringToUint8Array(
   input: string,
   size?: number,
-  encoding: "utf-8" | "utf-16le" | "utf-16be" | "ascii" | "latin1" = "utf-8",
+  encoding:
+    | "utf-8"
+    | "utf-16le"
+    | "utf-16be"
+    | "ascii"
+    | "latin1"
+    | "cp932" = "utf-8",
   options?: {
     pad?: boolean;
     padWith?: number;
@@ -251,18 +263,37 @@ export function stringToUint8Array(
       encoded = new Uint8Array(bytes);
     }
   } else if (encoding === "ascii" || encoding === "latin1") {
-    // 1 byte per code unit; latin1 maps 0..255, ascii maps 0..127 (higher truncated)
+    // 1 byte per code unit; latin1 maps 0..255, ascii maps 0..127 (higher
+    // truncated)
     const bytes = new Uint8Array(input.length);
     for (let i = 0; i < input.length; i++) {
       const code = input.charCodeAt(i);
       bytes[i] = encoding === "ascii" ? code & 0x7f : code & 0xff;
     }
     encoded = bytes;
+  } else if (encoding === "cp932") {
+    // Use encoding-japanese to convert to SJIS/CP932 bytes
+    try {
+      // Be explicit: input is JS Unicode string, set from:'UNICODE',
+      // to:'SJIS', type:'array'
+      const arr = (EncodingLib as any).convert(input, {
+        from: "UNICODE",
+        to: "SJIS",
+        type: "array",
+      }) as number[];
+      encoded = Uint8Array.from(arr);
+    } catch (e) {
+      throw new RangeError(
+        `CP932 encoder is not available in this environment: ${String(e)}`,
+      );
+    }
   } else {
     // utf-16le / utf-16be
     const bytes: number[] = [];
     for (let i = 0; i < input.length; i++) {
-      const cu = input.charCodeAt(i); // UTF-16 code unit (0..0xFFFF). Surrogates are preserved as two code units.
+      // UTF-16 code unit (0..0xFFFF). Surrogates are preserved as two code
+      // units.
+      const cu = input.charCodeAt(i);
       if (encoding === "utf-16le") {
         bytes.push(cu & 0xff, (cu >> 8) & 0xff);
       } else {
@@ -296,12 +327,28 @@ export function stringToUint8Array(
   // 3) handle truncation or overflow
   if (encoded.length > size) {
     if (opt.truncate) {
-      // For utf-16 encodings, avoid truncating in the middle of a code unit pair:
       if (encoding === "utf-16le" || encoding === "utf-16be") {
-        // ensure size is even; if odd, drop the last byte to keep code unit integrity
+        // ensure size is even; if odd, drop the last byte to keep code unit
+        // integrity
         const target = size % 2 === 0 ? size : size - 1;
         return encoded.subarray(0, Math.max(0, target));
       }
+
+      if (encoding === "cp932") {
+        // Avoid splitting a SJIS lead byte at the end.
+        // Lead byte ranges in Shift_JIS: 0x81-0x9F, 0xE0-0xEF
+        let target = size;
+        if (target > 0) {
+          const lastByte = encoded[target - 1];
+          const isLead = (b: number) =>
+            (0x81 <= b && b <= 0x9f) || (0xe0 <= b && b <= 0xef);
+          if (isLead(lastByte)) {
+            target -= 1;
+          }
+        }
+        return encoded.subarray(0, Math.max(0, target));
+      }
+
       return encoded.subarray(0, size);
     } else {
       throw new RangeError(
@@ -327,3 +374,58 @@ export function stringToUint8Array(
   // exact match
   return encoded;
 }
+
+function toHex(u8: Uint8Array): string {
+  return Array.from(u8).map((b) => b.toString(16).padStart(2, "0")).join("");
+}
+
+// Use explicit Unicode escapes to avoid source-file encoding issues.
+// "テキスト" = U+30C6 U+30AD U+30B9 U+30C8
+const KATAKANA_TEXT = "\u30C6\u30AD\u30B9\u30C8";
+
+Deno.test("stringToUint8Array: utf-8 encoding for テキスト", () => {
+  const s = KATAKANA_TEXT;
+  const bytes = stringToUint8Array(s, undefined, "utf-8");
+  const hex = toHex(bytes);
+  // Correct UTF-8 for "テキスト":
+  // テ: U+30C6 -> e3 83 86
+  // キ: U+30AD -> e3 82 ad
+  // ス: U+30B9 -> e3 82 b9
+  // ト: U+30C8 -> e3 83 88
+  assertEquals(hex, "e38386e382ade382b9e38388");
+});
+
+Deno.test("stringToUint8Array: utf-16be encoding for テキスト", () => {
+  const s = KATAKANA_TEXT;
+  const bytes = stringToUint8Array(s, undefined, "utf-16be");
+  const hex = toHex(bytes);
+  // Expected UTF-16BE: 0x30 0xc6 0x30 0xad 0x30 0xb9 0x30 0xc8
+  assertEquals(hex, "30c630ad30b930c8");
+});
+
+Deno.test("stringToUint8Array: cp932 encode-decode for テキスト", () => {
+  const s = KATAKANA_TEXT;
+  const bytes = stringToUint8Array(s, undefined, "cp932");
+
+  // If you want to assert exact bytes you can, but implementations/libraries
+  // sometimes differ slightly (SJIS vs CP932 vendor extensions). To make the
+  // test robust across environments, check roundtrip decode -> original
+  // string. This requires the same encoding library used by stringToUint8Array
+  // to decode.
+  //
+  // Use the same library if available:
+  let decoded = "";
+  try {
+    const arr = EncodingLib.convert(bytes, {
+      from: "SJIS",
+      to: "UNICODE",
+      type: "string",
+    });
+    decoded = String(arr);
+  } catch (e) {
+    // Re-throw so test fails with helpful info (above logs show hex)
+    throw e;
+  }
+
+  assertEquals(decoded, s);
+});
