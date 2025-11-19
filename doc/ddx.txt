@@ -141,6 +141,12 @@ ddx#redraw{name})
 
 		{name} is specified ddx name(|ddx-option-name|).
 
+                                                               *ddx#restart()*
+ddx#restart({name})
+		Reopen current file.
+
+		{name} is specified ddx name(|ddx-option-name|).
+
                                                                  *ddx#start()*
 ddx#start({options})
 		Creates a new ddx.

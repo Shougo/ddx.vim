@@ -147,9 +147,14 @@ export const main: Entrypoint = (denops: Denops) => {
         options,
       );
     },
-    async redraw(
-      arg1: unknown,
-    ): Promise<void> {
+    async restart(arg1: unknown): Promise<void> {
+      const name = ensure(arg1, is.String);
+
+      const ddx = getDdx(name);
+
+      await ddx.restart(denops);
+    },
+    async redraw(arg1: unknown): Promise<void> {
       const name = ensure(arg1, is.String);
 
       const ddx = getDdx(name);

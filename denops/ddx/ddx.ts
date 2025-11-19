@@ -46,6 +46,12 @@ export class Ddx {
   ): Promise<void> {
     this.updateOptions(userOptions);
 
+    return await this.restart(denops);
+  }
+
+  async restart(
+    denops: Denops,
+  ): Promise<void> {
     if (this.#options.path.length === 0) {
       await denops.call(
         "ddx#util#print_error",

@@ -2,6 +2,10 @@ function ddx#start(options = {}) abort
   call ddx#denops#_notify('start', [a:options])
 endfunction
 
+function ddx#restart(name) abort
+  return ddx#denops#_notify('restart', [a:name])
+endfunction
+
 function ddx#redraw(name) abort
   return ddx#denops#_request('redraw', [a:name])
 endfunction
