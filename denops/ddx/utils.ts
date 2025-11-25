@@ -276,7 +276,7 @@ export function stringToUint8Array(
     try {
       // Be explicit: input is JS Unicode string, set from:'UNICODE',
       // to:'SJIS', type:'array'
-      const arr = (EncodingLib as any).convert(input, {
+      const arr = EncodingLib.convert(input, {
         from: "UNICODE",
         to: "SJIS",
         type: "array",
