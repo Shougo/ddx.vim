@@ -33,6 +33,12 @@ type RemoveHistory = {
   oldValue: number;
 };
 
+export type ExtractedString = {
+  text: string;
+  offset: number;
+  encoding: string;
+};
+
 export class DdxBuffer {
   #file: Deno.FsFile | undefined = undefined;
   #offset: number = 0;
@@ -348,6 +354,225 @@ export class DdxBuffer {
     }
 
     return -1;
+  }
+
+  /**
+   * Extract readable strings from the underlying byte buffer and return them
+   * together with their byte offsets so callers can jump to the location
+   * later.
+   *
+   * Supported encodings:
+   * - "ascii"
+   * - "utf8" / "utf-8"
+   * - "utf16le" / "utf-16le"
+   * - "utf16be" / "utf-16be"
+   *
+   * Returns an array of { text, offset } in the order they appear.
+   *
+   * @param encoding Encoding name
+   * @param minLen Minimum number of printable characters to accept as a string
+   * (default 4)
+   */
+  searchStrings(encoding: string, minLen = 4): ExtractedString[] {
+    const enc = (encoding || "utf-8").toLowerCase();
+    switch (enc) {
+      case "ascii":
+        return this.#searchAscii(minLen);
+      case "utf8":
+      case "utf-8":
+        return this.#searchUtf8(minLen);
+      case "utf16le":
+      case "utf-16le":
+        return this.#searchUtf16(false, minLen);
+      case "utf16be":
+      case "utf-16be":
+        return this.#searchUtf16(true, minLen);
+      default:
+        throw new Error(`Unsupported encoding "${encoding}".`);
+    }
+  }
+
+  #decodeNonFatal(buf: Uint8Array, label: string): string {
+    try {
+      return new TextDecoder(label, { fatal: false }).decode(buf);
+    } catch {
+      return new TextDecoder("utf-8", { fatal: false }).decode(buf);
+    }
+  }
+
+  #tryDecodeFatal(buf: Uint8Array, label: string): string | null {
+    try {
+      return new TextDecoder(label, { fatal: true }).decode(buf);
+    } catch {
+      return null;
+    }
+  }
+
+  #isAsciiPrintable(b: number): boolean {
+    return (b >= 0x20 && b <= 0x7e) || b === 0x09 || b === 0x0a || b === 0x0d;
+  }
+
+  #searchAscii(minLen: number): ExtractedString[] {
+    const out: ExtractedString[] = [];
+    const bytes = this.#bytes;
+    const n = bytes.length;
+    if (n === 0) return out;
+
+    let i = 0;
+    while (i < n) {
+      while (i < n && !this.#isAsciiPrintable(bytes[i])) i++;
+      if (i >= n) break;
+      const start = i;
+      while (i < n && this.#isAsciiPrintable(bytes[i])) i++;
+      const len = i - start;
+      if (len >= minLen) {
+        const slice = bytes.subarray(start, i);
+        const s = this.#decodeNonFatal(slice, "utf-8");
+        out.push({
+          text: s,
+          offset: start,
+          encoding: "utf-8",
+        });
+      }
+    }
+    return out;
+  }
+
+  #searchUtf8(minLen: number): ExtractedString[] {
+    const out: ExtractedString[] = [];
+    const bytes = this.#bytes;
+    const n = bytes.length;
+    if (n === 0) return out;
+
+    const isUtf8Start = (b: number) => !(b >= 0x80 && b <= 0xbf);
+    let i = 0;
+    const fatalDecoderSupported = (() => {
+      try {
+        new TextDecoder("utf-8", { fatal: true }).decode(new Uint8Array());
+        return true;
+      } catch {
+        return false;
+      }
+    })();
+
+    while (i < n) {
+      if (!isUtf8Start(bytes[i])) {
+        i++;
+        continue;
+      }
+
+      let lastGood = -1;
+      for (let j = i; j < n; j++) {
+        const slice = bytes.subarray(i, j + 1);
+        if (fatalDecoderSupported) {
+          const decoded = this.#tryDecodeFatal(slice, "utf-8");
+          if (decoded === null) break;
+          lastGood = j;
+        } else {
+          const decoded = this.#decodeNonFatal(slice, "utf-8");
+          if (decoded.indexOf("\ufffd") !== -1) break;
+          lastGood = j;
+        }
+      }
+
+      if (lastGood >= i) {
+        const validSlice = bytes.subarray(i, lastGood + 1);
+        const decoded = this.#decodeNonFatal(validSlice, "utf-8");
+        // Count non-control/non-separator characters
+        const printableChars = decoded.replace(/[\p{C}\p{Z}]/gu, "");
+        if (printableChars.length >= minLen) {
+          out.push({
+            text: decoded,
+            offset: i,
+            encoding: "utf-8",
+          });
+        }
+        i = lastGood + 1;
+      } else {
+        i++;
+      }
+    }
+    return out;
+  }
+
+  #searchUtf16(isBE: boolean, minLen: number): ExtractedString[] {
+    const out: ExtractedString[] = [];
+    const bytes = this.#bytes;
+    const n = bytes.length;
+    if (n === 0) return out;
+
+    const seen = new Set<string>();
+
+    for (let align = 0; align <= 1; align++) {
+      if (align >= n) continue;
+      let i = align;
+      while (i + 1 < n) {
+        let lastGood = -1;
+        for (let j = i + 1; j < n; j += 2) {
+          const slice = bytes.subarray(i, j + 1);
+          let dec: string | null = null;
+          if (isBE) {
+            if (slice.length % 2 !== 0) break;
+            const swapped = new Uint8Array(slice.length);
+            for (let k = 0; k < slice.length; k += 2) {
+              swapped[k] = slice[k + 1];
+              swapped[k + 1] = slice[k];
+            }
+            dec = this.#tryDecodeFatal(swapped, "utf-16le");
+            if (dec === null) {
+              const nonfatal = this.#decodeNonFatal(swapped, "utf-16le");
+              dec = nonfatal.indexOf("\ufffd") !== -1 ? null : nonfatal;
+            }
+          } else {
+            if (slice.length % 2 !== 0) break;
+            dec = this.#tryDecodeFatal(slice, "utf-16le");
+            if (dec === null) {
+              const nonfatal = this.#decodeNonFatal(slice, "utf-16le");
+              dec = nonfatal.indexOf("\ufffd") !== -1 ? null : nonfatal;
+            }
+          }
+
+          if (dec === null) break;
+          lastGood = j;
+        }
+
+        if (lastGood >= i) {
+          const validSlice = bytes.subarray(i, lastGood + 1);
+          let decoded: string;
+          let encoding = "";
+          if (isBE) {
+            const swapped = new Uint8Array(validSlice.length);
+            for (let k = 0; k < validSlice.length; k += 2) {
+              swapped[k] = validSlice[k + 1];
+              swapped[k + 1] = validSlice[k];
+            }
+            encoding = "utf-16be";
+            decoded = this.#decodeNonFatal(swapped, encoding);
+          } else {
+            encoding = "utf-16le";
+            decoded = this.#decodeNonFatal(validSlice, encoding);
+          }
+
+          const printableChars = decoded.replace(/[\p{C}\p{Z}]/gu, "");
+          if (printableChars.length >= minLen) {
+            const key = `${i}:${decoded}`;
+            if (!seen.has(key)) {
+              seen.add(key);
+              out.push({
+                text: decoded,
+                offset: i,
+                encoding,
+              });
+            }
+          }
+          // advance past this run; keep alignment by adding 2
+          i = lastGood + 2;
+        } else {
+          i += 2;
+        }
+      }
+    }
+    return out;
   }
 
   close() {

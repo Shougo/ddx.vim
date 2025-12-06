@@ -343,6 +343,9 @@ DDU SOURCES                                                  *ddx-ddu-sources*
 ddx_analyze                                       *ddx-ddu-source-ddx_analyze*
 		Nominates ddx analyzed items.
 
+ddx_string                                         *ddx-ddu-source-ddx_string*
+		Nominates strings in buffer.
+
 
 ==============================================================================
 FREQUENTLY ASKED QUESTIONS (FAQ)			*ddx-faq*

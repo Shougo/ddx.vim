@@ -379,6 +379,100 @@ function toHex(u8: Uint8Array): string {
   return Array.from(u8).map((b) => b.toString(16).padStart(2, "0")).join("");
 }
 
+/**
+ * Escape non-printable characters in extracted strings using short escape
+ * sequences where appropriate so they are always visible in the UI.
+ *
+ * Rules:
+ * - Preserve: SPACE (0x20) and printable ASCII 0x21..0x7E (visible chars).
+ * - Short escapes:
+ *     NUL(0x00) -> "\0"
+ *     TAB(0x09) -> "\t"
+ *     LF(0x0A)  -> "\n"
+ *     CR(0x0D)  -> "\r"
+ * - Escape other control/private/unassigned characters:
+ *     - <= 0xFF   -> "\xNN"
+ *     - <= 0xFFFF -> "\uNNNN"
+ *     - > 0xFFFF  -> "\u{HHHHH}"
+ *
+ * Note: Backslash in input is preserved (not doubled). If you want to show
+ * literal backslashes as "\\", modify the handling accordingly.
+ */
+export function sanitizeExtractedText(input: string): string {
+  if (!input) return input;
+
+  let out = "";
+  for (let i = 0; i < input.length; ) {
+    const cp = input.codePointAt(i)!;
+    const ch = String.fromCodePoint(cp);
+    const advance = cp > 0xffff ? 2 : 1;
+
+    // Fast path: printable ASCII (visible characters)
+    if (cp >= 0x21 && cp <= 0x7e) {
+      out += ch;
+      i += advance;
+      continue;
+    }
+
+    // Preserve single SPACE
+    if (cp === 0x20) {
+      out += " ";
+      i += advance;
+      continue;
+    }
+
+    // Short escapes for common controls
+    if (cp === 0x00) {
+      out += "\\0";
+      i += advance;
+      continue;
+    }
+    if (cp === 0x09) {
+      out += "\\t";
+      i += advance;
+      continue;
+    }
+    if (cp === 0x0a) {
+      out += "\\n";
+      i += advance;
+      continue;
+    }
+    if (cp === 0x0d) {
+      out += "\\r";
+      i += advance;
+      continue;
+    }
+
+    // If not in Unicode "Other" category (C), keep it (printable Unicode)
+    const isOther = /[\p{C}]/u.test(ch);
+    if (!isOther) {
+      out += ch;
+      i += advance;
+      continue;
+    }
+
+    // Fallback escapes for remaining control/private/unassigned characters
+    if (cp <= 0xff) {
+      out += "\\x" + cp.toString(16).padStart(2, "0").toUpperCase();
+    } else if (cp <= 0xffff) {
+      out += "\\u" + cp.toString(16).padStart(4, "0").toUpperCase();
+    } else {
+      out += "\\u{" + cp.toString(16).toUpperCase() + "}";
+    }
+
+    i += advance;
+  }
+
+  return out;
+}
+
+/*
+ Example:
+ const s = "eO\x08\x11c\u0000k{;\x1F\n\t";
+ console.log(sanitizeExtractedText(s));
+ // => "eO\x08\x11c\0k{;\x1F\n\t"
+*/
+
 // Use explicit Unicode escapes to avoid source-file encoding issues.
 // "テキスト" = U+30C6 U+30AD U+30B9 U+30C8
 const KATAKANA_TEXT = "\u30C6\u30AD\u30B9\u30C8";

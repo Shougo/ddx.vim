@@ -25,3 +25,7 @@ endfunction
 function ddx#change(name, address, value) abort
   return ddx#denops#_request('change', [a:name, a:address, a:value])
 endfunction
+
+function ddx#get_strings(name, encoding) abort
+  return ddx#denops#_request('get_strings', [a:name, a:encoding])
+endfunction

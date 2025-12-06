@@ -1,5 +1,6 @@
 import { Ddx } from "./ddx.ts";
 import type { DdxExtType, DdxOptions } from "./types.ts";
+import type { ExtractedString } from "./buffer.ts";
 import type { AnalyzeResult, AnalyzeValue } from "./base/analyzer.ts";
 import {
   ContextBuilder,
@@ -230,6 +231,20 @@ export const main: Entrypoint = (denops: Denops) => {
       const ddx = getDdx(name);
 
       await ddx.jump(denops, address);
+    },
+    get_strings(
+      arg1: unknown,
+      arg2: unknown,
+    ): ExtractedString[] {
+      const name = ensure(arg1, is.String);
+      const encoding = ensure(arg2, is.String);
+      if (name.length === 0) {
+        return [];
+      }
+
+      const ddx = getDdx(name);
+
+      return ddx.getBuffer().searchStrings(encoding);
     },
   };
 };
