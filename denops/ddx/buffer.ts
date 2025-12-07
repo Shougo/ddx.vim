@@ -176,7 +176,7 @@ export class DdxBuffer {
     }
   }
 
-  remove(pos: number, length: number = 1) {
+  remove(pos: number, length: number = 1): Uint8Array {
     this.#histories.push({
       operation: "remove",
       address: pos,
@@ -185,18 +185,21 @@ export class DdxBuffer {
     this.#undoHistories = [];
     this.#changedAdresses.clear();
 
-    this.#remove(pos, length);
+    return this.#remove(pos, length);
   }
-  #remove(pos: number, length: number = 1) {
+  #remove(pos: number, length: number = 1): Uint8Array {
     if (pos < 0 || pos + length > this.#bytes.length) {
       throw new RangeError("Position out of range");
     }
 
     const newBytes = new Uint8Array(this.#bytes.length - length);
+    const oldBytes = this.#bytes.subarray(pos, pos + length);
     newBytes.set(this.#bytes.subarray(0, pos));
     newBytes.set(this.#bytes.subarray(pos + length), pos);
 
     this.#bytes = newBytes;
+
+    return oldBytes;
   }
 
   async write(path: string = "") {
