@@ -495,6 +495,22 @@ export class DdxBuffer {
     return out;
   }
 
+  /**
+   * Improved UTF-16 extractor: returns only contiguous runs of printable
+   * characters (filtered by Unicode categories) and maps each run back to
+   * the byte offset so callers can jump to the location.
+   *
+   * Strategy:
+   * - Keep previous validity detection (tryDecodeFatal / non-fatal check).
+   * - After decoding a valid UTF-16 slice, scan the decoded string by code
+   *   points and find contiguous runs of printable characters (not in \p{C} or
+   *   \p{Z}).
+   * - Compute the byte offset for each code point (2 bytes per BMP code unit,
+   *   4 bytes for surrogate pair) to map run start to the original buffer
+   *   offset.
+   * - Only accept runs with at least minLen printable characters.
+   * - Deduplicate by "offset:text" as before.
+   */
   #searchUtf16(isBE: boolean, minLen: number): ExtractedString[] {
     const out: ExtractedString[] = [];
     const bytes = this.#bytes;
@@ -547,25 +563,76 @@ export class DdxBuffer {
               swapped[k + 1] = validSlice[k];
             }
             encoding = "utf-16be";
-            decoded = this.#decodeNonFatal(swapped, encoding);
+            decoded = this.#decodeNonFatal(swapped, "utf-16le");
           } else {
             encoding = "utf-16le";
-            decoded = this.#decodeNonFatal(validSlice, encoding);
+            decoded = this.#decodeNonFatal(validSlice, "utf-16le");
           }
 
-          const printableChars = decoded.replace(/[\p{C}\p{Z}]/gu, "");
-          if (printableChars.length >= minLen) {
-            const key = `${i}:${decoded}`;
+          // Scan decoded string by code points and collect contiguous printable runs.
+          // Printable definition: not in Unicode categories C or Z.
+          const isPrintable = (ch: string) => !/[\p{C}\p{Z}]/u.test(ch);
+
+          // byteOffsetWithinSlice: counts bytes from validSlice start.
+          let byteOffsetWithinSlice = 0;
+          // i is the start byte offset of validSlice in the underlying buffer.
+
+          let cpIndex = 0; // index in JS string units
+          let runStartByte = -1;
+          let runStr = "";
+          while (cpIndex < decoded.length) {
+            const cp = decoded.codePointAt(cpIndex)!;
+            const ch = String.fromCodePoint(cp);
+            // UTF-16 code units consumed by this code point:
+            const units = cp > 0xffff ? 2 : 1;
+            const byteLen = units * 2;
+
+            if (isPrintable(ch)) {
+              if (runStartByte === -1) {
+                runStartByte = byteOffsetWithinSlice;
+                runStr = ch;
+              } else {
+                runStr += ch;
+              }
+            } else {
+              // end of a run
+              if (runStartByte !== -1) {
+                if (runStr.length >= minLen) {
+                  const absOffset = i + runStartByte;
+                  const key = `${absOffset}:${runStr}`;
+                  if (!seen.has(key)) {
+                    seen.add(key);
+                    out.push({
+                      text: runStr,
+                      offset: absOffset,
+                      encoding,
+                    });
+                  }
+                }
+                runStartByte = -1;
+                runStr = "";
+              }
+            }
+
+            cpIndex += units; // advance in JS string indices
+            byteOffsetWithinSlice += byteLen;
+          }
+
+          // finalize last run if any
+          if (runStartByte !== -1 && runStr.length >= minLen) {
+            const absOffset = i + runStartByte;
+            const key = `${absOffset}:${runStr}`;
             if (!seen.has(key)) {
               seen.add(key);
               out.push({
-                text: decoded,
-                offset: i,
+                text: runStr,
+                offset: absOffset,
                 encoding,
               });
             }
           }
-          // advance past this run; keep alignment by adding 2
+
+          // advance past this valid UTF-16 run; keep alignment by adding 2
           i = lastGood + 2;
         } else {
           i += 2;
