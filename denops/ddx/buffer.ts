@@ -638,21 +638,59 @@ export class DdxBuffer {
     }
   }
 
+  /**
+   * Signed 8-bit integer. Returns -1 on OOB.
+   */
   getInt8(pos: number): number {
     const byte = this.getByte(pos);
-    return byte !== undefined ? byte : -1;
+    if (byte === undefined) return -1;
+    // convert to signed 8-bit
+    return byte > 0x7f ? byte - 0x100 : byte;
   }
 
-  getInt16_le() {
+  /**
+   * Signed 16-bit little-endian. Returns -1 on OOB.
+   */
+  getInt16_le(pos: number): number {
+    if (pos < 0 || pos + 2 > this.#bytes.length) return -1;
+    // Use DataView to correctly handle signed conversion
+    const buffer = this.#bytes.buffer;
+    const byteOffset = this.#bytes.byteOffset + pos;
+    const view = new DataView(buffer, byteOffset, 2);
+    return view.getInt16(/* littleEndian */ true);
   }
 
-  getInt16_be() {
+  /**
+   * Signed 16-bit big-endian. Returns -1 on OOB.
+   */
+  getInt16_be(pos: number): number {
+    if (pos < 0 || pos + 2 > this.#bytes.length) return -1;
+    const buffer = this.#bytes.buffer;
+    const byteOffset = this.#bytes.byteOffset + pos;
+    const view = new DataView(buffer, byteOffset, 2);
+    return view.getInt16(/* littleEndian */ false);
   }
 
-  getInt32_le() {
+  /**
+   * Signed 32-bit little-endian. Returns -1 on OOB.
+   */
+  getInt32_le(pos: number): number {
+    if (pos < 0 || pos + 4 > this.#bytes.length) return -1;
+    const buffer = this.#bytes.buffer;
+    const byteOffset = this.#bytes.byteOffset + pos;
+    const view = new DataView(buffer, byteOffset, 4);
+    return view.getInt32(/* littleEndian */ true);
   }
 
-  getInt32_be() {
+  /**
+   * Signed 32-bit big-endian. Returns -1 on OOB.
+   */
+  getInt32_be(pos: number): number {
+    if (pos < 0 || pos + 4 > this.#bytes.length) return -1;
+    const buffer = this.#bytes.buffer;
+    const byteOffset = this.#bytes.byteOffset + pos;
+    const view = new DataView(buffer, byteOffset, 4);
+    return view.getInt32(/* littleEndian */ false);
   }
 }
 

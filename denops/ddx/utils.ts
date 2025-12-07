@@ -402,7 +402,7 @@ export function sanitizeExtractedText(input: string): string {
   if (!input) return input;
 
   let out = "";
-  for (let i = 0; i < input.length; ) {
+  for (let i = 0; i < input.length;) {
     const cp = input.codePointAt(i)!;
     const ch = String.fromCodePoint(cp);
     const advance = cp > 0xffff ? 2 : 1;
