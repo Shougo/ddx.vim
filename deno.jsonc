@@ -14,6 +14,7 @@
   "workspace": [
     "./denops/@ddu-kinds/ddx",
     "./denops/@ddu-sources/ddx_analyze",
+    "./denops/@ddu-sources/ddx_string",
     "./denops/ddx"
   ]
 }

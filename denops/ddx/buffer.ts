@@ -727,7 +727,7 @@ export class DdxBuffer {
     const buffer = this.#bytes.buffer;
     const byteOffset = this.#bytes.byteOffset + pos;
     const view = new DataView(buffer, byteOffset, 2);
-    return view.getInt16(/* littleEndian */ true);
+    return view.getInt16(0, /* littleEndian */ true);
   }
 
   /**
@@ -738,7 +738,7 @@ export class DdxBuffer {
     const buffer = this.#bytes.buffer;
     const byteOffset = this.#bytes.byteOffset + pos;
     const view = new DataView(buffer, byteOffset, 2);
-    return view.getInt16(/* littleEndian */ false);
+    return view.getInt16(0, /* littleEndian */ false);
   }
 
   /**
@@ -749,7 +749,7 @@ export class DdxBuffer {
     const buffer = this.#bytes.buffer;
     const byteOffset = this.#bytes.byteOffset + pos;
     const view = new DataView(buffer, byteOffset, 4);
-    return view.getInt32(/* littleEndian */ true);
+    return view.getInt32(0, /* littleEndian */ true);
   }
 
   /**
@@ -760,7 +760,7 @@ export class DdxBuffer {
     const buffer = this.#bytes.buffer;
     const byteOffset = this.#bytes.byteOffset + pos;
     const view = new DataView(buffer, byteOffset, 4);
-    return view.getInt32(/* littleEndian */ false);
+    return view.getInt32(0, /* littleEndian */ false);
   }
 }
 

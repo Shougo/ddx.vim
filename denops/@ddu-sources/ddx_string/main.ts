@@ -37,10 +37,15 @@ export class Source extends BaseSource<Params> {
           const text = sanitizeExtractedText(result.text);
           const value = {
             name: text,
-            rawType: "string",
+            rawType: "string" as const,
             value: result.text,
             address: result.offset,
-            encoding: result.encoding,
+            encoding: result.encoding as
+              | "utf-8"
+              | "utf-16le"
+              | "utf-16be"
+              | "ascii"
+              | "latin1",
           };
 
           controller.enqueue([{
