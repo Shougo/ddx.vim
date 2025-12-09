@@ -75,8 +75,9 @@ analyzerParams
 length
 		Specify the file length.
 		If it is 0, it means full file size.
+		NOTE: If it is too big, it may be freezed when open big files.
 
-		Default: 0
+		Default: 1 * 1024 * 1024 (1MB)
 
                                                              *ddx-option-name*
 name
