@@ -99,6 +99,7 @@ export class DdxBuffer {
     this.#insert(pos, bytes);
   }
   #insert(pos: number, bytes: Uint8Array) {
+    pos -= this.#offset;
     if (pos < 0 || pos > this.#bytes.length) {
       throw new RangeError("Position out of range");
     }
@@ -130,6 +131,7 @@ export class DdxBuffer {
     this.#change(pos, value);
   }
   #change(pos: number, value: number) {
+    pos -= this.#offset;
     if (pos < 0 || pos > this.#bytes.length) {
       throw new RangeError("Position out of range");
     }
@@ -154,6 +156,7 @@ export class DdxBuffer {
     this.#changeBytes(pos, bytes);
   }
   #changeBytes(pos: number, bytes: Uint8Array) {
+    pos -= this.#offset;
     if (pos < 0 || pos > this.#bytes.length) {
       throw new RangeError("Position out of range");
     }
@@ -188,6 +191,7 @@ export class DdxBuffer {
     return this.#remove(pos, length);
   }
   #remove(pos: number, length: number = 1): Uint8Array {
+    pos -= this.#offset;
     if (pos < 0 || pos + length > this.#bytes.length) {
       throw new RangeError("Position out of range");
     }
@@ -304,6 +308,8 @@ export class DdxBuffer {
   }
 
   search(pos: number, bytes: Uint8Array): number {
+    pos -= this.#offset;
+
     // Empty pattern -> treat as found at pos if within buffer range
     if (bytes.length === 0) {
       if (pos < this.#offset) return this.#offset;
@@ -673,6 +679,7 @@ export class DdxBuffer {
   }
 
   getByte(pos: number): number | undefined {
+    pos -= this.#offset;
     if (pos < 0 || pos >= this.#bytes.length) {
       return undefined;
     }
@@ -681,6 +688,7 @@ export class DdxBuffer {
   }
 
   getBytes(offset: number, length: number): Uint8Array {
+    offset -= this.#offset;
     if (offset < 0 || length < 0 || offset + length > this.#bytes.length) {
       return Uint8Array.from([]);
     }
@@ -693,6 +701,7 @@ export class DdxBuffer {
     length: number,
     encoding: string = "utf-8",
   ): string {
+    offset -= this.#offset;
     if (offset < 0 || length < 0 || offset + length > this.#bytes.length) {
       return "";
     }
@@ -722,6 +731,7 @@ export class DdxBuffer {
    * Signed 16-bit little-endian. Returns -1 on OOB.
    */
   getInt16_le(pos: number): number {
+    pos -= this.#offset;
     if (pos < 0 || pos + 2 > this.#bytes.length) return -1;
     // Use DataView to correctly handle signed conversion
     const buffer = this.#bytes.buffer;
@@ -734,6 +744,7 @@ export class DdxBuffer {
    * Signed 16-bit big-endian. Returns -1 on OOB.
    */
   getInt16_be(pos: number): number {
+    pos -= this.#offset;
     if (pos < 0 || pos + 2 > this.#bytes.length) return -1;
     const buffer = this.#bytes.buffer;
     const byteOffset = this.#bytes.byteOffset + pos;
@@ -745,6 +756,7 @@ export class DdxBuffer {
    * Signed 32-bit little-endian. Returns -1 on OOB.
    */
   getInt32_le(pos: number): number {
+    pos -= this.#offset;
     if (pos < 0 || pos + 4 > this.#bytes.length) return -1;
     const buffer = this.#bytes.buffer;
     const byteOffset = this.#bytes.byteOffset + pos;
@@ -756,6 +768,7 @@ export class DdxBuffer {
    * Signed 32-bit big-endian. Returns -1 on OOB.
    */
   getInt32_be(pos: number): number {
+    pos -= this.#offset;
     if (pos < 0 || pos + 4 > this.#bytes.length) return -1;
     const buffer = this.#bytes.buffer;
     const byteOffset = this.#bytes.byteOffset + pos;
