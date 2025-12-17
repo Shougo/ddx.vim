@@ -466,6 +466,51 @@ export function sanitizeExtractedText(input: string): string {
   return out;
 }
 
+type BinaryDiff = {
+  offset: number;
+  oldValue: number | null;
+  newValue: number | null;
+};
+
+export function calculateBinaryDiff(
+  original: Uint8Array,
+  modified: Uint8Array,
+): BinaryDiff[] {
+  const diffs: BinaryDiff[] = [];
+
+  const length = Math.min(original.length, modified.length);
+
+  for (let i = 0; i < length; i++) {
+    if (original[i] !== modified[i]) {
+      diffs.push({
+        offset: i,
+        oldValue: original[i],
+        newValue: modified[i],
+      });
+    }
+  }
+
+  if (original.length > modified.length) {
+    for (let i = length; i < original.length; i++) {
+      diffs.push({
+        offset: i,
+        oldValue: original[i],
+        newValue: null,
+      });
+    }
+  } else if (modified.length > original.length) {
+    for (let i = length; i < modified.length; i++) {
+      diffs.push({
+        offset: i,
+        oldValue: null,
+        newValue: modified[i],
+      });
+    }
+  }
+
+  return diffs;
+}
+
 /*
  Example:
  const s = "eO\x08\x11c\u0000k{;\x1F\n\t";
@@ -522,4 +567,128 @@ Deno.test("stringToUint8Array: cp932 encode-decode for テキスト", () => {
   }
 
   assertEquals(decoded, s);
+});
+
+Deno.test("No differences when both data sets are identical", () => {
+  const original = new Uint8Array([0x10, 0x20, 0x30, 0x40]);
+  const modified = new Uint8Array([0x10, 0x20, 0x30, 0x40]);
+
+  const result = calculateBinaryDiff(original, modified);
+  console.assert(
+    result.length === 0,
+    "The result should be an empty array when both datasets are identical",
+  );
+});
+
+Deno.test("Detects a single byte difference", () => {
+  const original = new Uint8Array([0x10, 0x20, 0x30, 0x40]);
+  const modified = new Uint8Array([0x10, 0x21, 0x30, 0x40]);
+
+  const result = calculateBinaryDiff(original, modified);
+  console.assert(result.length === 1, "The result should contain 1 difference");
+  console.assert(
+    result[0].offset === 1,
+    "The difference should be at offset 1",
+  );
+  console.assert(
+    result[0].oldValue === 0x20,
+    "The old value at offset 1 should be 0x20",
+  );
+  console.assert(
+    result[0].newValue === 0x21,
+    "The new value at offset 1 should be 0x21",
+  );
+});
+
+Deno.test("Detects multiple differences", () => {
+  const original = new Uint8Array([0x10, 0x20, 0x30, 0x40]);
+  const modified = new Uint8Array([0x11, 0x21, 0x30, 0x41]);
+
+  const result = calculateBinaryDiff(original, modified);
+  console.assert(
+    result.length === 3,
+    "The result should contain 3 differences",
+  );
+  console.assert(
+    result[0].offset === 0,
+    "The first difference should be at offset 0",
+  );
+  console.assert(
+    result[1].offset === 1,
+    "The second difference should be at offset 1",
+  );
+  console.assert(
+    result[2].offset === 3,
+    "The third difference should be at offset 3",
+  );
+});
+
+Deno.test("Handles case where original data is longer", () => {
+  const original = new Uint8Array([0x10, 0x20, 0x30, 0x40, 0x50]);
+  const modified = new Uint8Array([0x10, 0x20, 0x30]);
+
+  const result = calculateBinaryDiff(original, modified);
+  console.assert(
+    result.length === 2,
+    "The result should contain 2 differences",
+  );
+  console.assert(
+    result[0].offset === 3,
+    "The first difference should be at offset 3",
+  );
+  console.assert(
+    result[1].offset === 4,
+    "The second difference should be at offset 4",
+  );
+  console.assert(
+    result[0].oldValue === 0x40,
+    "The old value at offset 3 should be 0x40",
+  );
+  console.assert(
+    result[1].oldValue === 0x50,
+    "The old value at offset 4 should be 0x50",
+  );
+  console.assert(
+    result[0].newValue === null,
+    "The new value at offset 3 should be null",
+  );
+  console.assert(
+    result[1].newValue === null,
+    "The new value at offset 4 should be null",
+  );
+});
+
+Deno.test("Handles case where modified data is longer", () => {
+  const original = new Uint8Array([0x10, 0x20, 0x30]);
+  const modified = new Uint8Array([0x10, 0x20, 0x30, 0x40, 0x50]);
+
+  const result = calculateBinaryDiff(original, modified);
+  console.assert(
+    result.length === 2,
+    "The result should contain 2 differences",
+  );
+  console.assert(
+    result[0].offset === 3,
+    "The first difference should be at offset 3",
+  );
+  console.assert(
+    result[1].offset === 4,
+    "The second difference should be at offset 4",
+  );
+  console.assert(
+    result[0].oldValue === null,
+    "The old value at offset 3 should be null",
+  );
+  console.assert(
+    result[1].oldValue === null,
+    "The old value at offset 4 should be null",
+  );
+  console.assert(
+    result[0].newValue === 0x40,
+    "The new value at offset 3 should be 0x40",
+  );
+  console.assert(
+    result[1].newValue === 0x50,
+    "The new value at offset 4 should be 0x50",
+  );
 });
