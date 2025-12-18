@@ -32,6 +32,7 @@ export type RedrawArguments<Params extends BaseParams> =
   & BaseUiArguments<Params>
   & {
     buffer: DdxBuffer;
+    anotherBuffer: DdxBuffer;
   };
 
 export type JumpArguments<Params extends BaseParams> =

@@ -118,6 +118,7 @@ export class Ddx {
       context: defaultContext(),
       options: this.#options,
       buffer: this.#buffer,
+      anotherBuffer: this.#anotherBuffer,
       uiOptions,
       uiParams,
     });
