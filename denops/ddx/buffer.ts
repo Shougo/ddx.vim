@@ -689,11 +689,14 @@ export class DdxBuffer {
 
   getBytes(offset: number, length: number): Uint8Array {
     offset -= this.#offset;
-    if (offset < 0 || length < 0 || offset + length > this.#bytes.length) {
+    if (offset < 0 || length < 0) {
       return Uint8Array.from([]);
     }
 
-    return this.#bytes.subarray(offset, offset + length);
+    return this.#bytes.subarray(
+      offset,
+      Math.min(offset + length, this.#bytes.length),
+    );
   }
 
   getChars(
@@ -702,11 +705,14 @@ export class DdxBuffer {
     encoding: string = "utf-8",
   ): string {
     offset -= this.#offset;
-    if (offset < 0 || length < 0 || offset + length > this.#bytes.length) {
+    if (offset < 0 || length < 0) {
       return "";
     }
 
-    const bytes = this.#bytes.subarray(offset, offset + length);
+    const bytes = this.#bytes.subarray(
+      offset,
+      Math.min(offset + length, this.#bytes.length),
+    );
 
     if (encoding === "utf-8") {
       return bytesToUTF8(bytes);

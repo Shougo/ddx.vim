@@ -91,7 +91,7 @@ export class Ddx {
         await printError(
           denops,
           e,
-          `open: ${this.#options.path.length} failed`,
+          `open: ${this.#options.anotherPath.length} failed`,
         );
         return;
       }
