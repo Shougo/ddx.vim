@@ -16,6 +16,7 @@ export class Ddx {
   #options: DdxOptions = defaultDdxOptions();
   #userOptions: UserOptions = {};
   #buffer: DdxBuffer = new DdxBuffer();
+  #anotherBuffer: DdxBuffer = new DdxBuffer();
 
   constructor(loader: Loader) {
     this.#loader = loader;
@@ -23,6 +24,10 @@ export class Ddx {
 
   getBuffer() {
     return this.#buffer;
+  }
+
+  getAnotherBuffer() {
+    return this.#anotherBuffer;
   }
 
   getOptions() {
@@ -73,6 +78,23 @@ export class Ddx {
         `open: ${this.#options.path.length} failed`,
       );
       return;
+    }
+
+    if (this.#options.anotherPath.length > 0) {
+      try {
+        await this.#anotherBuffer.open(
+          this.#options.anotherPath,
+          Number(this.#options.offset),
+          Number(this.#options.length),
+        );
+      } catch (e: unknown) {
+        await printError(
+          denops,
+          e,
+          `open: ${this.#options.path.length} failed`,
+        );
+        return;
+      }
     }
 
     await this.redraw(denops);

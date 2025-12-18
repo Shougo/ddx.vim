@@ -28,6 +28,7 @@ export type DdxOptions = {
   analyzerOptions: Record<string, Partial<AnalyzerOptions>>;
   analyzerParams: Record<string, Partial<BaseParams>>;
   analyzers: AnalyzerName[];
+  anotherPath: string;
   length: number;
   name: string;
   offset: number;

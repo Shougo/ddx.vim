@@ -71,6 +71,13 @@ analyzerParams
 
 		Default: {}
 
+                                                      *ddx-option-anotherPath*
+anotherPath
+		Specify the another file path.
+		It is used for binary diff.
+
+		Default: ""
+
                                                            *ddx-option-length*
 length
 		Specify the file length.
