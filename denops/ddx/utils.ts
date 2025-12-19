@@ -466,46 +466,48 @@ export function sanitizeExtractedText(input: string): string {
   return out;
 }
 
-type BinaryDiff = {
+export interface BinaryDiff {
   offset: number;
-  oldValue: number | null;
-  newValue: number | null;
-};
+  type: "changed" | "added" | "deleted";
+  oldValue?: Uint8Array;
+  newValue?: Uint8Array;
+}
 
 export function calculateBinaryDiff(
   original: Uint8Array,
   modified: Uint8Array,
 ): BinaryDiff[] {
   const diffs: BinaryDiff[] = [];
-
   const length = Math.min(original.length, modified.length);
 
+  // Step 1: Detect changed values
   for (let i = 0; i < length; i++) {
     if (original[i] !== modified[i]) {
       diffs.push({
         offset: i,
-        oldValue: original[i],
-        newValue: modified[i],
+        type: "changed",
+        oldValue: new Uint8Array([original[i]]),
+        newValue: new Uint8Array([modified[i]]),
       });
     }
   }
 
-  if (original.length > modified.length) {
-    for (let i = length; i < original.length; i++) {
-      diffs.push({
-        offset: i,
-        oldValue: original[i],
-        newValue: null,
-      });
-    }
-  } else if (modified.length > original.length) {
-    for (let i = length; i < modified.length; i++) {
-      diffs.push({
-        offset: i,
-        oldValue: null,
-        newValue: modified[i],
-      });
-    }
+  // Step 2: Detect deletions
+  if (original.length > length) {
+    diffs.push({
+      offset: length,
+      type: "deleted",
+      oldValue: original.slice(length),
+    });
+  }
+
+  // Step 3: Detect additions
+  if (modified.length > length) {
+    diffs.push({
+      offset: length,
+      type: "added",
+      newValue: modified.slice(length),
+    });
   }
 
   return diffs;
@@ -569,56 +571,61 @@ Deno.test("stringToUint8Array: cp932 encode-decode for テキスト", () => {
   assertEquals(decoded, s);
 });
 
+// Test case: No differences when both data sets are identical
 Deno.test("No differences when both data sets are identical", () => {
   const original = new Uint8Array([0x10, 0x20, 0x30, 0x40]);
   const modified = new Uint8Array([0x10, 0x20, 0x30, 0x40]);
 
   const result = calculateBinaryDiff(original, modified);
-  console.assert(
-    result.length === 0,
+  assertEquals(
+    result.length,
+    0,
     "The result should be an empty array when both datasets are identical",
   );
 });
 
+// Test case: Detects a single byte difference
 Deno.test("Detects a single byte difference", () => {
   const original = new Uint8Array([0x10, 0x20, 0x30, 0x40]);
   const modified = new Uint8Array([0x10, 0x21, 0x30, 0x40]);
 
   const result = calculateBinaryDiff(original, modified);
-  console.assert(result.length === 1, "The result should contain 1 difference");
-  console.assert(
-    result[0].offset === 1,
-    "The difference should be at offset 1",
-  );
-  console.assert(
-    result[0].oldValue === 0x20,
+
+  assertEquals(result.length, 1, "The result should contain 1 difference");
+  assertEquals(result[0].offset, 1, "The difference should be at offset 1");
+  assertEquals(
+    result[0].oldValue![0],
+    0x20,
     "The old value at offset 1 should be 0x20",
   );
-  console.assert(
-    result[0].newValue === 0x21,
+  assertEquals(
+    result[0].newValue![0],
+    0x21,
     "The new value at offset 1 should be 0x21",
   );
 });
 
+// Test case: Detects multiple differences
 Deno.test("Detects multiple differences", () => {
   const original = new Uint8Array([0x10, 0x20, 0x30, 0x40]);
   const modified = new Uint8Array([0x11, 0x21, 0x30, 0x41]);
 
   const result = calculateBinaryDiff(original, modified);
-  console.assert(
-    result.length === 3,
-    "The result should contain 3 differences",
-  );
-  console.assert(
-    result[0].offset === 0,
+
+  assertEquals(result.length, 3, "The result should contain 3 differences");
+  assertEquals(
+    result[0].offset,
+    0,
     "The first difference should be at offset 0",
   );
-  console.assert(
-    result[1].offset === 1,
+  assertEquals(
+    result[1].offset,
+    1,
     "The second difference should be at offset 1",
   );
-  console.assert(
-    result[2].offset === 3,
+  assertEquals(
+    result[2].offset,
+    3,
     "The third difference should be at offset 3",
   );
 });
@@ -628,33 +635,31 @@ Deno.test("Handles case where original data is longer", () => {
   const modified = new Uint8Array([0x10, 0x20, 0x30]);
 
   const result = calculateBinaryDiff(original, modified);
-  console.assert(
-    result.length === 2,
-    "The result should contain 2 differences",
+
+  assertEquals(
+    result.length,
+    1,
+    "The result should contain 1 difference (a deletion)",
   );
-  console.assert(
-    result[0].offset === 3,
-    "The first difference should be at offset 3",
+  assertEquals(
+    result[0].offset,
+    3,
+    "The first difference should start at offset 3",
   );
-  console.assert(
-    result[1].offset === 4,
-    "The second difference should be at offset 4",
+  assertEquals(
+    result[0].type,
+    "deleted",
+    "The type of the difference should be 'deleted'",
   );
-  console.assert(
-    result[0].oldValue === 0x40,
-    "The old value at offset 3 should be 0x40",
+  assertEquals(
+    result[0].oldValue,
+    new Uint8Array([0x40, 0x50]),
+    "The deleted values should be [0x40, 0x50]",
   );
-  console.assert(
-    result[1].oldValue === 0x50,
-    "The old value at offset 4 should be 0x50",
-  );
-  console.assert(
-    result[0].newValue === null,
-    "The new value at offset 3 should be null",
-  );
-  console.assert(
-    result[1].newValue === null,
-    "The new value at offset 4 should be null",
+  assertEquals(
+    result[0].newValue,
+    undefined,
+    "The new value for deletions should be undefined",
   );
 });
 
@@ -663,32 +668,21 @@ Deno.test("Handles case where modified data is longer", () => {
   const modified = new Uint8Array([0x10, 0x20, 0x30, 0x40, 0x50]);
 
   const result = calculateBinaryDiff(original, modified);
-  console.assert(
-    result.length === 2,
-    "The result should contain 2 differences",
+
+  assertEquals(
+    result.length,
+    1,
+    "The result should contain 1 difference (an addition)",
   );
-  console.assert(
-    result[0].offset === 3,
-    "The first difference should be at offset 3",
+  assertEquals(result[0].offset, 3, "The difference should start at offset 3");
+  assertEquals(
+    result[0].oldValue,
+    undefined,
+    "The old value for added ranges should be undefined",
   );
-  console.assert(
-    result[1].offset === 4,
-    "The second difference should be at offset 4",
-  );
-  console.assert(
-    result[0].oldValue === null,
-    "The old value at offset 3 should be null",
-  );
-  console.assert(
-    result[1].oldValue === null,
-    "The old value at offset 4 should be null",
-  );
-  console.assert(
-    result[0].newValue === 0x40,
-    "The new value at offset 3 should be 0x40",
-  );
-  console.assert(
-    result[1].newValue === 0x50,
-    "The new value at offset 4 should be 0x50",
+  assertEquals(
+    result[0].newValue,
+    Uint8Array.from([0x40, 0x50]),
+    "The new values should be [0x40, 0x50]",
   );
 });

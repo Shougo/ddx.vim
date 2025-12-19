@@ -179,6 +179,7 @@ export const main: Entrypoint = (denops: Denops) => {
         defaultContext(),
         ddx.getOptions(),
         ddx.getBuffer(),
+        ddx.getAnotherBuffer(),
         actionName,
         params,
       );

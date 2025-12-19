@@ -30,6 +30,7 @@ export async function uiAction(
   context: Context,
   options: DdxOptions,
   buffer: DdxBuffer,
+  anotherBuffer: DdxBuffer,
   actionName: string,
   params: BaseParams,
 ): Promise<void> {
@@ -67,6 +68,7 @@ export async function uiAction(
       context,
       options,
       buffer,
+      anotherBuffer,
       uiOptions,
       uiParams,
     });
