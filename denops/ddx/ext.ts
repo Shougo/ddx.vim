@@ -57,6 +57,7 @@ export async function uiAction(
     context,
     options,
     buffer,
+    anotherBuffer,
     uiOptions,
     uiParams,
     actionParams: params,

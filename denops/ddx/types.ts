@@ -61,6 +61,7 @@ export type ActionArguments<Params extends BaseParams> = {
   context: Context;
   options: DdxOptions;
   buffer: DdxBuffer;
+  anotherBuffer: DdxBuffer;
   actionParams: BaseParams;
   uiOptions: UiOptions;
   uiParams: Params;
