@@ -75,6 +75,8 @@ analyzerParams
 anotherPath
 		Specify the another file path.
 		It is used for binary diff.
+		NOTE: It is used both |ddx-option-length| and
+		|ddx-option-offset| for the compare.
 
 		Default: ""
 
