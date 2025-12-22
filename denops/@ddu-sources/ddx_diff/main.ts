@@ -30,8 +30,8 @@ export class Source extends BaseSource<Params> {
             ` ${result.type} ${result.oldValue} -> ${result.newValue}`;
           const value = {
             name: text,
-            rawType: "number" as const,
-            value: result.oldValue,
+            rawType: "integer" as const,
+            value: result.oldValue![0],
             address: result.offset,
           };
 
