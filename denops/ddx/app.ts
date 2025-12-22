@@ -9,7 +9,12 @@ import {
 } from "./context.ts";
 import { Loader } from "./loader.ts";
 import { uiAction } from "./ext.ts";
-import { importPlugin, isDenoCacheIssueError } from "./utils.ts";
+import {
+  type BinaryDiff,
+  calculateBinaryDiff,
+  importPlugin,
+  isDenoCacheIssueError,
+} from "./utils.ts";
 
 import type { Denops, Entrypoint } from "@denops/std";
 
@@ -232,6 +237,22 @@ export const main: Entrypoint = (denops: Denops) => {
       const ddx = getDdx(name);
 
       await ddx.jump(denops, address);
+    },
+    get_diff(
+      arg1: unknown,
+    ): BinaryDiff[] {
+      const name = ensure(arg1, is.String);
+      if (name.length === 0) {
+        return [];
+      }
+
+      const ddx = getDdx(name);
+      const baseAddress = ddx.getOptions().offset;
+      const size = ddx.getBuffer().getSize();
+      const bytes = ddx.getBuffer().getBytes(baseAddress, size);
+      const anotherBytes = ddx.getAnotherBuffer().getBytes(baseAddress, size);
+
+      return calculateBinaryDiff(bytes, anotherBytes);
     },
     get_strings(
       arg1: unknown,

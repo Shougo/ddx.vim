@@ -353,6 +353,10 @@ DDU SOURCES                                                  *ddx-ddu-sources*
 ddx_analyze                                       *ddx-ddu-source-ddx_analyze*
 		Nominates ddx analyzed items.
 
+ddx_diff                                             *ddx-ddu-source-ddx_diff*
+		Nominates diff in buffer.
+		NOTE: |ddx-option-anotherPath| must be set.
+
 ddx_string                                         *ddx-ddu-source-ddx_string*
 		Nominates strings in buffer.
 

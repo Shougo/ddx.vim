@@ -1,0 +1,8 @@
+{
+  "imports": {
+    "@core/unknownutil": "jsr:@core/unknownutil@~4.3.0",
+    "@denops/std": "jsr:@denops/std@~8.1.0",
+    "@lambdalisue/import-map-importer": "jsr:@lambdalisue/import-map-importer@~0.5.1",
+    "@shougo/ddu-vim": "jsr:@shougo/ddu-vim@~11.1.0"
+  }
+}
