@@ -288,6 +288,10 @@ export class DdxBuffer {
           oldValue: this.getByte(history.address) ?? -1,
         });
 
+        for (let i = 0; i < history.newValue.length; i++) {
+          this.#changedAdresses.delete(history.address + i);
+        }
+
         this.#remove(history.address, history.newValue.length);
 
         break;
@@ -693,7 +697,7 @@ export class DdxBuffer {
       return Uint8Array.from([]);
     }
 
-    return this.#bytes.subarray(
+    return this.#bytes.slice(
       offset,
       Math.min(offset + length, this.#bytes.length),
     );

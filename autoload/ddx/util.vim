@@ -90,6 +90,23 @@ function! ddx#util#apply_highlights(bufnr, prop_type, ops, ns) abort
   endfor
 endfunction
 
+function! ddx#util#clear_highlights(bufnr, prop_type, ns) abort
+  if a:ns ==# v:null
+    let ns = 0
+  else
+    let ns = a:ns
+  endif
+
+  " Clear all properties
+  if has('nvim')
+    call nvim_buf_clear_namespace(0, ns, 0, -1)
+  else
+    for prop_type in prop_type_list(#{ bufnr: a:bufnr })
+      call prop_type_delete(prop_type, #{ bufnr: a:bufnr })
+    endfor
+  endif
+endfunction
+
 function ddx#util#input(prompt, text='') abort
   redraw
 
