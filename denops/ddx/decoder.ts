@@ -1,4 +1,5 @@
 import { assertEquals } from "@std/assert";
+import EncodingLib from "@encoding-japanese";
 
 const CP932_LABELS = [
   "windows-31j",
@@ -26,34 +27,60 @@ function getCp932Decoder(): TextDecoder {
 }
 
 export function bytesToCP932(buf: Uint8Array): string {
-  const decoder = getCp932Decoder();
-  const decoded = decoder.decode(buf);
-
   const out: string[] = [];
+  let i = 0;
 
-  const isPrintableAscii = (cp: number) => cp >= 0x20 && cp <= 0x7E;
-  const isPrintableCodePoint = (cp: number) => {
-    if (cp <= 0x1F) return false;
-    if (cp === 0x7F) return false;
-    // Surrogate halves are invalid in Unicode scalar values
-    if (0xD800 <= cp && cp <= 0xDFFF) return false;
-    // U+FFFD replacement character: treat as not printable here
-    if (cp === 0xFFFD) return false;
-    // Restrict to Unicode valid range
-    if (cp > 0x10FFFF) return false;
-    return true;
+  // Check if a byte is printable ASCII
+  const isPrintableAscii = (b: number) => b >= 0x20 && b <= 0x7E;
+
+  // Check if two bytes represent a valid CP932 multibyte sequence
+  const isValidShiftJisMultibyte = (byte1: number, byte2: number): boolean => {
+    return (
+      (0x81 <= byte1 && byte1 <= 0x9F && 0x40 <= byte2 && byte2 <= 0xFC &&
+        byte2 !== 0x7F) ||
+      (0xE0 <= byte1 && byte1 <= 0xEF && 0x40 <= byte2 && byte2 <= 0xFC &&
+        byte2 !== 0x7F)
+    );
   };
 
-  // Iterate by Unicode characters (for..of yields full code points)
-  for (const ch of decoded) {
-    const cp = ch.codePointAt(0) ?? 0;
-    if (isPrintableAscii(cp)) {
-      out.push(ch);
-    } else if (isPrintableCodePoint(cp)) {
-      out.push(ch);
-    } else {
-      out.push(".");
+  // Process each byte or pair of bytes in the input buffer
+  while (i < buf.length) {
+    const byte1 = buf[i];
+
+    // Handle printable ASCII characters
+    if (byte1 < 0x80) {
+      out.push(isPrintableAscii(byte1) ? String.fromCharCode(byte1) : ".");
+      i++;
+      continue;
     }
+
+    // Handle potential 2-byte sequences
+    if (i + 1 < buf.length) { // Ensure there are 2 bytes to process
+      const byte2 = buf[i + 1];
+
+      if (isValidShiftJisMultibyte(byte1, byte2)) {
+        try {
+          const decoder = new TextDecoder("shift-jis");
+          const decoded = decoder.decode(new Uint8Array([byte1, byte2]));
+
+          // Replace the decoded character if it's a replacement character
+          if (decoded === "�") {
+            out.push("..");
+          } else {
+            out.push(decoded);
+          }
+        } catch {
+          // If decoding fails, replace with ".."
+          out.push("..");
+        }
+        i += 2;
+        continue;
+      }
+    }
+
+    // Replace single invalid byte with "."
+    out.push(".");
+    i++;
   }
 
   return out.join("");
@@ -162,6 +189,63 @@ export function bytesToUTF8(buf: Uint8Array): string {
 }
 
 const enc = new TextEncoder();
+
+const encodeCP932 = (s: string) => {
+  const arr = EncodingLib.convert(s, {
+    from: "UNICODE",
+    to: "SJIS",
+    type: "array",
+  }) as number[];
+  return Uint8Array.from(arr);
+};
+
+Deno.test("cp932 ascii printable", () => {
+  const bytes = encodeCP932("Hello, world!");
+  assertEquals(bytesToCP932(bytes), "Hello, world!");
+});
+
+Deno.test("cp932 ascii control bytes become dots", () => {
+  const bytes = new Uint8Array([0x00, 0x1f, 0x7f]);
+  assertEquals(bytesToCP932(bytes), "...");
+});
+
+Deno.test("cp932 mixed ascii and control", () => {
+  const bytes = new Uint8Array([0x41, 0x00, 0x42]); // "A", NUL, "B"
+  assertEquals(bytesToCP932(bytes), "A.B");
+});
+
+Deno.test("cp932 japanese string decoding", () => {
+  const s = "こんにちは"; // CP932対応の日本語文字列
+  const bytes = encodeCP932(s);
+  assertEquals(bytesToCP932(bytes), s);
+});
+
+Deno.test("cp932 invalid/incomplete multibyte sequences", () => {
+  // トリミングされたマルチバイトシーケンス
+  const bytes = new Uint8Array([0x81]); // incomplete CP932
+  assertEquals(bytesToCP932(bytes), ".");
+});
+
+Deno.test("cp932 overlong sequence treated as invalid", () => {
+  const bytes = new Uint8Array([0xC0, 0x81]);
+  assertEquals(bytesToCP932(bytes), "..");
+});
+
+Deno.test("cp932 mixed multibyte and ascii", () => {
+  const s = "AあB"; // 'あ' is CP932
+  const bytes = encodeCP932(s);
+  assertEquals(bytesToCP932(bytes), s);
+});
+
+Deno.test("cp932 invalid bytes sequence", () => {
+  const bytes = new Uint8Array([0x89, 0xc2, 0x83, 0xe2]);
+  assertEquals(bytesToCP932(bytes), "可..");
+});
+
+Deno.test("cp932 invalid bytes sequence2", () => {
+  const bytes = new Uint8Array([0xc2, 0x92, 0x04, 0x00]);
+  assertEquals(bytesToCP932(bytes), "....");
+});
 
 Deno.test("ascii printable", () => {
   const bytes = enc.encode("Hello, world!");
