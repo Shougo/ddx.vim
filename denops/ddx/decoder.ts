@@ -63,15 +63,18 @@ export function bytesToUTF8(buf: Uint8Array): string {
   const out: string[] = [];
   let i = 0;
 
+  // Determine if a byte is printable ASCII
   const isPrintableAscii = (b: number) => b >= 0x20 && b <= 0x7E;
+
+  // Determine if a Unicode code point is printable
   const isPrintableCodePoint = (cp: number) => {
-    if (cp <= 0x1F) return false;
-    if (cp === 0x7F) return false;
-    // Surrogate halves are invalid in Unicode scalar values
+    // Control characters
+    if (cp <= 0x1F || (cp >= 0x7F && cp <= 0x9F)) return false;
+    // Surrogate pairs
     if (0xD800 <= cp && cp <= 0xDFFF) return false;
-    // U+FFFD replacement character: treat as not printable here
+    // Replacement character
     if (cp === 0xFFFD) return false;
-    // Restrict to Unicode valid range
+    // Out of Unicode range
     if (cp > 0x10FFFF) return false;
     return true;
   };
@@ -79,14 +82,14 @@ export function bytesToUTF8(buf: Uint8Array): string {
   while (i < buf.length) {
     const b0 = buf[i];
 
-    // ASCII fast path (single byte)
+    // Handle ASCII fast path (1-byte sequences)
     if (b0 < 0x80) {
       out.push(isPrintableAscii(b0) ? String.fromCharCode(b0) : ".");
       i += 1;
       continue;
     }
 
-    // Determine expected length from leading byte
+    // Determine UTF-8 sequence length
     let expectedLen = 0;
     let cp = 0;
 
@@ -100,56 +103,58 @@ export function bytesToUTF8(buf: Uint8Array): string {
       expectedLen = 4;
       cp = b0 & 0x07;
     } else {
-      // Invalid leading byte (including continuation bytes 0x80..0xBF)
+      // Invalid UTF-8 leading byte
       out.push(".");
       i += 1;
       continue;
     }
 
-    // Not enough bytes left -> treat as invalid (emit '.' and advance by 1)
+    // Ensure enough bytes are available for this sequence
     if (i + expectedLen > buf.length) {
+      // If incomplete, treat as error and skip just the leading byte
       out.push(".");
       i += 1;
       continue;
     }
 
-    // Validate continuation bytes and build code point
+    // Validate UTF-8 continuation bytes and decode the code point
     let valid = true;
-    for (let k = 1; k < expectedLen; k++) {
-      const cb = buf[i + k];
-      if ((cb & 0b1100_0000) !== 0b1000_0000) {
+    for (let j = 1; j < expectedLen; j++) {
+      const cb = buf[i + j];
+      if ((cb & 0b1100_0000) !== 0b1000_0000) { // Invalid continuation byte
         valid = false;
         break;
       }
       cp = (cp << 6) | (cb & 0x3F);
     }
 
-    // Reject overlong encodings, surrogates, out-of-range code points
-    if (valid) {
-      if (
-        (expectedLen === 2 && cp < 0x80) ||
-        (expectedLen === 3 && cp < 0x800) ||
-        (expectedLen === 4 && cp < 0x10000) ||
-        (0xD800 <= cp && cp <= 0xDFFF) ||
-        cp > 0x10FFFF
-      ) {
-        valid = false;
+    // Validate code point ranges
+    if (
+      !valid ||
+      (expectedLen === 2 && cp < 0x80) || // Overlong 2-byte sequence
+      (expectedLen === 3 && cp < 0x800) || // Overlong 3-byte sequence
+      (expectedLen === 4 && cp < 0x10000) || // Overlong 4-byte sequence
+      cp > 0x10FFFF // Out of valid code point range
+    ) {
+      // Invalid sequence: output "." for each byte in invalid sequence
+      for (let k = 0; k < expectedLen; k++) {
+        out.push(".");
       }
-    }
-
-    if (!valid) {
-      out.push(".");
-      i += 1; // resynchronize by one byte
+      i += expectedLen;
       continue;
     }
 
-    // Valid code point: push printable or '.' otherwise
+    // Append printable character or replace with "."
     if (isPrintableCodePoint(cp)) {
       out.push(String.fromCodePoint(cp));
     } else {
-      out.push(".");
+      // If non-printable, append "." for sequence length
+      for (let k = 0; k < expectedLen; k++) {
+        out.push(".");
+      }
     }
 
+    // Advance by sequence length
     i += expectedLen;
   }
 
@@ -195,4 +200,14 @@ Deno.test("mixed multibyte and ascii", () => {
   const s = "AあB"; // 'あ' is U+3042
   const bytes = enc.encode(s);
   assertEquals(bytesToUTF8(bytes), s);
+});
+
+Deno.test("invalid bytes sequence", () => {
+  const bytes = new Uint8Array([0x89, 0xc2, 0x83, 0xe2]);
+  assertEquals(bytesToUTF8(bytes), "....");
+});
+
+Deno.test("invalid bytes sequence2", () => {
+  const bytes = new Uint8Array([0xc2, 0x92, 0x04, 0x00]);
+  assertEquals(bytesToUTF8(bytes), "....");
 });
