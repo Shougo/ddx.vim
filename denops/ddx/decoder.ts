@@ -60,7 +60,7 @@ export function bytesToCP932(buf: Uint8Array): string {
 
       if (isValidShiftJisMultibyte(byte1, byte2)) {
         try {
-          const decoder = new TextDecoder("shift-jis");
+          const decoder = getCp932Decoder();
           const decoded = decoder.decode(new Uint8Array([byte1, byte2]));
 
           // Replace the decoded character if it's a replacement character
