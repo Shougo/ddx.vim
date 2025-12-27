@@ -491,11 +491,12 @@ export class DdxBuffer {
       if (lastGood >= i) {
         const validSlice = bytes.subarray(i, lastGood + 1);
         const decoded = this.#decodeNonFatal(validSlice, "utf-8");
-        // Count non-control/non-separator characters
-        const printableChars = decoded.replace(/[\p{C}\p{Z}]/gu, "");
-        if (printableChars.length >= minLen) {
+
+        // Exclude control characters and separators
+        const printableCharsOnly = decoded.replace(/[\x00-\x1F\x7F-\x9F]/g, ""); // ASCII control characters
+        if (printableCharsOnly.length >= minLen) {
           out.push({
-            text: decoded,
+            text: printableCharsOnly,
             offset: i,
             encoding: "utf-8",
           });

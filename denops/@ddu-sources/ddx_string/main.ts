@@ -7,7 +7,9 @@ import { sanitizeExtractedText } from "../../ddx/utils.ts";
 import type { Denops } from "@denops/std";
 import * as vars from "@denops/std/variable";
 
-type Params = Record<string, never>;
+type Params = {
+  minLength: number;
+};
 
 export class Source extends BaseSource<Params> {
   override kind = "ddx";
@@ -29,6 +31,7 @@ export class Source extends BaseSource<Params> {
         const results = await args.denops.call(
           "ddx#get_strings",
           name,
+          args.sourceParams.minLength,
           encoding,
         ) as ExtractedString[];
 
@@ -62,6 +65,8 @@ export class Source extends BaseSource<Params> {
   }
 
   override params(): Params {
-    return {};
+    return {
+      minLength: 5,
+    };
   }
 }

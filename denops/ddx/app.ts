@@ -257,16 +257,18 @@ export const main: Entrypoint = (denops: Denops) => {
     get_strings(
       arg1: unknown,
       arg2: unknown,
+      arg3: unknown,
     ): ExtractedString[] {
       const name = ensure(arg1, is.String);
-      const encoding = ensure(arg2, is.String);
+      const minLength = ensure(arg2, is.Number);
+      const encoding = ensure(arg3, is.String);
       if (name.length === 0) {
         return [];
       }
 
       const ddx = getDdx(name);
 
-      return ddx.getBuffer().searchStrings(encoding);
+      return ddx.getBuffer().searchStrings(encoding, minLength);
     },
   };
 };
