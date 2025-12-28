@@ -493,7 +493,8 @@ export class DdxBuffer {
         const decoded = this.#decodeNonFatal(validSlice, "utf-8");
 
         // Exclude control characters and separators
-        const printableCharsOnly = decoded.replace(/[\x00-\x1F\x7F-\x9F]/g, ""); // ASCII control characters
+        // deno-lint-ignore no-control-regex
+        const printableCharsOnly = decoded.replace(/[\x00-\x1F\x7F-\x9F]/g, "");
         if (printableCharsOnly.length >= minLen) {
           out.push({
             text: printableCharsOnly,
