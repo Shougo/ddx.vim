@@ -3,6 +3,7 @@ import type {
   BaseParams,
   Context,
   DdxOptions,
+  Encoding,
 } from "../types.ts";
 import type { DdxBuffer } from "../buffer.ts";
 
@@ -44,7 +45,7 @@ export type AnalyzeValueString = {
   value: string;
   size?: number;
   address: number;
-  encoding?: "utf-8" | "utf-16le" | "utf-16be" | "ascii" | "latin1";
+  encoding?: Encoding;
 };
 
 export type DetectArguments<Params extends BaseParams> =

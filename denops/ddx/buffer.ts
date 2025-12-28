@@ -1,5 +1,6 @@
 import { assertEquals } from "@std/assert";
 import { bytesToCP932, bytesToUTF8 } from "./decoder.ts";
+import type { Encoding } from "./types.ts";
 
 type OperationHistory =
   | ChangeHistory
@@ -369,6 +370,55 @@ export class DdxBuffer {
     return -1;
   }
 
+  substitute(
+    offset: number,
+    length: number,
+    oldBytes: Uint8Array,
+    newBytes: Uint8Array,
+  ): number {
+    let pos = offset;
+    let replaceCount = 0;
+
+    // Limit the range for replacement
+    const rangeEnd = Math.min(
+      offset + length,
+      this.#offset + this.#bytes.length,
+    );
+
+    while (pos < rangeEnd) {
+      // Search for the pattern within the specified range
+      const matchIndex = this.search(pos, oldBytes);
+
+      // Exit if no more matches are found
+      if (matchIndex === -1 || matchIndex >= rangeEnd) {
+        break;
+      }
+
+      // Calculate the relative index in the buffer
+      const bufferIndex = matchIndex - this.#offset;
+
+      // Replace the oldBytes with newBytes
+      const before = this.#bytes.slice(0, bufferIndex);
+      const after = this.#bytes.slice(bufferIndex + oldBytes.length);
+
+      const newBuffer = new Uint8Array(
+        before.length + newBytes.length + after.length,
+      );
+      newBuffer.set(before);
+      newBuffer.set(newBytes, before.length);
+      newBuffer.set(after, before.length + newBytes.length);
+
+      this.#bytes = newBuffer;
+
+      // Move the search position after the replaced segment
+      pos = matchIndex + newBytes.length;
+
+      replaceCount += 1;
+    }
+
+    return replaceCount; // Return the number of replacements made
+  }
+
   /**
    * Extract readable strings from the underlying byte buffer and return them
    * together with their byte offsets so callers can jump to the location
@@ -708,7 +758,7 @@ export class DdxBuffer {
   getChars(
     offset: number,
     length: number,
-    encoding: string = "utf-8",
+    encoding: Encoding = "utf-8",
   ): string {
     offset -= this.#offset;
     if (offset < 0 || length < 0) {

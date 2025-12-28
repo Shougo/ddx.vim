@@ -14,6 +14,14 @@ export type Context = {
   winId: number;
 };
 
+export type Encoding =
+  | "utf-8"
+  | "utf-16le"
+  | "utf-16be"
+  | "ascii"
+  | "cp932"
+  | "latin1";
+
 export interface ContextBuilder {
   get(denops: Denops, options: UserOptions): Promise<[Context, DdxOptions]>;
   getGlobal(): Partial<DdxOptions>;
