@@ -8,6 +8,7 @@ import type { AnalyzeResult, AnalyzeValue } from "./base/analyzer.ts";
 import { foldMerge, mergeDdxOptions } from "./context.ts";
 
 import type { Denops } from "@denops/std";
+import * as fn from "@denops/std/function";
 import { is } from "@core/unknownutil/is";
 import { ensure } from "@core/unknownutil/ensure";
 
@@ -68,6 +69,7 @@ export class Ddx {
     try {
       await this.#buffer.open(
         this.#options.path,
+        await fn.getcwd(denops),
         Number(this.#options.offset),
         Number(this.#options.length),
       );
@@ -84,6 +86,7 @@ export class Ddx {
       try {
         await this.#anotherBuffer.open(
           this.#options.anotherPath,
+          await fn.getcwd(denops),
           Number(this.#options.offset),
           Number(this.#options.length),
         );

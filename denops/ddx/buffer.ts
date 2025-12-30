@@ -1,6 +1,10 @@
-import { assertEquals } from "@std/assert";
 import { bytesToCP932, bytesToUTF8 } from "./decoder.ts";
 import type { Encoding } from "./types.ts";
+
+import { assertEquals } from "@std/assert";
+import { join } from "@std/path/join";
+import { resolve } from "@std/path/resolve";
+import { isAbsolute } from "@std/path/is-absolute";
 
 type OperationHistory =
   | ChangeHistory
@@ -50,16 +54,18 @@ export class DdxBuffer {
   #histories: OperationHistory[] = [];
   #undoHistories: OperationHistory[] = [];
 
-  async open(path: string, offset: number = 0, length: number = 0) {
+  async open(path: string, cwd: string, offset: number = 0, length: number = 0) {
     if (!(await exists(path))) {
       return;
     }
 
-    this.#file = await Deno.open(path, { read: true });
-    this.#offset = offset;
-    this.#path = path;
+    const abspath = isAbsolute(path) ? path : resolve(join(cwd, path));
 
-    const stat = await Deno.stat(path);
+    this.#file = await Deno.open(abspath, { read: true });
+    this.#offset = offset;
+    this.#path = abspath;
+
+    const stat = await Deno.stat(abspath);
     const fileLength = stat.size;
 
     if (length === 0 || offset + length > fileLength) {
@@ -214,11 +220,15 @@ export class DdxBuffer {
 
     const file = await Deno.open(path, { write: true, create: true });
 
-    await file.seek(this.#offset ?? 0, Deno.SeekMode.Start);
+    try {
+      await file.seek(this.#offset ?? 0, Deno.SeekMode.Start);
 
-    await file.write(this.#bytes);
+      await file.write(this.#bytes);
 
-    file.close();
+      await file.truncate(this.#offset + this.#bytes.length);
+    } finally {
+      file.close();
+    }
   }
 
   redo(): number {
