@@ -871,7 +871,7 @@ Deno.test("buffer", async () => {
   assertEquals(Uint8Array.from([]), buffer.getBytes(0, 10));
 
   // Invalid path
-  await buffer.open("foo-bar-baz");
+  await buffer.open("foo-bar-baz", "");
   assertEquals(0, buffer.getSize());
   assertEquals(Uint8Array.from([]), buffer.getBytes(0, 655535));
 
@@ -879,7 +879,7 @@ Deno.test("buffer", async () => {
   const tempFilePath = await Deno.makeTempFile();
   await Deno.writeTextFile(tempFilePath, "Hello world!");
 
-  await buffer.open(tempFilePath);
+  await buffer.open(tempFilePath, "");
 
   assertEquals(12, buffer.getSize());
 
