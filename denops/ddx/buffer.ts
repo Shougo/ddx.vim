@@ -54,7 +54,12 @@ export class DdxBuffer {
   #histories: OperationHistory[] = [];
   #undoHistories: OperationHistory[] = [];
 
-  async open(path: string, cwd: string, offset: number = 0, length: number = 0) {
+  async open(
+    path: string,
+    cwd: string,
+    offset: number = 0,
+    length: number = 0,
+  ) {
     if (!(await exists(path))) {
       return;
     }
