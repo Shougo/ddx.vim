@@ -239,7 +239,14 @@ export class DdxBuffer {
   resize(length: number) {
     this.#undoHistories = [];
     this.#changedAdresses.clear();
-    this.#bytes = this.#bytes.subarray(0, length);
+
+    if (length <= this.#bytes.length) {
+      this.#bytes = this.#bytes.subarray(0, length);
+    } else {
+      const newBytes = new Uint8Array(length);
+      newBytes.set(this.#bytes);
+      this.#bytes = newBytes;
+    }
   }
 
   redo(): number {
