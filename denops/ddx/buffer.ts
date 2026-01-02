@@ -236,6 +236,12 @@ export class DdxBuffer {
     }
   }
 
+  resize(length: number) {
+    this.#undoHistories = [];
+    this.#changedAdresses.clear();
+    this.#bytes = this.#bytes.subarray(0, length);
+  }
+
   redo(): number {
     const history = this.#undoHistories.pop();
     if (!history) {
