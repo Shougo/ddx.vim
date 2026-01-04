@@ -1,5 +1,6 @@
 import { bytesToCP932, bytesToUTF8 } from "./decoder.ts";
 import type { Encoding } from "./types.ts";
+import { safeStat } from "./utils.ts";
 
 import { assertEquals } from "@std/assert";
 import { join } from "@std/path/join";
@@ -49,6 +50,7 @@ export class DdxBuffer {
   #offset: number = 0;
   #path: string = "";
   #bytes: Uint8Array = new Uint8Array();
+  #origBufferSize: number = 0;
 
   #changedAdresses: Set<number> = new Set<number>();
   #histories: OperationHistory[] = [];
@@ -79,6 +81,7 @@ export class DdxBuffer {
 
     if (length <= 0 || offset >= fileLength) {
       this.#bytes = new Uint8Array();
+      this.#origBufferSize = this.#bytes.length;
       return;
     }
 
@@ -92,6 +95,7 @@ export class DdxBuffer {
     this.#changedAdresses.clear();
     this.#histories = [];
     this.#undoHistories = [];
+    this.#origBufferSize = this.#bytes.length;
   }
 
   insert(pos: number, bytes: Uint8Array) {
@@ -223,14 +227,44 @@ export class DdxBuffer {
       path = this.#path;
     }
 
+    if (this.#origBufferSize !== this.#bytes.length) {
+      return this.#writeResized(path);
+    }
+
     const file = await Deno.open(path, { write: true, create: true });
 
     try {
       await file.seek(this.#offset ?? 0, Deno.SeekMode.Start);
 
       await file.write(this.#bytes);
+    } finally {
+      file.close();
+    }
+  }
 
-      await file.truncate(this.#offset + this.#bytes.length);
+  // Resize the file contents when the buffer size is changed
+  async #writeResized(path: string) {
+    const file = await Deno.open(path, { write: true, create: true });
+
+    try {
+      const stat = await safeStat(path);
+
+      let remainingData = new Uint8Array(0);
+      const offset = this.#offset + this.#origBufferSize;
+      if (stat && offset < stat.size) {
+        await file.seek(offset, Deno.SeekMode.Start);
+        remainingData = new Uint8Array(stat.size - offset);
+        await file.read(remainingData);
+      }
+
+      const newData = new Uint8Array(this.#bytes.length + remainingData.length);
+      newData.set(this.#bytes, 0);
+      newData.set(remainingData, this.#bytes.length);
+
+      await file.seek(this.#offset ?? 0, Deno.SeekMode.Start);
+      await file.write(newData);
+
+      await file.truncate(this.#offset + newData.length);
     } finally {
       file.close();
     }

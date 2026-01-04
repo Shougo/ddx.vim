@@ -92,6 +92,26 @@ export async function importPlugin(path: string): Promise<unknown> {
   }
 }
 
+export async function safeStat(path: string): Promise<Deno.FileInfo | null> {
+  // NOTE: Deno.stat() may be failed
+  try {
+    const stat = await Deno.lstat(path);
+    if (stat.isSymlink) {
+      try {
+        const stat = await Deno.stat(path);
+        stat.isSymlink = true;
+        return stat;
+      } catch (_: unknown) {
+        // Ignore stat exception
+      }
+    }
+    return stat;
+  } catch (_: unknown) {
+    // Ignore stat exception
+  }
+  return null;
+}
+
 export function arrayEquals(
   a: Uint8Array | number[],
   b: Uint8Array | number[],
