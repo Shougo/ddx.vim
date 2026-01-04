@@ -62,15 +62,21 @@ export class DdxBuffer {
     offset: number = 0,
     length: number = 0,
   ) {
+    const abspath = isAbsolute(path) ? path : resolve(join(cwd, path));
+    this.#offset = offset;
+    this.#path = abspath;
+
+    this.#changedAdresses.clear();
+    this.#histories = [];
+    this.#undoHistories = [];
+
     if (!(await exists(path))) {
+      this.#bytes = new Uint8Array();
+      this.#origBufferSize = this.#bytes.length;
       return;
     }
 
-    const abspath = isAbsolute(path) ? path : resolve(join(cwd, path));
-
     this.#file = await Deno.open(abspath, { read: true });
-    this.#offset = offset;
-    this.#path = abspath;
 
     const stat = await Deno.stat(abspath);
     const fileLength = stat.size;
@@ -91,10 +97,6 @@ export class DdxBuffer {
     const bytesRead = await this.#file.read(buf);
 
     this.#bytes = buf.subarray(0, bytesRead ?? 0);
-
-    this.#changedAdresses.clear();
-    this.#histories = [];
-    this.#undoHistories = [];
     this.#origBufferSize = this.#bytes.length;
   }
 
