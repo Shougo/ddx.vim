@@ -51,6 +51,7 @@ export class DdxBuffer {
   #path: string = "";
   #bytes: Uint8Array = new Uint8Array();
   #origBufferSize: number = 0;
+  #mtime: Date | null = null;
 
   #changedAdresses: Set<number> = new Set<number>();
   #histories: OperationHistory[] = [];
@@ -73,6 +74,7 @@ export class DdxBuffer {
     if (!(await exists(path))) {
       this.#bytes = new Uint8Array();
       this.#origBufferSize = this.#bytes.length;
+      this.#mtime = null;
       return;
     }
 
@@ -88,6 +90,7 @@ export class DdxBuffer {
     if (length <= 0 || offset >= fileLength) {
       this.#bytes = new Uint8Array();
       this.#origBufferSize = this.#bytes.length;
+      this.#mtime = null;
       return;
     }
 
@@ -98,6 +101,21 @@ export class DdxBuffer {
 
     this.#bytes = buf.subarray(0, bytesRead ?? 0);
     this.#origBufferSize = this.#bytes.length;
+    this.#mtime = stat.mtime;
+  }
+
+  async checkMtime(): Promise<boolean> {
+    if (!this.#mtime) {
+      return false;
+    }
+
+    const stat = await safeStat(this.#path);
+    if (!stat?.mtime || stat.mtime > this.#mtime) {
+      console.log(`${this.#path} was modified externally!`);
+      return true;
+    }
+
+    return false;
   }
 
   insert(pos: number, bytes: Uint8Array) {
@@ -238,6 +256,7 @@ export class DdxBuffer {
     try {
       await file.seek(this.#offset ?? 0, Deno.SeekMode.Start);
 
+      this.#mtime = new Date();
       await file.write(this.#bytes);
     } finally {
       file.close();
@@ -264,6 +283,8 @@ export class DdxBuffer {
       newData.set(remainingData, this.#bytes.length);
 
       await file.seek(this.#offset ?? 0, Deno.SeekMode.Start);
+
+      this.#mtime = new Date();
       await file.write(newData);
 
       await file.truncate(this.#offset + newData.length);
@@ -780,6 +801,7 @@ export class DdxBuffer {
     this.#file = undefined;
     this.#offset = 0;
     this.#path = "";
+    this.#mtime = new Date();
   }
 
   getSize(): number {
