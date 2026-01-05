@@ -113,8 +113,6 @@ export class DdxBuffer {
     const controller = new AbortController();
     const signal = controller.signal;
 
-    console.log(`Watching ${path} for external changes...`);
-
     const watcher = Deno.watchFs(path);
 
     let lastEvent: { kind: string; paths: string[] } | null = null;
@@ -122,7 +120,6 @@ export class DdxBuffer {
     try {
       for await (const event of watcher) {
         if (signal.aborted) {
-          console.log(`Watcher for ${path} was stopped.`);
           break;
         }
 
@@ -134,8 +131,6 @@ export class DdxBuffer {
         }
 
         if (event.kind === "modify" || event.kind === "remove") {
-          console.log(event);
-
           await this.#handleFileChange(path);
 
           lastEvent = event;
@@ -150,9 +145,6 @@ export class DdxBuffer {
 
   #startFileWatcher(path: string) {
     if (this.#watchers.has(path)) {
-      console.log(
-        `Watcher for ${path} is already running. Stopping current watcher...`,
-      );
       this.#watchers.get(path)?.abort();
       this.#watchers.delete(path);
     }
@@ -169,7 +161,6 @@ export class DdxBuffer {
     if (this.#watchers.has(path)) {
       this.#watchers.get(path)?.abort();
       this.#watchers.delete(path);
-      console.log(`Watcher for ${path} has been stopped.`);
     }
   }
 
@@ -177,7 +168,7 @@ export class DdxBuffer {
     const stat = await safeStat(path);
 
     if (!stat?.mtime || !this.#mtime || stat.mtime > this.#mtime) {
-      console.log(`${path} was modified externally!`);
+      console.warn(`${path} was modified externally!`);
       return;
     }
   }
