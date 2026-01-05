@@ -238,7 +238,7 @@ export const main: Entrypoint = (denops: Denops) => {
 
       await ddx.jump(denops, address);
     },
-    get_diff(
+    getDiff(
       arg1: unknown,
     ): BinaryDiff[] {
       const name = ensure(arg1, is.String);

@@ -27,7 +27,7 @@ function ddx#change(name, address, value) abort
 endfunction
 
 function ddx#get_diff(name) abort
-  return ddx#denops#_request('get_diff', [a:name])
+  return ddx#denops#_request('getDiff', [a:name])
 endfunction
 
 function ddx#get_strings(name, min_length, encoding) abort

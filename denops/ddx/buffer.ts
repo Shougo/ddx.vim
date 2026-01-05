@@ -56,6 +56,7 @@ export class DdxBuffer {
   #changedAdresses: Set<number> = new Set<number>();
   #histories: OperationHistory[] = [];
   #undoHistories: OperationHistory[] = [];
+  #watchers = new Map<string, AbortController>();
 
   async open(
     path: string,
@@ -63,6 +64,8 @@ export class DdxBuffer {
     offset: number = 0,
     length: number = 0,
   ) {
+    this.close();
+
     const abspath = isAbsolute(path) ? path : resolve(join(cwd, path));
     this.#offset = offset;
     this.#path = abspath;
@@ -102,20 +105,81 @@ export class DdxBuffer {
     this.#bytes = buf.subarray(0, bytesRead ?? 0);
     this.#origBufferSize = this.#bytes.length;
     this.#mtime = stat.mtime;
+
+    this.#startFileWatcher(path);
   }
 
-  async checkMtime(): Promise<boolean> {
-    if (!this.#mtime) {
-      return false;
+  async #watchFile(path: string) {
+    const controller = new AbortController();
+    const signal = controller.signal;
+
+    console.log(`Watching ${path} for external changes...`);
+
+    const watcher = Deno.watchFs(path);
+
+    let lastEvent: { kind: string; paths: string[] } | null = null;
+
+    try {
+      for await (const event of watcher) {
+        if (signal.aborted) {
+          console.log(`Watcher for ${path} was stopped.`);
+          break;
+        }
+
+        if (
+          lastEvent && lastEvent.kind === event.kind &&
+          JSON.stringify(lastEvent.paths) === JSON.stringify(event.paths)
+        ) {
+          continue; // Skip
+        }
+
+        if (event.kind === "modify" || event.kind === "remove") {
+          console.log(event);
+
+          await this.#handleFileChange(path);
+
+          lastEvent = event;
+        }
+      }
+    } catch (err) {
+      console.error(`Error in file watcher for ${path}:`, err);
+    } finally {
+      watcher.return?.();
+    }
+  }
+
+  #startFileWatcher(path: string) {
+    if (this.#watchers.has(path)) {
+      console.log(
+        `Watcher for ${path} is already running. Stopping current watcher...`,
+      );
+      this.#watchers.get(path)?.abort();
+      this.#watchers.delete(path);
     }
 
-    const stat = await safeStat(this.#path);
-    if (!stat?.mtime || stat.mtime > this.#mtime) {
-      console.log(`${this.#path} was modified externally!`);
-      return true;
-    }
+    const controller = new AbortController();
+    this.#watchers.set(path, controller);
 
-    return false;
+    this.#watchFile(path).catch((err) => {
+      console.error(`Error in file watcher for ${path}:`, err);
+    });
+  }
+
+  #stopFileWatcher(path: string) {
+    if (this.#watchers.has(path)) {
+      this.#watchers.get(path)?.abort();
+      this.#watchers.delete(path);
+      console.log(`Watcher for ${path} has been stopped.`);
+    }
+  }
+
+  async #handleFileChange(path: string) {
+    const stat = await safeStat(path);
+
+    if (!stat?.mtime || !this.#mtime || stat.mtime > this.#mtime) {
+      console.log(`${path} was modified externally!`);
+      return;
+    }
   }
 
   insert(pos: number, bytes: Uint8Array) {
@@ -248,7 +312,8 @@ export class DdxBuffer {
     }
 
     if (this.#origBufferSize !== this.#bytes.length) {
-      return this.#writeResized(path);
+      this.#writeResized(path);
+      return;
     }
 
     const file = await Deno.open(path, { write: true, create: true });
@@ -258,6 +323,8 @@ export class DdxBuffer {
 
       this.#mtime = new Date();
       await file.write(this.#bytes);
+
+      this.#startFileWatcher(path);
     } finally {
       file.close();
     }
@@ -288,6 +355,8 @@ export class DdxBuffer {
       await file.write(newData);
 
       await file.truncate(this.#offset + newData.length);
+
+      this.#startFileWatcher(path);
     } finally {
       file.close();
     }
@@ -796,6 +865,8 @@ export class DdxBuffer {
     if (!this.#file) {
       return;
     }
+
+    this.#stopFileWatcher(this.#path);
 
     this.#file.close();
     this.#file = undefined;
