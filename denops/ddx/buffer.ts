@@ -157,9 +157,10 @@ export class DdxBuffer {
     });
   }
 
-  #stopFileWatcher(path: string) {
-    if (this.#watchers.has(path)) {
-      this.#watchers.get(path)?.abort();
+  #stopAllFileWatchers() {
+    for (const [path, controller] of this.#watchers) {
+      // Abort the watcher and remove it from the map
+      controller.abort();
       this.#watchers.delete(path);
     }
   }
@@ -330,20 +331,20 @@ export class DdxBuffer {
 
       let remainingData = new Uint8Array(0);
       const offset = this.#offset + this.#origBufferSize;
-      if (stat && offset < stat.size) {
+      if (stat && stat.size > 0 && offset < stat.size) {
         await file.seek(offset, Deno.SeekMode.Start);
         remainingData = new Uint8Array(stat.size - offset);
         await file.read(remainingData);
       }
 
+      // this.#bytes と remainingData を結合
       const newData = new Uint8Array(this.#bytes.length + remainingData.length);
       newData.set(this.#bytes, 0);
       newData.set(remainingData, this.#bytes.length);
 
       await file.seek(this.#offset ?? 0, Deno.SeekMode.Start);
-
-      this.#mtime = new Date();
       await file.write(newData);
+      this.#mtime = new Date();
 
       await file.truncate(this.#offset + newData.length);
 
@@ -857,7 +858,7 @@ export class DdxBuffer {
       return;
     }
 
-    this.#stopFileWatcher(this.#path);
+    this.#stopAllFileWatchers();
 
     this.#file.close();
     this.#file = undefined;
@@ -1005,13 +1006,13 @@ Deno.test("buffer", async () => {
   const buffer = new DdxBuffer();
 
   // Check empty
-  assertEquals(0, buffer.getSize());
-  assertEquals(Uint8Array.from([]), buffer.getBytes(0, 10));
+  assertEquals(buffer.getSize(), 0);
+  assertEquals(buffer.getBytes(0, 10), Uint8Array.from([]));
 
   // Invalid path
   await buffer.open("foo-bar-baz", "");
-  assertEquals(0, buffer.getSize());
-  assertEquals(Uint8Array.from([]), buffer.getBytes(0, 655535));
+  assertEquals(buffer.getSize(), 0);
+  assertEquals(buffer.getBytes(0, 655535), Uint8Array.from([]));
 
   // Valid path
   const tempFilePath = await Deno.makeTempFile();
@@ -1019,11 +1020,11 @@ Deno.test("buffer", async () => {
 
   await buffer.open(tempFilePath, "");
 
-  assertEquals(12, buffer.getSize());
+  assertEquals(buffer.getSize(), 12);
 
   assertEquals(
-    Uint8Array.from([72, 101, 108, 108, 111]),
     buffer.getBytes(0, 5),
+    Uint8Array.from([72, 101, 108, 108, 111]),
   );
 
   buffer.close();
@@ -1037,14 +1038,14 @@ Deno.test("bytes insertion", async () => {
   const bytes3 = Uint8Array.from([72, 101, 108, 108, 111]);
 
   buffer.insert(0, bytes1);
-  assertEquals(2, buffer.getSize());
+  assertEquals(buffer.getSize(), 2);
 
   buffer.insert(2, bytes2);
-  assertEquals(5, buffer.getSize());
+  assertEquals(buffer.getSize(), 5);
 
   assertEquals(
-    bytes3,
     buffer.getBytes(0, 5),
+    bytes3,
   );
 
   // Save
@@ -1052,8 +1053,8 @@ Deno.test("bytes insertion", async () => {
   await buffer.write(tempFilePath);
 
   assertEquals(
-    bytes3,
     await Deno.readFile(tempFilePath),
+    bytes3,
   );
 
   buffer.close();
