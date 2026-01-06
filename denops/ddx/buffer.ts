@@ -302,7 +302,7 @@ export class DdxBuffer {
       path = this.#path;
     }
 
-    if (this.#origBufferSize !== this.#bytes.length) {
+    if (await exists(path) && this.#origBufferSize !== this.#bytes.length) {
       this.#writeResized(path);
       return;
     }
