@@ -51,12 +51,12 @@ export class DdxBuffer {
   #path: string = "";
   #bytes: Uint8Array = new Uint8Array();
   #origBufferSize: number = 0;
-  #mtime: Date | null = null;
 
   #changedAdresses: Set<number> = new Set<number>();
   #histories: OperationHistory[] = [];
   #undoHistories: OperationHistory[] = [];
-  #watchers = new Map<string, AbortController>();
+  #watchers = new Map<string, number>();
+  #mtimeCache: Map<string, Date | null> = new Map();
 
   async open(
     path: string,
@@ -77,7 +77,7 @@ export class DdxBuffer {
     if (!(await exists(path))) {
       this.#bytes = new Uint8Array();
       this.#origBufferSize = this.#bytes.length;
-      this.#mtime = null;
+      this.#mtimeCache.set(path, null);
       return;
     }
 
@@ -93,7 +93,7 @@ export class DdxBuffer {
     if (length <= 0 || offset >= fileLength) {
       this.#bytes = new Uint8Array();
       this.#origBufferSize = this.#bytes.length;
-      this.#mtime = null;
+      this.#mtimeCache.set(path, null);
       return;
     }
 
@@ -104,73 +104,61 @@ export class DdxBuffer {
 
     this.#bytes = buf.subarray(0, bytesRead ?? 0);
     this.#origBufferSize = this.#bytes.length;
-    this.#mtime = stat.mtime;
+    this.#mtimeCache.set(path, stat.mtime);
 
     this.#startFileWatcher(path);
   }
 
-  async #watchFile(path: string) {
-    const controller = new AbortController();
-    const signal = controller.signal;
-
-    const watcher = Deno.watchFs(path);
-
-    let lastEvent: { kind: string; paths: string[] } | null = null;
-
-    try {
-      for await (const event of watcher) {
-        if (signal.aborted) {
-          break;
-        }
-
-        if (
-          lastEvent && lastEvent.kind === event.kind &&
-          JSON.stringify(lastEvent.paths) === JSON.stringify(event.paths)
-        ) {
-          continue; // Skip
-        }
-
-        if (event.kind === "modify" || event.kind === "remove") {
-          await this.#handleFileChange(path);
-
-          lastEvent = event;
-        }
-      }
-    } catch (err) {
-      console.error(`Error in file watcher for ${path}:`, err);
-    } finally {
-      watcher.return?.();
-    }
-  }
-
   #startFileWatcher(path: string) {
     if (this.#watchers.has(path)) {
-      this.#watchers.get(path)?.abort();
+      clearInterval(this.#watchers.get(path)!);
       this.#watchers.delete(path);
     }
 
-    const controller = new AbortController();
-    this.#watchers.set(path, controller);
+    const intervalId = setInterval(async () => {
+      const shouldHandle = await this.#shouldHandleChange(path);
+      if (shouldHandle !== undefined) {
+        this.#handleFileChange(path, shouldHandle);
+      }
+    }, 2000);
 
-    this.#watchFile(path).catch((err) => {
-      console.error(`Error in file watcher for ${path}:`, err);
-    });
+    this.#watchers.set(path, intervalId);
   }
 
   #stopAllFileWatchers() {
-    for (const [path, controller] of this.#watchers) {
-      // Abort the watcher and remove it from the map
-      controller.abort();
+    for (const [path, intervalId] of this.#watchers.entries()) {
+      clearInterval(intervalId);
       this.#watchers.delete(path);
     }
+    this.#mtimeCache.clear();
   }
 
-  async #handleFileChange(path: string) {
+  async #shouldHandleChange(path: string): Promise<Date | null | undefined> {
     const stat = await safeStat(path);
+    const cachedMtime = this.#mtimeCache.get(path);
 
-    if (!stat?.mtime || !this.#mtime || stat.mtime > this.#mtime) {
-      console.warn(`${path} was modified externally!`);
-      return;
+    if (!stat?.mtime) {
+      if (cachedMtime !== null) {
+        this.#mtimeCache.set(path, null);
+        return null;
+      }
+
+      return undefined;
+    }
+
+    if (!cachedMtime || stat.mtime > cachedMtime) {
+      this.#mtimeCache.set(path, stat.mtime);
+      return stat.mtime;
+    }
+
+    return undefined; // 変更なし
+  }
+
+  #handleFileChange(path: string, mtime: Date | null) {
+    if (mtime === null) {
+      console.warn(`${path} was deleted!`);
+    } else {
+      console.warn(`${path} was modified externally at ${mtime}!`);
     }
   }
 
@@ -304,7 +292,7 @@ export class DdxBuffer {
     }
 
     if (await exists(path) && this.#origBufferSize !== this.#bytes.length) {
-      this.#writeResized(path);
+      await this.#writeResized(path);
       return;
     }
 
@@ -313,7 +301,7 @@ export class DdxBuffer {
     try {
       await file.seek(this.#offset ?? 0, Deno.SeekMode.Start);
 
-      this.#mtime = new Date();
+      this.#mtimeCache.set(path, new Date());
       await file.write(this.#bytes);
 
       this.#startFileWatcher(path);
@@ -337,14 +325,13 @@ export class DdxBuffer {
         await file.read(remainingData);
       }
 
-      // this.#bytes と remainingData を結合
       const newData = new Uint8Array(this.#bytes.length + remainingData.length);
       newData.set(this.#bytes, 0);
       newData.set(remainingData, this.#bytes.length);
 
       await file.seek(this.#offset ?? 0, Deno.SeekMode.Start);
+      this.#mtimeCache.set(path, new Date());
       await file.write(newData);
-      this.#mtime = new Date();
 
       await file.truncate(this.#offset + newData.length);
 
@@ -854,17 +841,17 @@ export class DdxBuffer {
   }
 
   close() {
+    this.#stopAllFileWatchers();
+
     if (!this.#file) {
       return;
     }
 
-    this.#stopAllFileWatchers();
+    this.#offset = 0;
+    this.#path = "";
 
     this.#file.close();
     this.#file = undefined;
-    this.#offset = 0;
-    this.#path = "";
-    this.#mtime = new Date();
   }
 
   getSize(): number {
