@@ -90,19 +90,21 @@ export function bytesToUTF8(buf: Uint8Array): string {
   const out: string[] = [];
   let i = 0;
 
+  // Set of specific invisible Unicode characters to replace with "."
+  const invisibleUnicode = new Set([0x200B, 0x200C, 0x200D, 0xFEFF]);
+
   // Determine if a byte is printable ASCII
   const isPrintableAscii = (b: number) => b >= 0x20 && b <= 0x7E;
 
   // Determine if a Unicode code point is printable
   const isPrintableCodePoint = (cp: number) => {
-    // Control characters
-    if (cp <= 0x1F || (cp >= 0x7F && cp <= 0x9F)) return false;
-    // Surrogate pairs
-    if (0xD800 <= cp && cp <= 0xDFFF) return false;
-    // Replacement character
+    if (
+      cp <= 0x1F || (cp >= 0x7F && cp <= 0x9F) ||
+      (0xD800 <= cp && cp <= 0xDFFF)
+    ) return false;
     if (cp === 0xFFFD) return false;
-    // Out of Unicode range
     if (cp > 0x10FFFF) return false;
+    if (invisibleUnicode.has(cp)) return false;
     return true;
   };
 
@@ -116,7 +118,7 @@ export function bytesToUTF8(buf: Uint8Array): string {
       continue;
     }
 
-    // Determine UTF-8 sequence length
+    // Try to determine UTF-8 sequence length
     let expectedLen = 0;
     let cp = 0;
 
@@ -130,21 +132,23 @@ export function bytesToUTF8(buf: Uint8Array): string {
       expectedLen = 4;
       cp = b0 & 0x07;
     } else {
-      // Invalid UTF-8 leading byte
+      // Invalid UTF-8 leading byte - treat as a single invalid byte
       out.push(".");
       i += 1;
       continue;
     }
 
-    // Ensure enough bytes are available for this sequence
+    // Ensure enough bytes available for this sequence
     if (i + expectedLen > buf.length) {
-      // If incomplete, treat as error and skip just the leading byte
-      out.push(".");
-      i += 1;
-      continue;
+      // Incomplete sequence: treat remaining bytes as invalid
+      while (i < buf.length) {
+        out.push(".");
+        i++;
+      }
+      break;
     }
 
-    // Validate UTF-8 continuation bytes and decode the code point
+    // Validate UTF-8 continuation bytes
     let valid = true;
     for (let j = 1; j < expectedLen; j++) {
       const cb = buf[i + j];
@@ -155,33 +159,33 @@ export function bytesToUTF8(buf: Uint8Array): string {
       cp = (cp << 6) | (cb & 0x3F);
     }
 
-    // Validate code point ranges
-    if (
-      !valid ||
+    // If sequence is invalid, mark all bytes of the sequence as invalid
+    if (!valid) {
+      for (let j = 0; j < expectedLen; j++) {
+        out.push(".");
+      }
+    } else if (
       (expectedLen === 2 && cp < 0x80) || // Overlong 2-byte sequence
       (expectedLen === 3 && cp < 0x800) || // Overlong 3-byte sequence
       (expectedLen === 4 && cp < 0x10000) || // Overlong 4-byte sequence
       cp > 0x10FFFF // Out of valid code point range
     ) {
-      // Invalid sequence: output "." for each byte in invalid sequence
-      for (let k = 0; k < expectedLen; k++) {
+      // Invalid UTF-8 sequence: output "." for each byte in the sequence
+      for (let j = 0; j < expectedLen; j++) {
         out.push(".");
       }
-      i += expectedLen;
-      continue;
-    }
-
-    // Append printable character or replace with "."
-    if (isPrintableCodePoint(cp)) {
-      out.push(String.fromCodePoint(cp));
     } else {
-      // If non-printable, append "." for sequence length
-      for (let k = 0; k < expectedLen; k++) {
-        out.push(".");
+      // Append printable character or "." for invisible Unicode
+      if (isPrintableCodePoint(cp)) {
+        out.push(String.fromCodePoint(cp));
+      } else {
+        // Treat as invalid and output "."
+        for (let j = 0; j < expectedLen; j++) {
+          out.push(".");
+        }
       }
     }
 
-    // Advance by sequence length
     i += expectedLen;
   }
 
@@ -294,4 +298,23 @@ Deno.test("invalid bytes sequence", () => {
 Deno.test("invalid bytes sequence2", () => {
   const bytes = new Uint8Array([0xc2, 0x92, 0x04, 0x00]);
   assertEquals(bytesToUTF8(bytes), "....");
+});
+
+Deno.test("handle special invisible Unicode characters", () => {
+  const bytes = new Uint8Array([
+    0xE2,
+    0x80,
+    0x8B, // U+200B
+    0xE2,
+    0x80,
+    0x8C, // U+200C
+    0xE2,
+    0x80,
+    0x8D, // U+200D
+    0xEF,
+    0xBB,
+    0xBF, // U+FEFF
+  ]);
+
+  assertEquals(bytesToUTF8(bytes), "............");
 });
