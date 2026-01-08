@@ -74,7 +74,7 @@ export class DdxBuffer {
     this.#histories = [];
     this.#undoHistories = [];
 
-    if (!(await exists(path))) {
+    if (!(await exists(abspath))) {
       this.#bytes = new Uint8Array();
       this.#origBufferSize = this.#bytes.length;
       this.#mtimeCache.set(path, null);

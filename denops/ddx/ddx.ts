@@ -68,7 +68,7 @@ export class Ddx {
 
     try {
       await this.#buffer.open(
-        this.#options.path,
+        await fn.expand(denops, this.#options.path) as string,
         await fn.getcwd(denops),
         Number(this.#options.offset),
         Number(this.#options.length),
@@ -85,7 +85,7 @@ export class Ddx {
     if (this.#options.anotherPath.length > 0) {
       try {
         await this.#anotherBuffer.open(
-          this.#options.anotherPath,
+          await fn.expand(denops, this.#options.anotherPath) as string,
           await fn.getcwd(denops),
           Number(this.#options.offset),
           Number(this.#options.length),
