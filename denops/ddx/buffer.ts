@@ -1153,6 +1153,52 @@ export class DdxBuffer {
 
     return Number((BigInt(high) << 32n) + BigInt(low));
   }
+
+  /**
+   * General-purpose floating point number getter.
+   * Supports both 32-bit and 64-bit floating point values.
+   */
+  getFloat(pos: number, size: number, isLittle: boolean): number {
+    // Based on provided size, call appropriate method
+    switch (size) {
+      case 4:
+        return this.getFloat32(pos, isLittle); // 32-bit float
+      case 8:
+        return this.getFloat64(pos, isLittle); // 64-bit float
+      default:
+        throw new Error(`Unsupported floating-point size: ${size}`);
+    }
+  }
+
+  /**
+   * 32-bit floating-point (float) little-endian/big-endian.
+   * Returns NaN on OOB.
+   */
+  getFloat32(pos: number, isLittle: boolean): number {
+    pos -= this.#offset;
+    if (pos < 0 || pos + 4 > this.#bytes.length) return NaN;
+
+    const buffer = this.#bytes.buffer;
+    const byteOffset = this.#bytes.byteOffset + pos;
+    const view = new DataView(buffer, byteOffset, 4);
+
+    return view.getFloat32(0, isLittle);
+  }
+
+  /**
+   * 64-bit floating-point (double) little-endian/big-endian.
+   * Returns NaN on OOB.
+   */
+  getFloat64(pos: number, isLittle: boolean): number {
+    pos -= this.#offset;
+    if (pos < 0 || pos + 8 > this.#bytes.length) return NaN;
+
+    const buffer = this.#bytes.buffer;
+    const byteOffset = this.#bytes.byteOffset + pos;
+    const view = new DataView(buffer, byteOffset, 8);
+
+    return view.getFloat64(0, isLittle);
+  }
 }
 
 const exists = async (path: string) => {
