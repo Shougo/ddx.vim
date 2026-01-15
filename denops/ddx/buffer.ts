@@ -445,62 +445,14 @@ export class DdxBuffer {
     }
   }
 
-  search(pos: number, bytes: Uint8Array): number {
+  search(
+    pos: number,
+    bytes: Uint8Array,
+    direction: "forward" | "backward" = "forward",
+  ): number {
     pos -= this.#offset;
 
-    // Empty pattern -> treat as found at pos if within buffer range
-    if (bytes.length === 0) {
-      if (pos < this.#offset) return this.#offset;
-      if (pos >= this.#offset + this.#bytes.length) return -1;
-      return pos;
-    }
-
-    const hay = this.#bytes;
-    const pat = bytes;
-    const n = hay.length;
-    const m = pat.length;
-
-    if (n === 0 || pos >= this.#offset + n) {
-      return -1;
-    }
-
-    // start index inside buffer (clamp to 0)
-    let startIndex = pos - this.#offset;
-    if (startIndex < 0) startIndex = 0;
-
-    // If pattern is single byte, use a simple loop (fast path)
-    if (m === 1) {
-      const v = pat[0];
-      for (let i = startIndex; i < n; i++) {
-        if (hay[i] === v) return this.#offset + i;
-      }
-      return -1;
-    }
-
-    // Boyer-Moore-Horspool preprocessing
-    const skip = new Uint32Array(256);
-    skip.fill(m);
-    for (let i = 0; i < m - 1; i++) {
-      skip[pat[i]] = m - i - 1;
-    }
-
-    let i = startIndex;
-    const last = m - 1;
-    while (i <= n - m) {
-      let j = last;
-      // compare from end of pattern
-      while (j >= 0 && hay[i + j] === pat[j]) {
-        j--;
-      }
-      if (j < 0) {
-        return this.#offset + i; // match found
-      }
-      const skipVal = skip[hay[i + last]];
-      // ensure at least one step forward
-      i += skipVal > 0 ? skipVal : 1;
-    }
-
-    return -1;
+    return searchBytes(pos, bytes, this.#bytes, direction);
   }
 
   substitute(
@@ -1201,6 +1153,50 @@ export class DdxBuffer {
   }
 }
 
+function searchBytes(
+  pos: number,
+  searchBytes: Uint8Array,
+  allBytes: Uint8Array,
+  direction: "forward" | "backward" = "forward",
+): number {
+  const pat = searchBytes;
+  const hay = allBytes;
+  const n = hay.length;
+  const m = pat.length;
+
+  if (n === 0 || m === 0 || pos < 0 || pos >= n) {
+    return -1;
+  }
+
+  if (direction === "forward") {
+    // Forward
+    for (let i = pos; i <= n - m; i++) {
+      let found = true;
+      for (let j = 0; j < m; j++) {
+        if (hay[i + j] !== pat[j]) {
+          found = false;
+          break;
+        }
+      }
+      if (found) return i;
+    }
+  } else {
+    // Backward
+    for (let i = pos; i >= 0; i--) {
+      let found = true;
+      for (let j = 0; j < m; j++) {
+        if (i + j >= n || hay[i + j] !== pat[j]) {
+          found = false;
+          break;
+        }
+      }
+      if (found) return i;
+    }
+  }
+
+  return -1;
+}
+
 const exists = async (path: string) => {
   // Note: Deno.stat() may be failed
   try {
@@ -1271,4 +1267,161 @@ Deno.test("bytes insertion", async () => {
   );
 
   buffer.close();
+});
+
+Deno.test("search bytes", () => {
+  // 検索対象のデータを Uint8Array に変換
+  const data = Uint8Array.from([
+    0xe2,
+    0x80,
+    0x8b,
+    0x20,
+    0x20,
+    0x20,
+    0x28,
+    0x55,
+    0x2b,
+    0x32,
+    0x30,
+    0x30,
+    0x42,
+    0x3a,
+    0x20,
+    0x5a,
+    0x65,
+    0x72,
+    0x6f,
+    0x20,
+    0x57,
+    0x69,
+    0x64,
+    0x74,
+    0x68,
+    0x20,
+    0x53,
+    0x70,
+    0x61,
+    0x63,
+    0x65,
+    0x29,
+    0x0a,
+    0xe2,
+    0x80,
+    0x8c,
+    0x20,
+    0x20,
+    0x20,
+    0x28,
+    0x55,
+    0x2b,
+    0x32,
+    0x30,
+    0x30,
+    0x43,
+    0x3a,
+    0x20,
+    0x5a,
+    0x65,
+    0x72,
+    0x6f,
+    0x20,
+    0x57,
+    0x69,
+    0x64,
+    0x74,
+    0x68,
+    0x20,
+    0x4e,
+    0x6f,
+    0x6e,
+    0x2d,
+    0x4a,
+    0x6f,
+    0x69,
+    0x6e,
+    0x65,
+    0x72,
+    0x29,
+    0x0a,
+    0xe2,
+    0x80,
+    0x8d,
+    0x20,
+    0x20,
+    0x20,
+    0x28,
+    0x55,
+    0x2b,
+    0x32,
+    0x30,
+    0x30,
+    0x44,
+    0x3a,
+    0x20,
+    0x5a,
+    0x65,
+    0x72,
+    0x6f,
+    0x20,
+    0x57,
+    0x69,
+    0x64,
+    0x74,
+    0x68,
+    0x20,
+    0x4a,
+    0x6f,
+    0x69,
+    0x6e,
+    0x65,
+    0x72,
+    0x29,
+    0x0a,
+    0xef,
+    0xbb,
+    0xbf,
+    0x20,
+    0x20,
+    0x20,
+    0x28,
+    0x55,
+    0x2b,
+    0x46,
+    0x45,
+    0x46,
+    0x46,
+    0x3a,
+    0x20,
+    0x42,
+    0x79,
+    0x74,
+    0x65,
+    0x20,
+    0x4f,
+    0x72,
+    0x64,
+    0x65,
+    0x72,
+    0x20,
+    0x4d,
+    0x61,
+    0x72,
+    0x6b,
+    0x29,
+  ]);
+
+  const pattern = Uint8Array.from([0x30, 0x42]);
+
+  // Forward search
+  const forwardResult = searchBytes(0, pattern, data, "forward");
+  assertEquals(forwardResult, 11);
+
+  // Backward search
+  const backwardResult = searchBytes(
+    data.length - 1,
+    pattern,
+    data,
+    "backward",
+  );
+  assertEquals(backwardResult, 11);
 });
