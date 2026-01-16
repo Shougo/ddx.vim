@@ -447,7 +447,7 @@ export class DdxBuffer {
 
   search(
     pos: number,
-    bytes: Uint8Array,
+    bytes: Uint8Array | (number | null)[],
     direction: "forward" | "backward" = "forward",
   ): number {
     pos -= this.#offset;
@@ -1155,11 +1155,13 @@ export class DdxBuffer {
 
 function searchBytes(
   pos: number,
-  searchBytes: Uint8Array,
+  searchBytes: Uint8Array | (number | null)[],
   allBytes: Uint8Array,
   direction: "forward" | "backward" = "forward",
 ): number {
-  const pat = searchBytes;
+  const pat = Array.isArray(searchBytes)
+    ? searchBytes
+    : Array.from(searchBytes);
   const hay = allBytes;
   const n = hay.length;
   const m = pat.length;
@@ -1169,11 +1171,10 @@ function searchBytes(
   }
 
   if (direction === "forward") {
-    // Forward
     for (let i = pos; i <= n - m; i++) {
       let found = true;
       for (let j = 0; j < m; j++) {
-        if (hay[i + j] !== pat[j]) {
+        if (pat[j] !== null && hay[i + j] !== pat[j]) {
           found = false;
           break;
         }
@@ -1181,11 +1182,10 @@ function searchBytes(
       if (found) return i;
     }
   } else {
-    // Backward
     for (let i = pos; i >= 0; i--) {
       let found = true;
       for (let j = 0; j < m; j++) {
-        if (i + j >= n || hay[i + j] !== pat[j]) {
+        if (pat[j] !== null && (i + j >= n || hay[i + j] !== pat[j])) {
           found = false;
           break;
         }
@@ -1424,4 +1424,24 @@ Deno.test("search bytes", () => {
     "backward",
   );
   assertEquals(backwardResult, 11);
+});
+
+Deno.test("search bytes with wildcards", () => {
+  const data = Uint8Array.from([0x41, 0x42, 0x43, 0x44]); // "ABCD"
+
+  let pattern = [0x41, null, 0x43]; // "A*C"
+  assertEquals(searchBytes(0, pattern, data, "forward"), 0);
+  assertEquals(searchBytes(data.length - 1, pattern, data, "backward"), 0);
+
+  pattern = [0x44]; // "D"
+  assertEquals(searchBytes(0, pattern, data, "forward"), 3);
+  assertEquals(searchBytes(data.length - 1, pattern, data, "backward"), 3);
+
+  pattern = [null, null, 0x43]; // **C
+  assertEquals(searchBytes(0, pattern, data, "forward"), 0);
+  assertEquals(searchBytes(data.length - 1, pattern, data, "backward"), 0);
+
+  pattern = [0x45]; // "E"
+  assertEquals(searchBytes(0, pattern, data, "forward"), -1);
+  assertEquals(searchBytes(data.length - 1, pattern, data, "backward"), -1);
 });
