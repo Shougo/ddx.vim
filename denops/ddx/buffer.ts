@@ -106,10 +106,12 @@ export class DdxBuffer {
     this.#origBufferSize = this.#bytes.length;
     this.#mtimeCache.set(path, stat.mtime);
 
-    this.#startFileWatcher(path);
+    this.startFileWatcher(path);
   }
 
-  #startFileWatcher(path: string) {
+  startFileWatcher(path: string) {
+    this.#mtimeCache.set(path, new Date());
+
     if (this.#watchers.has(path)) {
       clearInterval(this.#watchers.get(path)!);
       this.#watchers.delete(path);
@@ -125,7 +127,7 @@ export class DdxBuffer {
     this.#watchers.set(path, intervalId);
   }
 
-  #stopAllFileWatchers() {
+  stopAllFileWatchers() {
     for (const [path, intervalId] of this.#watchers.entries()) {
       clearInterval(intervalId);
       this.#watchers.delete(path);
@@ -301,10 +303,9 @@ export class DdxBuffer {
     try {
       await file.seek(this.#offset ?? 0, Deno.SeekMode.Start);
 
-      this.#mtimeCache.set(path, new Date());
       await file.write(this.#bytes);
 
-      this.#startFileWatcher(path);
+      this.startFileWatcher(path);
     } finally {
       file.close();
     }
@@ -330,12 +331,11 @@ export class DdxBuffer {
       newData.set(remainingData, this.#bytes.length);
 
       await file.seek(this.#offset ?? 0, Deno.SeekMode.Start);
-      this.#mtimeCache.set(path, new Date());
       await file.write(newData);
 
       await file.truncate(this.#offset + newData.length);
 
-      this.#startFileWatcher(path);
+      this.startFileWatcher(path);
     } finally {
       file.close();
     }
@@ -793,7 +793,7 @@ export class DdxBuffer {
   }
 
   close() {
-    this.#stopAllFileWatchers();
+    this.stopAllFileWatchers();
 
     if (!this.#file) {
       return;
