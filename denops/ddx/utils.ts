@@ -534,6 +534,13 @@ export function calculateBinaryDiff(
   return diffs;
 }
 
+export function uint8ArrayToBase64(bytes: Uint8Array): string {
+  const binaryString = Array.from(bytes)
+    .map((byte) => String.fromCharCode(byte))
+    .join("");
+  return btoa(binaryString);
+}
+
 /*
  Example:
  const s = "eO\x08\x11c\u0000k{;\x1F\n\t";
