@@ -52,7 +52,7 @@ export class Ddx {
   ): Promise<void> {
     this.updateOptions(userOptions);
 
-    return await this.restart(denops);
+    return this.restart(denops);
   }
 
   async restart(

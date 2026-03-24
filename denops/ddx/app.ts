@@ -199,7 +199,7 @@ export const main: Entrypoint = (denops: Denops) => {
 
       const ddx = getDdx(name);
 
-      return await ddx.analyze(denops);
+      return ddx.analyze(denops);
     },
     change(
       arg1: unknown,
