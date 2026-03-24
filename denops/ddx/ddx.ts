@@ -46,7 +46,7 @@ export class Ddx {
     ]);
   }
 
-  async start(
+  start(
     denops: Denops,
     userOptions: DdxOptions,
   ): Promise<void> {

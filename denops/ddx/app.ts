@@ -189,12 +189,12 @@ export const main: Entrypoint = (denops: Denops) => {
         params,
       );
     },
-    async analyze(
+    analyze(
       arg1: unknown,
     ): Promise<AnalyzeResult[]> {
       const name = ensure(arg1, is.String);
       if (name.length === 0) {
-        return [];
+        return Promise.resolve([]);
       }
 
       const ddx = getDdx(name);
@@ -254,7 +254,7 @@ export const main: Entrypoint = (denops: Denops) => {
 
       return calculateBinaryDiff(bytes, anotherBytes);
     },
-    get_strings(
+    getStrings(
       arg1: unknown,
       arg2: unknown,
       arg3: unknown,

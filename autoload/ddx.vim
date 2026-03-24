@@ -32,5 +32,5 @@ endfunction
 
 function ddx#get_strings(name, min_length, encoding) abort
   return ddx#denops#_request(
-        \ 'get_strings', [a:name, a:min_length, a:encoding])
+        \ 'getStrings', [a:name, a:min_length, a:encoding])
 endfunction
