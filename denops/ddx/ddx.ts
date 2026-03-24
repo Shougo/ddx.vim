@@ -46,13 +46,13 @@ export class Ddx {
     ]);
   }
 
-  async start(
+  start(
     denops: Denops,
     userOptions: DdxOptions,
   ): Promise<void> {
     this.updateOptions(userOptions);
 
-    return await this.restart(denops);
+    return this.restart(denops);
   }
 
   async restart(
