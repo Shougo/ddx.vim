@@ -67,7 +67,10 @@ export class Loader {
   }
 
   async registerPath(type: DdxExtType, path: string): Promise<void> {
-    // Fast-path: skip I/O if already registered.
+    // Fast-path: skip I/O if already registered. This unlocked check may be
+    // stale under heavy concurrency, but the locked re-check at the state-
+    // update step below ensures correctness. This is purely a performance
+    // optimisation to avoid unnecessary I/O for already-registered paths.
     if (path in this.#checkPaths) {
       return;
     }
