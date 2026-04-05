@@ -13,12 +13,6 @@ import { join } from "@std/path/join";
 import { parse } from "@std/path/parse";
 import { Lock } from "@core/asyncutil/lock";
 
-type Mod = {
-  // deno-lint-ignore no-explicit-any
-  mod: any;
-  path: string;
-};
-
 const PLUGIN_PREFIX = "@ddx";
 
 // Pattern for directories where auto-loadable extensions are placed by type
@@ -73,23 +67,90 @@ export class Loader {
   }
 
   async registerPath(type: DdxExtType, path: string): Promise<void> {
-    await this.#registerLock.lock(async () => {
-      try {
-        await this.#register(type, path);
-      } catch (e) {
-        if (isDenoCacheIssueError(e)) {
-          console.warn("*".repeat(80));
-          console.warn(`Deno module cache issue is detected.`);
-          console.warn(
-            `Execute '!deno cache --reload "${path}"' and restart Vim/Neovim.`,
-          );
-          console.warn("*".repeat(80));
-        }
+    // Fast-path: skip I/O if already registered. This unlocked check may be
+    // stale under heavy concurrency, but the locked re-check at the state-
+    // update step below ensures correctness. This is purely a performance
+    // optimisation to avoid unnecessary I/O for already-registered paths.
+    if (path in this.#checkPaths) {
+      return;
+    }
 
-        console.error(`Failed to load file '${path}': ${e}`);
-        throw e;
+    const name = parse(path).name;
+
+    // Perform I/O outside the lock so concurrent calls run in parallel.
+    // NOTE: We intentionally use Deno.stat instead of safeStat here. We expect
+    // errors to be thrown when paths don't exist or are inaccessible.
+    // deno-lint-ignore no-explicit-any
+    let importedMod: any;
+    try {
+      const fileInfo = await Deno.stat(path);
+      const entryPoint = fileInfo.isDirectory
+        ? join(path, EXT_ENTRY_POINT_FILE)
+        : path;
+      importedMod = await importPlugin(entryPoint);
+    } catch (e) {
+      if (isDenoCacheIssueError(e)) {
+        console.warn("*".repeat(80));
+        console.warn(`Deno module cache issue is detected.`);
+        console.warn(
+          `Execute '!deno cache --reload "${path}"' and restart Vim/Neovim.`,
+        );
+        console.warn("*".repeat(80));
       }
+
+      console.error(`Failed to load file '${path}': ${e}`);
+      throw e;
+    }
+
+    // Update shared state under lock; re-check to avoid duplicate registration
+    // by concurrent calls that passed the fast-path check simultaneously.
+    await this.#registerLock.lock(() => {
+      if (path in this.#checkPaths) {
+        return;
+      }
+
+      const register = (n: string) => {
+        switch (type) {
+          case "ui": {
+            const ui = new importedMod.Ui();
+            ui.name = n;
+            this.#uis[n] = ui;
+            break;
+          }
+          case "analyzer": {
+            const analyzer = new importedMod.Analyzer();
+            analyzer.name = n;
+            this.#analyzers[n] = analyzer;
+            break;
+          }
+        }
+      };
+
+      register(name);
+
+      // Check alias
+      const aliases = this.getAliasNames(type).filter(
+        (k) => this.getAlias(type, k) === name,
+      );
+      for (const alias of aliases) {
+        register(alias);
+      }
+
+      this.#checkPaths[path] = true;
     });
+  }
+
+  async registerPaths(type: DdxExtType, paths: string[]): Promise<void> {
+    const results = await Promise.allSettled(
+      paths.map((path) => this.registerPath(type, path)),
+    );
+    for (const result of results) {
+      if (result.status === "rejected") {
+        console.error(
+          `registerPaths: failed to register a path: ${result.reason}`,
+        );
+      }
+    }
   }
 
   getAliasNames(type: DdxExtType) {
@@ -103,61 +164,6 @@ export class Loader {
   }
   getAnalyzer(name: AnalyzerName) {
     return this.#analyzers[name];
-  }
-
-  async #register(type: DdxExtType, path: string) {
-    if (path in this.#checkPaths) {
-      return;
-    }
-
-    const name = parse(path).name;
-    const mod: Mod = {
-      mod: undefined,
-      path,
-    };
-
-    // NOTE: We intentionally use Deno.stat instead of safeStat here. We expect
-    // errors to be thrown when paths don't exist or are inaccessible.
-    const fileInfo = await Deno.stat(path);
-
-    if (fileInfo.isDirectory) {
-      // Load structured extension module
-      const entryPoint = join(path, EXT_ENTRY_POINT_FILE);
-      mod.mod = await importPlugin(entryPoint);
-    } else {
-      // Load single-file extension module
-      mod.mod = await importPlugin(path);
-    }
-
-    let add;
-    switch (type) {
-      case "ui":
-        add = (name: string) => {
-          const ui = new mod.mod.Ui();
-          ui.name = name;
-          this.#uis[ui.name] = ui;
-        };
-        break;
-      case "analyzer":
-        add = (name: string) => {
-          const analyzer = new mod.mod.Analyzer();
-          analyzer.name = name;
-          this.#analyzers[analyzer.name] = analyzer;
-        };
-        break;
-    }
-
-    add(name);
-
-    // Check alias
-    const aliases = this.getAliasNames(type).filter(
-      (k) => this.getAlias(type, k) === name,
-    );
-    for (const alias of aliases) {
-      add(alias);
-    }
-
-    this.#checkPaths[path] = true;
   }
 }
 
