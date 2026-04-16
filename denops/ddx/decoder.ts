@@ -91,99 +91,126 @@ export function bytesToUTF8(buf: Uint8Array): string {
   let i = 0;
 
   // Set of specific invisible Unicode characters to replace with "."
-  const invisibleUnicode = new Set([0x200B, 0x200C, 0x200D, 0xFEFF]);
+  const invisibleUnicode = new Set([
+    0x180E,
+    0x200B,
+    0x200C,
+    0x200D,
+    0x200E,
+    0x200F,
+    0xFEFF,
+  ]);
 
-  // Determine if a byte is printable ASCII
   const isPrintableAscii = (b: number) => b >= 0x20 && b <= 0x7E;
 
-  // Determine if a Unicode code point is printable
   const isPrintableCodePoint = (cp: number) => {
-    if (
-      cp <= 0x1F || (cp >= 0x7F && cp <= 0x9F) ||
-      (0xD800 <= cp && cp <= 0xDFFF)
-    ) return false;
+    if (cp <= 0x1F || (cp >= 0x7F && cp <= 0x9F)) return false;
+    if (0xD800 <= cp && cp <= 0xDFFF) return false; // surrogate area
     if (cp === 0xFFFD) return false;
     if (cp > 0x10FFFF) return false;
     if (invisibleUnicode.has(cp)) return false;
+    // Exclude U+E0100..U+E010F (Variation Selectors Supplement)
+    if (cp >= 0xE0100 && cp <= 0xE010F) return false;
     return true;
   };
 
   while (i < buf.length) {
     const b0 = buf[i];
 
-    // Handle ASCII fast path (1-byte sequences)
+    // ASCII fast path
     if (b0 < 0x80) {
       out.push(isPrintableAscii(b0) ? String.fromCharCode(b0) : ".");
-      i += 1;
+      i++;
       continue;
     }
 
-    // Try to determine UTF-8 sequence length
+    // Determine sequence length and per-RFC constraints
     let expectedLen = 0;
     let cp = 0;
+    let minSecond: number | undefined;
+    let maxSecond: number | undefined;
 
-    if ((b0 & 0b1110_0000) === 0b1100_0000) {
+    if (b0 >= 0xC2 && b0 <= 0xDF) {
       expectedLen = 2;
       cp = b0 & 0x1F;
-    } else if ((b0 & 0b1111_0000) === 0b1110_0000) {
+    } else if (b0 === 0xE0) {
       expectedLen = 3;
       cp = b0 & 0x0F;
-    } else if ((b0 & 0b1111_1000) === 0b1111_0000) {
+      minSecond = 0xA0;
+    } else if (b0 >= 0xE1 && b0 <= 0xEC) {
+      expectedLen = 3;
+      cp = b0 & 0x0F;
+      minSecond = 0x80;
+    } else if (b0 === 0xED) {
+      expectedLen = 3;
+      cp = b0 & 0x0F;
+      maxSecond = 0x9F;
+    } else if (b0 >= 0xEE && b0 <= 0xEF) {
+      expectedLen = 3;
+      cp = b0 & 0x0F;
+      minSecond = 0x80;
+    } else if (b0 === 0xF0) {
       expectedLen = 4;
       cp = b0 & 0x07;
+      minSecond = 0x90;
+    } else if (b0 >= 0xF1 && b0 <= 0xF3) {
+      expectedLen = 4;
+      cp = b0 & 0x07;
+      minSecond = 0x80;
+    } else if (b0 === 0xF4) {
+      expectedLen = 4;
+      cp = b0 & 0x07;
+      maxSecond = 0x8F;
     } else {
-      // Invalid UTF-8 leading byte - treat as a single invalid byte
+      // invalid leading byte (includes 0xC0/0xC1, 0xF5..0xFF, etc.)
       out.push(".");
-      i += 1;
+      i++;
       continue;
     }
 
-    // Ensure enough bytes available for this sequence
+    // Not enough bytes for full sequence -> treat remaining bytes as invalid
     if (i + expectedLen > buf.length) {
-      // Incomplete sequence: treat remaining bytes as invalid
-      while (i < buf.length) {
-        out.push(".");
-        i++;
-      }
+      const remaining = buf.length - i;
+      for (let k = 0; k < remaining; k++) out.push(".");
       break;
     }
 
-    // Validate UTF-8 continuation bytes
+    // Validate continuation bytes and second-byte constraints
     let valid = true;
     for (let j = 1; j < expectedLen; j++) {
       const cb = buf[i + j];
-      if ((cb & 0b1100_0000) !== 0b1000_0000) { // Invalid continuation byte
-        valid = false;
-        break;
+      if ((cb & 0xC0) !== 0x80) { valid = false; break; }
+      if (j === 1) {
+        if (minSecond !== undefined && cb < minSecond) { valid = false; break; }
+        if (maxSecond !== undefined && cb > maxSecond) { valid = false; break; }
       }
       cp = (cp << 6) | (cb & 0x3F);
     }
 
-    // If sequence is invalid, mark all bytes of the sequence as invalid
     if (!valid) {
-      for (let j = 0; j < expectedLen; j++) {
-        out.push(".");
-      }
-    } else if (
-      (expectedLen === 2 && cp < 0x80) || // Overlong 2-byte sequence
-      (expectedLen === 3 && cp < 0x800) || // Overlong 3-byte sequence
-      (expectedLen === 4 && cp < 0x10000) || // Overlong 4-byte sequence
-      cp > 0x10FFFF // Out of valid code point range
+      // Sequence invalid -> emit '.' for each byte in the sequence and consume them
+      for (let j = 0; j < expectedLen; j++) out.push(".");
+      i += expectedLen;
+      continue;
+    }
+
+    // Overlong / out-of-range checks
+    if (
+      (expectedLen === 2 && cp < 0x80) ||
+      (expectedLen === 3 && cp < 0x800) ||
+      (expectedLen === 4 && cp < 0x10000) ||
+      cp > 0x10FFFF
     ) {
-      // Invalid UTF-8 sequence: output "." for each byte in the sequence
-      for (let j = 0; j < expectedLen; j++) {
-        out.push(".");
-      }
+      for (let j = 0; j < expectedLen; j++) out.push(".");
+      i += expectedLen;
+      continue;
+    }
+
+    // Valid code point: if printable, append the character once; otherwise '.' per byte
+    if (isPrintableCodePoint(cp)) {
+      out.push(String.fromCodePoint(cp));
     } else {
-      // Append printable character or "." for invisible Unicode
-      if (isPrintableCodePoint(cp)) {
-        out.push(String.fromCodePoint(cp));
-      } else {
-        // Treat as invalid and output "."
-        for (let j = 0; j < expectedLen; j++) {
-          out.push(".");
-        }
-      }
+      for (let j = 0; j < expectedLen; j++) out.push(".");
     }
 
     i += expectedLen;
