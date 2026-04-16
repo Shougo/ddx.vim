@@ -179,10 +179,19 @@ export function bytesToUTF8(buf: Uint8Array): string {
     let valid = true;
     for (let j = 1; j < expectedLen; j++) {
       const cb = buf[i + j];
-      if ((cb & 0xC0) !== 0x80) { valid = false; break; }
+      if ((cb & 0xC0) !== 0x80) {
+        valid = false;
+        break;
+      }
       if (j === 1) {
-        if (minSecond !== undefined && cb < minSecond) { valid = false; break; }
-        if (maxSecond !== undefined && cb > maxSecond) { valid = false; break; }
+        if (minSecond !== undefined && cb < minSecond) {
+          valid = false;
+          break;
+        }
+        if (maxSecond !== undefined && cb > maxSecond) {
+          valid = false;
+          break;
+        }
       }
       cp = (cp << 6) | (cb & 0x3F);
     }
