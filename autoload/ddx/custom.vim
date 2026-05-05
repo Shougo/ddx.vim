@@ -79,7 +79,6 @@ function s:notify(method, args) abort
   if !'g:ddx#_customs'->exists()
     let g:ddx#_customs = []
   endif
-
   call add(g:ddx#_customs, #{ method: a:method, args: a:args })
 
   return ddx#denops#_notify(a:method, a:args)

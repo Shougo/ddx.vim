@@ -92,11 +92,9 @@ function s:stopped() abort
   unlet! s:initialized
 
   " Restore custom config
-  if 'g:ddx#_customs'->exists()
-    for custom in g:ddx#_customs
-      call ddx#_notify(custom.method, custom.args)
-    endfor
-  endif
+  for custom in g:->get('ddx#_notifies', [])
+    call ddx#_notify(custom.method, custom.args)
+  endfor
 endfunction
 
 function ddx#denops#_running() abort
