@@ -135,7 +135,9 @@ class Custom {
 
   get(userOptions: UserOptions): DdxOptions {
     // Extract the effective name cheaply without a full merge pass.
-    const name = (userOptions["name"] ?? this.global.name ??
+    // userOptions is typed as Record<string, unknown>, so bracket notation
+    // is used to make the dynamic key access explicit.
+    const name = (userOptions["name"] ?? this.global["name"] ??
       defaultDdxOptions().name) as string;
     const local = this.local[name] || {};
     return foldMerge(mergeDdxOptions, defaultDdxOptions, [
