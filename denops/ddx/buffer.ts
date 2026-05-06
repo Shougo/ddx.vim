@@ -7,6 +7,17 @@ import { join } from "@std/path/join";
 import { resolve } from "@std/path/resolve";
 import { isAbsolute } from "@std/path/is-absolute";
 
+// Probe once at module load time: avoids repeated TextDecoder construction
+// inside #searchUtf8 which is called for every string-extraction request.
+const FATAL_DECODER_SUPPORTED = (() => {
+  try {
+    new TextDecoder("utf-8", { fatal: true }).decode(new Uint8Array());
+    return true;
+  } catch {
+    return false;
+  }
+})();
+
 type OperationHistory =
   | ChangeHistory
   | ChangeBytesHistory
@@ -594,14 +605,6 @@ export class DdxBuffer {
 
     const isUtf8Start = (b: number) => !(b >= 0x80 && b <= 0xbf);
     let i = 0;
-    const fatalDecoderSupported = (() => {
-      try {
-        new TextDecoder("utf-8", { fatal: true }).decode(new Uint8Array());
-        return true;
-      } catch {
-        return false;
-      }
-    })();
 
     while (i < n) {
       if (!isUtf8Start(bytes[i])) {
@@ -612,7 +615,7 @@ export class DdxBuffer {
       let lastGood = -1;
       for (let j = i; j < n; j++) {
         const slice = bytes.subarray(i, j + 1);
-        if (fatalDecoderSupported) {
+        if (FATAL_DECODER_SUPPORTED) {
           const decoded = this.#tryDecodeFatal(slice, "utf-8");
           if (decoded === null) break;
           lastGood = j;

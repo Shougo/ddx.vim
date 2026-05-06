@@ -134,11 +134,9 @@ class Custom {
   local: Record<string, Partial<DdxOptions>> = {};
 
   get(userOptions: UserOptions): DdxOptions {
-    const options = foldMerge(mergeDdxOptions, defaultDdxOptions, [
-      this.global,
-      userOptions,
-    ]);
-    const name = options.name;
+    // Extract the effective name cheaply without a full merge pass.
+    const name = (userOptions["name"] ?? this.global.name ??
+      defaultDdxOptions().name) as string;
     const local = this.local[name] || {};
     return foldMerge(mergeDdxOptions, defaultDdxOptions, [
       this.global,
@@ -179,11 +177,16 @@ export class ContextBuilder {
 
     await this.validate(denops, "options", userOptions, defaultDdxOptions());
 
+    const [bufNr, winId] = await Promise.all([
+      fn.bufnr(denops, "%"),
+      fn.win_getid(denops),
+    ]);
+
     return [
       {
         ...defaultContext(),
-        bufNr: await fn.bufnr(denops, "%"),
-        winId: await fn.win_getid(denops) as number,
+        bufNr: bufNr as number,
+        winId: winId as number,
       },
       userOptions,
     ];

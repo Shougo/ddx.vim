@@ -39,7 +39,7 @@ export const main: Entrypoint = (denops: Denops) => {
     if (ddxs[name].length == 0) {
       ddxs[name].push(new Ddx(getLoader(name)));
     }
-    return ddxs[name].slice(-1)[0];
+    return ddxs[name].at(-1)!;
   };
   const getLoader = (name: string) => {
     if (!loaders[name]) {
