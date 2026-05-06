@@ -26,6 +26,12 @@ function getCp932Decoder(): TextDecoder {
   return new TextDecoder();
 }
 
+// Memoized CP932 decoder: constructed once, reused for every multibyte pair.
+// TextDecoder.decode() without the `stream` option resets any internal state
+// after each call, so reusing the instance is safe in a single-threaded
+// JavaScript runtime (Deno does not share module-scope state across Workers).
+const CP932_DECODER = getCp932Decoder();
+
 export function bytesToCP932(buf: Uint8Array): string {
   const out: string[] = [];
   let i = 0;
@@ -60,8 +66,7 @@ export function bytesToCP932(buf: Uint8Array): string {
 
       if (isValidShiftJisMultibyte(byte1, byte2)) {
         try {
-          const decoder = getCp932Decoder();
-          const decoded = decoder.decode(new Uint8Array([byte1, byte2]));
+          const decoded = CP932_DECODER.decode(new Uint8Array([byte1, byte2]));
 
           // Replace the decoded character if it's a replacement character
           if (decoded === "�") {

@@ -67,9 +67,13 @@ export class Ddx {
     }
 
     try {
+      const [expandedPath, cwd] = await Promise.all([
+        fn.expand(denops, this.#options.path) as Promise<string>,
+        fn.getcwd(denops),
+      ]);
       await this.#buffer.open(
-        await fn.expand(denops, this.#options.path) as string,
-        await fn.getcwd(denops),
+        expandedPath,
+        cwd,
         Number(this.#options.offset),
         Number(this.#options.length),
       );
@@ -84,9 +88,13 @@ export class Ddx {
 
     if (this.#options.anotherPath.length > 0) {
       try {
+        const [expandedAnotherPath, cwd] = await Promise.all([
+          fn.expand(denops, this.#options.anotherPath) as Promise<string>,
+          fn.getcwd(denops),
+        ]);
         await this.#anotherBuffer.open(
-          await fn.expand(denops, this.#options.anotherPath) as string,
-          await fn.getcwd(denops),
+          expandedAnotherPath,
+          cwd,
           Number(this.#options.offset),
           Number(this.#options.length),
         );
