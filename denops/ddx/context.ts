@@ -137,7 +137,8 @@ class Custom {
     // Extract the effective name cheaply without a full merge pass.
     // userOptions is Record<string, unknown> so bracket notation is used;
     // this.global is Partial<DdxOptions> so dot notation is appropriate there.
-    const name = (userOptions["name"] ?? this.global.name ?? "default") as string;
+    const name =
+      (userOptions["name"] ?? this.global.name ?? "default") as string;
     const local = this.local[name] || {};
     return foldMerge(mergeDdxOptions, defaultDdxOptions, [
       this.global,
