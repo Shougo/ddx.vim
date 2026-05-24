@@ -66,7 +66,7 @@ export class DdxBuffer {
   #changedAdresses: Set<number> = new Set<number>();
   #histories: OperationHistory[] = [];
   #undoHistories: OperationHistory[] = [];
-  #watchers = new Map<string, number>();
+  #watchers = new Map<string, ReturnType<typeof setTimeout>>();
   #mtimeCache: Map<string, Date | null> = new Map();
 
   async open(
