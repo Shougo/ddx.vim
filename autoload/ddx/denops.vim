@@ -93,7 +93,7 @@ function s:stopped() abort
 
   " Restore custom config
   for custom in g:->get('ddx#_notifies', [])
-    call ddx#_notify(custom.method, custom.args)
+    call ddx#denops#_notify(custom.method, custom.args)
   endfor
 endfunction
 
