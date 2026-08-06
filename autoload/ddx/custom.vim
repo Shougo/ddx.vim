@@ -8,9 +8,19 @@ function ddx#custom#patch_local(name, key_or_dict, value = '') abort
 endfunction
 
 function ddx#custom#set_global(dict) abort
+  if a:dict->type() != v:t_dict
+    call ddx#util#print_error('ddx#custom#set_global() expects Dict.')
+    return
+  endif
+
   call s:notify('setGlobal', [a:dict])
 endfunction
 function ddx#custom#set_local(name, dict) abort
+  if a:dict->type() != v:t_dict
+    call ddx#util#print_error('ddx#custom#set_local() expects Dict.')
+    return
+  endif
+
   call s:notify('setLocal', [a:dict, a:name])
 endfunction
 
@@ -39,7 +49,7 @@ function ddx#custom#get_current(name) abort
   return ddx#denops#_request('getCurrent', [a:name])
 endfunction
 function ddx#custom#get_aliases() abort
-  return s:aliases
+  return s:aliases->copy()
 endfunction
 function ddx#custom#get_default_options() abort
   return ddx#denops#_request('getDefaultOptions', [])
@@ -65,7 +75,7 @@ function s:normalize_key_or_dict(key_or_dict, value) abort
 
   throw printf(
         \   'ddx#custom: "key_or_dict" must be Dict or String, got %s',
-        \   type(a:key_or_dict)
+        \   a:key_or_dict->type()
         \ )
 endfunction
 
