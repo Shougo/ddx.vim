@@ -32,8 +32,12 @@ function ddx#denops#_notify(method, args) abort
     call denops#notify('ddx', a:method, a:args)
   else
     " Lazy call notify
-    execute printf('autocmd User DenopsPluginPost:ddx call '
-          \ .. 'denops#notify("ddx", "%s", %s)', a:method, a:args->string())
+    execute printf(
+          \   'autocmd User DenopsPluginPost:ddx ' ..
+          \   'call denops#notify("ddx", %s, %s)',
+          \   string(a:method),
+          \   string(a:args)
+          \ )
   endif
 
   return {}
