@@ -17,7 +17,7 @@ function ddx#util#print(string, name = 'ddx') abort
 endfunction
 
 function ddx#util#highlight(
-      \ highlight, prop_type, priority, id, bufnr, row, col, length) abort
+      \ highlight, prop_type, priority, ns, bufnr, row, col, length) abort
 
   if !a:highlight->hlexists()
     call ddx#util#print_error(
@@ -25,7 +25,7 @@ function ddx#util#highlight(
     return
   endif
 
-  const max_col = getline(a:row)->len()
+  const max_col = getline(a:row)->strdisplaywidth()
 
   if a:row <= 0 || a:col <= 0 || a:row > line('$') || a:col > max_col
     " Invalid range
@@ -52,7 +52,7 @@ function ddx#util#highlight(
   if has('nvim')
     call nvim_buf_set_extmark(
           \   a:bufnr,
-          \   a:id,
+          \   a:ns,
           \   a:row - 1,
           \   a:col - 1,
           \   #{
@@ -65,7 +65,7 @@ function ddx#util#highlight(
           \   length: length,
           \   type: a:prop_type,
           \   bufnr: a:bufnr,
-          \   id: a:id,
+          \   id: a:ns,
           \ })
   endif
 endfunction
@@ -99,7 +99,7 @@ function! ddx#util#clear_highlights(bufnr, prop_type, ns) abort
 
   " Clear all properties
   if has('nvim')
-    call nvim_buf_clear_namespace(0, ns, 0, -1)
+    call nvim_buf_clear_namespace(a:bufnr, ns, 0, -1)
   else
     for prop_type in prop_type_list(#{ bufnr: a:bufnr })
       call prop_type_delete(prop_type, #{ bufnr: a:bufnr })
