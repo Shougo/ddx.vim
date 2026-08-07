@@ -31,21 +31,28 @@ export class Source extends BaseSource<Params> {
         ) as BinaryDiff[];
 
         for (const result of results) {
-          const text = `0x${result.offset.toString(16)}:` +
-            ` ${result.type} ${result.oldValue} -> ${result.newValue}`;
-          const value = {
-            name: text,
-            rawType: "integer" as const,
-            value: result.oldValue![0],
-            address: result.offset,
-          };
+          const text = `0x${result.offset.toString(16)}: ` +
+            `${result.type} ${formatBytes(result.oldValue)} -> ${
+              formatBytes(result.newValue)
+            }`;
 
-          controller.enqueue([{
-            word: text,
-            action: {
-              value,
-            },
-          }]);
+          if (result.type === "changed") {
+            controller.enqueue([{
+              word: text,
+              action: {
+                value: {
+                  name: text,
+                  rawType: "integer" as const,
+                  value: result.oldValue?.[0] ?? 0,
+                  address: result.offset,
+                },
+              },
+            }]);
+          } else {
+            controller.enqueue([{
+              word: text,
+            }]);
+          }
         }
 
         controller.close();
@@ -56,4 +63,13 @@ export class Source extends BaseSource<Params> {
   override params(): Params {
     return {};
   }
+}
+
+function formatBytes(bytes: Uint8Array | undefined): string {
+  if (!bytes || bytes.length === 0) {
+    return "(none)";
+  }
+  return [...bytes]
+    .map((b) => `0x${b.toString(16).padStart(2, "0")}`)
+    .join(" ");
 }
