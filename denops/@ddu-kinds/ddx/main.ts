@@ -114,9 +114,10 @@ function parseStrictInt(str: string, radix: number = 10): number {
       return NaN;
   }
 
-  if (!pattern.test(str.trim())) {
+  const trimmed = str.trim();
+  if (!pattern.test(trimmed)) {
     return NaN;
   }
-  const n = parseInt(str, radix);
+  const n = parseInt(trimmed, radix);
   return Number.isNaN(n) ? NaN : n;
 }
