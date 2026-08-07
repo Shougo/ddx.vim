@@ -23,6 +23,11 @@ export class Source extends BaseSource<Params> {
     return new ReadableStream({
       async start(controller) {
         const name = await vars.b.get(args.denops, "ddx_ui_name", "");
+        if (name === "") {
+          controller.close();
+          return;
+        }
+
         const encoding = await vars.b.get(
           args.denops,
           "ddx_ui_encoding",
