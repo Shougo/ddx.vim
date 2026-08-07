@@ -32,8 +32,9 @@ export class Kind extends BaseKind<Params> {
             const input = await args.denops.call(
               "ddx#util#input",
               `New value: ${action.value.value} -> `,
+              action.value.value,
             ) as string;
-            if (input == "") {
+            if (input.trim() === "") {
               return ActionFlags.Persist;
             }
 
