@@ -20,6 +20,11 @@ export class Source extends BaseSource<Params> {
     return new ReadableStream({
       async start(controller) {
         const name = await vars.b.get(args.denops, "ddx_ui_name", "");
+        if (name === "") {
+          controller.close();
+          return;
+        }
+
         const results = await args.denops.call(
           "ddx#analyze",
           name,
