@@ -108,6 +108,9 @@ export const main: Entrypoint = (denops: Denops) => {
     },
     alias(arg1: unknown, arg2: unknown, arg3: unknown): Promise<void> {
       const extType = ensure(arg1, is.String) as DdxExtType;
+      if (extType !== "ui" && extType !== "analyzer") {
+        throw new Error(`Invalid extType: ${extType}`);
+      }
       const alias = ensure(arg2, is.String);
       const base = ensure(arg3, is.String);
 
