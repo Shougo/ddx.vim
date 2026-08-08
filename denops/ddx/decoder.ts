@@ -69,7 +69,7 @@ export function bytesToCP932(buf: Uint8Array): string {
           const decoded = CP932_DECODER.decode(new Uint8Array([byte1, byte2]));
 
           // Replace the decoded character if it's a replacement character
-          if (decoded === "�") {
+          if (decoded.includes("�")) {
             out.push("..");
           } else {
             out.push(decoded);
