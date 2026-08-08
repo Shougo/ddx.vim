@@ -169,17 +169,23 @@ export function parseOneLine(
 
   if (type === "uint8_t") {
     const byte = buffer.getByte(offset);
-    if (!byte) {
+    if (byte === undefined || byte === null) {
       throw new Error(`Cannot get byte : "${offset}"`);
     }
     value = byte;
     size = 1;
   } else if (type === "uint16_t") {
     const bytes = buffer.getBytes(offset, 2);
+    if (bytes.length < 2) {
+      throw new Error(`Cannot get 2 bytes : "${offset}"`);
+    }
     value = isLittle ? bytes[0] + (bytes[1] << 8) : (bytes[0] << 8) + bytes[1];
     size = 2;
   } else if (type === "uint32_t") {
     const bytes = buffer.getBytes(offset, 4);
+    if (bytes.length < 4) {
+      throw new Error(`Cannot get 4 bytes : "${offset}"`);
+    }
     value = isLittle
       ? bytes[0] + (bytes[1] << 8) + (bytes[2] << 16) + (bytes[3] << 24)
       : (bytes[0] << 24) + (bytes[1] << 16) + (bytes[2] << 8) + bytes[3];
