@@ -44,6 +44,7 @@ export class Ddx {
       this.#options,
       userOptions,
     ]);
+    this.#userOptions = userOptions;
   }
 
   start(
@@ -81,7 +82,7 @@ export class Ddx {
       await printError(
         denops,
         e,
-        `open: ${this.#options.path.length} failed`,
+        `open: ${this.#options.path} failed`,
       );
       return;
     }
@@ -102,7 +103,7 @@ export class Ddx {
         await printError(
           denops,
           e,
-          `open: ${this.#options.anotherPath.length} failed`,
+          `open: ${this.#options.anotherPath} failed`,
         );
         return;
       }
@@ -148,7 +149,7 @@ export class Ddx {
         continue;
       }
 
-      const detect = analyzer.detect({
+      const detect = await analyzer.detect({
         denops,
         context: defaultContext(),
         options: this.#options,
