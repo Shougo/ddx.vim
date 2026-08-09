@@ -41,13 +41,14 @@ type ChangeBytesHistory = {
 type InsertHistory = {
   operation: "insert";
   address: number;
+  oldValue: Uint8Array;
   newValue: Uint8Array;
 };
 
 type RemoveHistory = {
   operation: "remove";
   address: number;
-  oldValue: number;
+  oldValue: Uint8Array;
 };
 
 export type ExtractedString = {
@@ -179,6 +180,7 @@ export class DdxBuffer {
     this.#histories.push({
       operation: "insert",
       address: pos,
+      oldValue: this.getBytes(pos, bytes.length),
       newValue: bytes,
     });
     this.#undoHistories = [];
@@ -277,10 +279,15 @@ export class DdxBuffer {
   }
 
   remove(pos: number, length: number = 1): Uint8Array {
+    const oldBytes = this.getBytes(pos, length);
+    if (oldBytes.length !== length) {
+      throw new RangeError("Position out of range");
+    }
+
     this.#histories.push({
       operation: "remove",
       address: pos,
-      oldValue: this.getByte(pos) ?? -1,
+      oldValue: oldBytes,
     });
     this.#undoHistories = [];
     this.#changedAdresses.clear();
@@ -434,7 +441,7 @@ export class DdxBuffer {
         histories.push({
           operation: "remove",
           address: history.address,
-          oldValue: this.getByte(history.address) ?? -1,
+          oldValue: history.oldValue,
         });
 
         for (let i = 0; i < history.newValue.length; i++) {
@@ -448,6 +455,7 @@ export class DdxBuffer {
         histories.push({
           operation: "insert",
           address: history.address,
+          oldValue: new Uint8Array(),
           newValue: Uint8Array.from([history.oldValue]),
         });
 
