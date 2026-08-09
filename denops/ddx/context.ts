@@ -213,7 +213,7 @@ export class ContextBuilder {
   getGlobal(): Partial<DdxOptions> {
     return this.#custom.global;
   }
-  getLocal(): Record<number, Partial<DdxOptions>> {
+  getLocal(): Record<string, Partial<DdxOptions>> {
     return this.#custom.local;
   }
 
