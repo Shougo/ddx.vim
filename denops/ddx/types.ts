@@ -78,5 +78,4 @@ export type ActionArguments<Params extends BaseParams> = {
 export enum ActionFlags {
   None = 0,
   Redraw = 1 << 0,
-  Persist = 1 << 1,
 }
