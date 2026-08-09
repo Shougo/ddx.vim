@@ -211,6 +211,10 @@ export class DdxBuffer {
   }
 
   change(pos: number, value: number) {
+    if (this.getByte(pos) === undefined) {
+      throw new RangeError("Position out of range");
+    }
+
     this.#histories.push({
       operation: "change",
       address: pos,
@@ -875,7 +879,7 @@ export class DdxBuffer {
     size: number,
     isLittle: boolean,
     isSigned: boolean,
-  ): number {
+  ): number | bigint {
     // Switch based on size and signedness
     switch (size) {
       case 1:
@@ -1071,16 +1075,16 @@ export class DdxBuffer {
     return Number((BigInt(high) << 32n) + BigInt(low));
   }
 
-  getUint64(pos: number, isLittle: boolean): number {
+  getUint64(pos: number, isLittle: boolean): bigint {
     return isLittle ? this.getUint64_le(pos) : this.getUint64_be(pos);
   }
 
   /**
    * Unsigned 64-bit little-endian. Returns -1 on OOB.
    */
-  getUint64_le(pos: number): number {
+  getUint64_le(pos: number): bigint {
     pos -= this.#offset;
-    if (pos < 0 || pos + 8 > this.#bytes.length) return -1;
+    if (pos < 0 || pos + 8 > this.#bytes.length) return BigInt(-1);
 
     const buffer = this.#bytes.buffer;
     const byteOffset = this.#bytes.byteOffset + pos;
@@ -1089,15 +1093,15 @@ export class DdxBuffer {
     const low = view.getUint32(0, true);
     const high = view.getUint32(4, true);
 
-    return Number(BigInt(low) + (BigInt(high) << 32n));
+    return BigInt(low) + (BigInt(high) << 32n);
   }
 
   /**
    * Unsigned 64-bit big-endian. Returns -1 on OOB.
    */
-  getUint64_be(pos: number): number {
+  getUint64_be(pos: number): bigint {
     pos -= this.#offset;
-    if (pos < 0 || pos + 8 > this.#bytes.length) return -1;
+    if (pos < 0 || pos + 8 > this.#bytes.length) return BigInt(-1);
 
     const buffer = this.#bytes.buffer;
     const byteOffset = this.#bytes.byteOffset + pos;
@@ -1106,7 +1110,7 @@ export class DdxBuffer {
     const high = view.getUint32(0, false);
     const low = view.getUint32(4, false);
 
-    return Number((BigInt(high) << 32n) + BigInt(low));
+    return (BigInt(high) << 32n) + BigInt(low);
   }
 
   /**
