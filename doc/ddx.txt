@@ -145,6 +145,24 @@ ddx#analyze({name})
 
 		{name} is specified ddx name(|ddx-option-name|).
 
+                                                               *ddx#change()*
+ddx#change({name}, {value}, {new-value})
+		Change the analyzed value specified by {value}.
+
+                                                              *ddx#get_diff()*
+ddx#get_diff({name})
+		Return binary differences between the current file and
+		|ddx-option-anotherPath|.
+
+		{name} is the ddx name specified by |ddx-option-name|.
+
+                                                           *ddx#get_strings()*
+ddx#get_strings({name}, {min_length}, {encoding})
+		Return strings extracted from the current file.
+
+		{name} is the ddx name specified by |ddx-option-name|.
+		{min_length} specifies the minimum string length.
+		{encoding} specifies the encoding used to extract strings.
                                                                   *ddx#jump()*
 ddx#jump({name}, {address})
 		Jump to {address} in current UI.
@@ -152,7 +170,7 @@ ddx#jump({name}, {address})
 		{name} is specified ddx name(|ddx-option-name|).
 
                                                                 *ddx#redraw()*
-ddx#redraw{name})
+ddx#redraw({name})
 		Redraw current UI.
 
 		{name} is specified ddx name(|ddx-option-name|).
