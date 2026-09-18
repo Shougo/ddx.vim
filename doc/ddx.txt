@@ -293,7 +293,7 @@ CREATE UI                                                      *ddx-create-ui*
 
 To create UI, you should read other implementation.
 
-The UIs must put under "denops/@ddx-uis/*.ts".
+The UIs must be put under "denops/@ddx-uis/<ui-name>/main.ts".
 
 UI class must extend the BaseUi class.
 
@@ -322,6 +322,10 @@ onInit			(function)			(Optional)
 params			(function)			(Required)
 		Called to get UI params.
 
+                                                       *ddx-ui-attribute-quit*
+quit			(function)			(Optional)
+		Called when the UI is quit.
+
                                                      *ddx-ui-attribute-redraw*
 redraw			(function)			(Optional)
 		Called to redraw UI.
@@ -332,7 +336,8 @@ CREATE ANALYZER                                          *ddx-create-analyzer*
 
 To create analyzer, you should read other implementation.
 
-The analyzers must put under "denops/@ddx-analyzers/*.ts".
+The analyzers must be put under
+"denops/@ddx-analyzers/<analyzer-name>/main.ts".
 
 Analyzer class must extend the BaseAnalyzer class.
 
