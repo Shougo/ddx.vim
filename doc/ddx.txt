@@ -64,8 +64,8 @@ analyzers
                                                   *ddx-option-analyzerOptions*
 analyzerOptions
 		It is a dictionary that maps analyzer names to its options.
-		The options with the name "_" is used as the options for all
-		analyzers.
+		The options under "_" are applied to all analyzers.
+		Options under a specific analyzer name are then merged on top.
 		See also |ddx-analyzer-options|.
 
 		Default: {}
@@ -121,9 +121,9 @@ ui
 
                                                         *ddx-option-uiOptions*
 uiOptions
-		It is a dictionary that maps UI names to its options.  The
-		options with the name "_" is used as the options for all
-		UIs.
+		It is a dictionary that maps UI names to its options.
+		The options under "_" are applied to all UIs.
+		Options under a specific UI name are then merged on top.
 		See also |ddx-ui-options|.
 
 		Default: {}
@@ -202,7 +202,7 @@ CUSTOM FUNCTIONS                                        *ddx-custom-functions*
 
                                                           *ddx#custom#alias()*
 ddx#custom#alias({type}, {alias-name}, {base-name})
-		Define {alias-name} alias based on {base-name}.
+		Define an alias for a UI.
 		{type} must be "ui".
 		Note: It must be called before initialization.
 
@@ -218,16 +218,18 @@ ddx#custom#get_current({name})
                                                      *ddx#custom#get_global()*
 ddx#custom#get_global()
 		Get global options.
+		NOTE: Call this after the "DenopsPluginPost:ddx" event.
 
                                                       *ddx#custom#get_local()*
 ddx#custom#get_local()
 		Get current buffer specific options.
+		NOTE: Call this after the "DenopsPluginPost:ddx" event.
 
                                                     *ddx#custom#load_config()*
 ddx#custom#load_config({path})
 		Load TypeScript configuration from {path} file.
+		The result is returned asynchronously.
 		NOTE: {path} must be full path.
-		NOTE: The loading is asynchronous.
 		NOTE: Import maps from "deno.json[c]" or "import_map.json[c]"
 		file in the same directory will also be loaded.
 
@@ -320,7 +322,7 @@ onInit			(function)			(Optional)
 
                                                      *ddx-ui-attribute-params*
 params			(function)			(Required)
-		Called to get UI params.
+		Returns the UI parameters.
 
                                                        *ddx-ui-attribute-quit*
 quit			(function)			(Optional)
@@ -359,7 +361,7 @@ onInit			(function)			(Optional)
 
                                                *ddx-analyzer-attribute-params*
 params			(function)			(Required)
-		Called to get analyzer params.
+		Returns the analyzer parameters.
 
                                                 *ddx-analyzer-attribute-parse*
 parse			(function)			(Required)
