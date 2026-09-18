@@ -55,6 +55,12 @@ INTERFACE                                                      *ddx-interface*
 ------------------------------------------------------------------------------
 OPTIONS                                                          *ddx-options*
 
+                                                        *ddx-option-analyzers*
+analyzers
+		Specify analyzer names to use for analysis.
+		Analyzers are tried in the specified order.
+
+		Default: []
                                                   *ddx-option-analyzerOptions*
 analyzerOptions
 		It is a dictionary that maps analyzer names to its options.
@@ -133,8 +139,8 @@ uiParams
 ------------------------------------------------------------------------------
 FUNCTIONS                                                      *ddx-functions*
 
-                                                                 *ddx#analyze*
-ddx#analyze{name})
+                                                               *ddx#analyze()*
+ddx#analyze({name})
 		Return analyzed result in current UI.
 
 		{name} is specified ddx name(|ddx-option-name|).
