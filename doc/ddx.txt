@@ -73,6 +73,7 @@ analyzerOptions
                                                    *ddx-option-analyzerParams*
 analyzerParams
 		It is a dictionary that maps analyzer names to its parameters.
+		The parameters under "_" are applied to all analyzers.
 		See also |ddx-analyzer-params|.
 
 		Default: {}
@@ -90,7 +91,8 @@ anotherPath
 length
 		Specify the file length.
 		If it is 0, it means full file size.
-		NOTE: If it is too big, it may be freezed when open big files.
+		NOTE: If it is too big, it may freeze when opening large
+		files.
 
 		Default: 1 * 1024 * 1024 (1MB)
 
@@ -115,7 +117,7 @@ path
                                                                *ddx-option-ui*
 ui
 		Specify UI name.
-		Note: You must set the option in the first.
+		NOTE: You must set this option first.
 
 		Default: ""
 
@@ -293,7 +295,7 @@ analyzer documentation.
 ==============================================================================
 CREATE UI                                                      *ddx-create-ui*
 
-To create UI, you should read other implementation.
+To create a UI, refer to the implementations of existing UIs.
 
 The UIs must be put under "denops/@ddx-uis/<ui-name>/main.ts".
 
@@ -318,7 +320,7 @@ jump			(function)			(Optional)
 
                                                      *ddx-ui-attribute-onInit*
 onInit			(function)			(Optional)
-		Called before call UI functions.
+		Called before calling UI functions.
 
                                                      *ddx-ui-attribute-params*
 params			(function)			(Required)
@@ -336,7 +338,7 @@ redraw			(function)			(Optional)
 ==============================================================================
 CREATE ANALYZER                                          *ddx-create-analyzer*
 
-To create analyzer, you should read other implementation.
+To create a analyzer, refer to the implementations of existing analyzers.
 
 The analyzers must be put under
 "denops/@ddx-analyzers/<analyzer-name>/main.ts".
@@ -357,7 +359,7 @@ detect			(function)			(Required)
 
                                                *ddx-analyzer-attribute-onInit*
 onInit			(function)			(Optional)
-		Called before call analyzer functions.
+		Called before calling analyzer functions.
 
                                                *ddx-analyzer-attribute-params*
 params			(function)			(Required)
@@ -382,14 +384,14 @@ EXAMPLES                                                        *ddx-examples*
 DDU SOURCES                                                  *ddx-ddu-sources*
 
 ddx_analyze                                       *ddx-ddu-source-ddx_analyze*
-		Nominates ddx analyzed items.
+		Lists ddx analyzed items.
 
 ddx_diff                                             *ddx-ddu-source-ddx_diff*
-		Nominates diff in buffer.
+		Lists differences between buffers.
 		NOTE: |ddx-option-anotherPath| must be set.
 
 ddx_string                                         *ddx-ddu-source-ddx_string*
-		Nominates strings in buffer.
+		Lists strings in buffer.
 
 
 ==============================================================================
