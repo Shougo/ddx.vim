@@ -1,5 +1,9 @@
 import type { DdxBuffer } from "./types.ts";
-import type { AnalyzeValueInteger } from "./base/analyzer.ts";
+import type {
+  AnalyzeResult,
+  AnalyzeValueInteger,
+  AnalyzeValueString,
+} from "./base/analyzer.ts";
 
 import type { Denops } from "@denops/std";
 
@@ -148,6 +152,28 @@ export function arrayEquals(
     if (a[i] !== b[i]) return false;
   }
   return true;
+}
+
+export function parseLine(
+  buffer: DdxBuffer,
+  header: AnalyzeResult,
+  offset: number,
+  line: string,
+): [AnalyzeValueInteger | AnalyzeValueString, number] {
+  const [value, nextOffset] = parseOneLine(line, buffer, offset);
+  header.values.push(value);
+  return [value, nextOffset];
+}
+
+export function parseLineOffset(
+  buffer: DdxBuffer,
+  header: AnalyzeResult,
+  offset: number,
+  line: string,
+): number {
+  const [value, nextOffset] = parseOneLine(line, buffer, offset);
+  header.values.push(value);
+  return nextOffset;
 }
 
 export function parseOneLine(
