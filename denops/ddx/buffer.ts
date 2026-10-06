@@ -315,13 +315,15 @@ export class DdxBuffer {
       path = this.#path;
     }
 
-    if (await exists(path) && this.#origBufferSize !== this.#bytes.length) {
-      await this.#writeResized(path);
+    const stat = await safeStat(path);
+    if (stat && this.#origBufferSize !== this.#bytes.length) {
+      await this.#writeResized(stat, path);
       return;
     }
 
     const file = await Deno.open(path, { write: true, create: true });
 
+    this.stopAllFileWatchers();
     try {
       await file.seek(this.#offset ?? 0, Deno.SeekMode.Start);
 
@@ -334,15 +336,17 @@ export class DdxBuffer {
   }
 
   // Resize the file contents when the buffer size is changed
-  async #writeResized(path: string) {
+  async #writeResized(stat: Deno.FileInfo, path: string) {
     const file = await Deno.open(path, { write: true, create: true });
 
     try {
-      const stat = await safeStat(path);
-
       let remainingData = new Uint8Array(0);
       const offset = this.#offset + this.#origBufferSize;
-      if (stat && stat.size > 0 && offset < stat.size) {
+      if (stat.size > 0 && offset < stat.size) {
+        if (stat.size > this.#bytes.length) {
+          throw new RangeError("Cannot resize the file.");
+        }
+
         await file.seek(offset, Deno.SeekMode.Start);
         remainingData = new Uint8Array(stat.size - offset);
         await file.read(remainingData);

@@ -93,6 +93,8 @@ length
 		If it is 0, it means full file size.
 		NOTE: If it is too big, it may freeze when opening large
 		files.
+		NOTE: If the length is smaller than file size, the file size
+		cannot be changed.
 
 		Default: 1 * 1024 * 1024 (1MB)
 
