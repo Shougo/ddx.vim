@@ -37,7 +37,9 @@ export class Source extends BaseSource<Params> {
 
           for (const value of result.values) {
             controller.enqueue([{
-              word: `  ${value.name}: ${value.value}`,
+              word: `  ${value.name}: ${value.value} (0x${
+                value.value.toString(16)
+              })`,
               action: {
                 value,
               },
