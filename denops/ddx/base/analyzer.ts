@@ -33,7 +33,7 @@ export type AnalyzeValue = AnalyzeValueInteger | AnalyzeValueString;
 export type AnalyzeValueInteger = {
   name: string;
   rawType: "integer";
-  value: number;
+  value: bigint;
   size?: number;
   isLittle?: boolean;
   address: number;

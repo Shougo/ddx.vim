@@ -189,7 +189,7 @@ export function parseOneLine(
   }
   const [, type, name] = match;
 
-  let value: number;
+  let value: number | bigint;
   let size: number;
   const rawType: "integer" | "string" = "integer";
 
@@ -216,6 +216,31 @@ export function parseOneLine(
       ? bytes[0] + (bytes[1] << 8) + (bytes[2] << 16) + (bytes[3] << 24)
       : (bytes[0] << 24) + (bytes[1] << 16) + (bytes[2] << 8) + bytes[3];
     size = 4;
+  } else if (type === "uint64_t") {
+    const bytes = buffer.getBytes(offset, 8);
+    if (bytes.length < 8) {
+      throw new Error(`Cannot get 8 bytes : "${offset}"`);
+    }
+    if (isLittle) {
+      value = (BigInt(bytes[0]) << 0n) |
+        (BigInt(bytes[1]) << 8n) |
+        (BigInt(bytes[2]) << 16n) |
+        (BigInt(bytes[3]) << 24n) |
+        (BigInt(bytes[4]) << 32n) |
+        (BigInt(bytes[5]) << 40n) |
+        (BigInt(bytes[6]) << 48n) |
+        (BigInt(bytes[7]) << 56n);
+    } else {
+      value = (BigInt(bytes[0]) << 56n) |
+        (BigInt(bytes[1]) << 48n) |
+        (BigInt(bytes[2]) << 40n) |
+        (BigInt(bytes[3]) << 32n) |
+        (BigInt(bytes[4]) << 24n) |
+        (BigInt(bytes[5]) << 16n) |
+        (BigInt(bytes[6]) << 8n) |
+        BigInt(bytes[7]);
+    }
+    size = 8;
   } else {
     throw new Error(`Not supported type : "${type}" in "${line}"`);
   }
