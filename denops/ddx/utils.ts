@@ -248,7 +248,7 @@ export function parseOneLine(
   const result: AnalyzeValueInteger = {
     name,
     rawType,
-    value,
+    value: BigInt(value),
     size,
     address: offset,
   };

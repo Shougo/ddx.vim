@@ -43,7 +43,7 @@ export class Source extends BaseSource<Params> {
                 value: {
                   name: text,
                   rawType: "integer" as const,
-                  value: result.oldValue?.[0] ?? 0,
+                  value: BigInt(result.oldValue?.[0] ?? 0),
                   address: result.offset,
                 },
               },
