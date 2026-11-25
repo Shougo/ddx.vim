@@ -1,5 +1,10 @@
 # ddx.vim
 
+**Note**: Active developement has stopped. The only future changes will be bug
+fixes.
+
+Please see [goda-hex.vim](https://github.com/Shougo/goda-hex.vim)
+
 > Dark deno-powered hexadecimal plugin for Vim/Neovim
 
 If you don't want to configure plugins, you don't have to use the plugin. It
